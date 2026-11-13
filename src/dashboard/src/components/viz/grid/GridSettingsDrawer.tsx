@@ -95,23 +95,23 @@ export function GridSettingsDrawer({ open, settings, onChange, onClose }: Drawer
       <div
         ref={rootRef}
         role="dialog"
-        aria-label="Grid viz settings"
+        aria-label="网格可视化设置"
         tabIndex={-1}
         className={styles.drawer}
       >
         <div className={styles.header}>
-          <span style={SETTINGS_SECTION_HEADER_STYLE}>Viz Settings</span>
+          <span style={SETTINGS_SECTION_HEADER_STYLE}>可视化设置</span>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close settings"
+            aria-label="关闭设置"
             className={styles.closeBtn}
           >
             ×
           </button>
         </div>
 
-        <Row label="Animation speed">
+        <Row label="动画速度">
           {([0.5, 1, 2] as const).map(sp => (
             <Pill
               key={sp}
@@ -122,44 +122,44 @@ export function GridSettingsDrawer({ open, settings, onChange, onClose }: Drawer
           ))}
         </Row>
 
-        <Row label="Dept rings">
+        <Row label="部门圆环">
           <Pill active={settings.deptRings} onClick={() => toggle('deptRings', true)} label="on" />
-          <Pill active={!settings.deptRings} onClick={() => toggle('deptRings', false)} label="off" />
+          <Pill active={!settings.deptRings} onClick={() => toggle('deptRings', false)} label="关" />
         </Row>
 
-        <Row label="Dept labels">
+        <Row label="部门标签">
           <Pill active={settings.deptLabels} onClick={() => toggle('deptLabels', true)} label="on" />
-          <Pill active={!settings.deptLabels} onClick={() => toggle('deptLabels', false)} label="off" />
+          <Pill active={!settings.deptLabels} onClick={() => toggle('deptLabels', false)} label="关" />
         </Row>
 
-        <Row label="Family lines">
+        <Row label="亲属连线">
           <Pill active={settings.lines} onClick={() => toggle('lines', true)} label="on" />
-          <Pill active={!settings.lines} onClick={() => toggle('lines', false)} label="off" />
+          <Pill active={!settings.lines} onClick={() => toggle('lines', false)} label="关" />
         </Row>
 
-        <Row label="Star dust bg">
+        <Row label="星尘背景">
           <Pill active={settings.dust} onClick={() => toggle('dust', true)} label="on" />
-          <Pill active={!settings.dust} onClick={() => toggle('dust', false)} label="off" />
+          <Pill active={!settings.dust} onClick={() => toggle('dust', false)} label="关" />
         </Row>
 
-        <Row label="Crosshair">
+        <Row label="十字指示线">
           <Pill active={settings.crosshair} onClick={() => toggle('crosshair', true)} label="on" />
-          <Pill active={!settings.crosshair} onClick={() => toggle('crosshair', false)} label="off" />
+          <Pill active={!settings.crosshair} onClick={() => toggle('crosshair', false)} label="关" />
         </Row>
 
-        <Row label="Ghost trail">
+        <Row label="残影轨迹">
           <Pill active={settings.ghostTrail} onClick={() => toggle('ghostTrail', true)} label="on" />
-          <Pill active={!settings.ghostTrail} onClick={() => toggle('ghostTrail', false)} label="off" />
+          <Pill active={!settings.ghostTrail} onClick={() => toggle('ghostTrail', false)} label="关" />
         </Row>
 
-        <Row label="Alert toasts">
+        <Row label="消息提示">
           <Pill active={settings.alerts} onClick={() => toggle('alerts', true)} label="on" />
-          <Pill active={!settings.alerts} onClick={() => toggle('alerts', false)} label="off" />
+          <Pill active={!settings.alerts} onClick={() => toggle('alerts', false)} label="关" />
         </Row>
 
-        <Row label="Sound cues">
+        <Row label="提示音">
           <Pill active={settings.sound} onClick={() => toggle('sound', true)} label="on" />
-          <Pill active={!settings.sound} onClick={() => toggle('sound', false)} label="off" />
+          <Pill active={!settings.sound} onClick={() => toggle('sound', false)} label="关" />
         </Row>
 
         <button
@@ -168,7 +168,8 @@ export function GridSettingsDrawer({ open, settings, onChange, onClose }: Drawer
           style={SETTINGS_RESET_BUTTON_STYLE}
           className={styles.resetBtn}
         >
-          Reset defaults
+
+          恢复默认
         </button>
       </div>
     </>

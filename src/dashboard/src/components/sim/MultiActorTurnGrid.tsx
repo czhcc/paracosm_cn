@@ -112,7 +112,7 @@ export function MultiActorTurnGrid({ state }: MultiActorTurnGridProps) {
 
         <div ref={scrollRef} onScroll={onScroll} className={styles.scrollY}>
           {turns.length === 0 ? (
-            <div className={styles.empty}>No turns yet — events will appear as the run progresses.</div>
+            <div className={styles.empty}>暂无回合，运行过程中事件将逐步显示。</div>
           ) : (
             turns.map((t) => (
               <MultiActorTurnRow

@@ -53,15 +53,15 @@ function TabIcon({ id, size = 16 }: { id: Tab; size?: number }) {
 // surface). Old `?tab=branches` / `?tab=log` URLs redirect via
 // tab-routing.ts so deep-links from before the merge still resolve.
 const TABS: Array<{ id: Tab; label: string }> = [
-  { id: 'quickstart', label: 'QUICKSTART' },
-  { id: 'studio', label: 'STUDIO' },
-  { id: 'sim', label: 'SIM' },
-  { id: 'viz', label: 'VIZ' },
-  { id: 'chat', label: 'CHAT' },
-  { id: 'reports', label: 'REPORTS' },
-  { id: 'library', label: 'LIBRARY' },
-  { id: 'settings', label: 'SETTINGS' },
-  { id: 'about', label: 'ABOUT' },
+  { id: 'quickstart', label: "快速开始" },
+  { id: 'studio', label: "场景工作室" },
+  { id: 'sim', label: "仿真" },
+  { id: 'viz', label: "可视化" },
+  { id: 'chat', label: "聊天" },
+  { id: 'reports', label: "报告" },
+  { id: 'library', label: "资料库" },
+  { id: 'settings', label: "设置" },
+  { id: 'about', label: "关于" },
 ];
 
 export function TabBar({ active, onTabChange, scenario }: TabBarProps) {
@@ -90,7 +90,7 @@ export function TabBar({ active, onTabChange, scenario }: TabBarProps) {
     <nav
       className={`tab-bar ${styles.root}`}
       role="tablist"
-      aria-label="Dashboard navigation"
+      aria-label="控制台导航"
     >
       {tabs.map((tab, idx) => {
         const isActive = active === tab.id;

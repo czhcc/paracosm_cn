@@ -139,7 +139,7 @@ export function useForgeToasts({ events, replayDone, tourActive }: UseForgeToast
       if (isHistorical) continue;
       alreadyToasted.add(key);
       const d = ev.data as Record<string, unknown>;
-      const name = String(d?.name || 'unnamed tool');
+      const name = String(d?.name || "未命名工具");
       const dept = String(d?.department || ev.leader || '').toUpperCase();
       const approved = d?.approved === true;
       const confidence = typeof d?.confidence === 'number' ? d.confidence : null;
@@ -158,7 +158,7 @@ export function useForgeToasts({ events, replayDone, tourActive }: UseForgeToast
           toast(
             'error',
             `${dept ? `${dept} · ` : ''}rejected ${name}`,
-            reason || 'Judge rejected (no reason provided)',
+            reason || "审查未通过（未提供原因）",
           );
         }
       }, delay);

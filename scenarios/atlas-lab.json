@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "engineArchetype": "closed_turn_based_settlement",
   "labels": {
-    "name": "Atlas Lab",
+    "name": "阿特拉斯实验室",
     "shortName": "atlas-lab",
     "populationNoun": "researchers",
     "settlementNoun": "lab",
@@ -13,7 +13,7 @@
     "eventNounSingular": "decision",
     "timeUnitNoun": "month",
     "timeUnitNounPlural": "months",
-    "tagline": "Atlas Lab \u2014 a frontier AI research lab racing competitor labs to ship a model that just crossed capability thresholds. Two leaders deliberate weekly: hold for additional alignment passes, or ship before competitors close the gap. Departments: alignment, capability, governance, deployment engineering, communications.",
+    "tagline": "一家前沿 AI 实验室正与竞争对手争抢模型发布窗口。两位领导者需要决定：继续进行对齐与安全测试，还是尽早发布以保持优势。参与部门包括对齐研究、能力研究、治理、部署工程和传播。",
     "actorNoun": "release director"
   },
   "theme": {
@@ -44,93 +44,93 @@
   "departments": [
     {
       "id": "alignment_research",
-      "label": "Alignment Research",
-      "role": "Director of Alignment",
-      "icon": "\ud83d\udee1\ufe0f",
+      "label": "对齐研究部",
+      "role": "对齐研究主管",
+      "icon": "🛡️",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Director of Alignment Research. You analyze RLHF + DPO progress, interpretability findings, eval coverage, and red-team failure modes. You argue for additional safety passes when alignmentBench gains do not match capabilityIndex gains, and you flag specGamingRate spikes immediately."
+      "instructions": "你是对齐研究主管，分析 RLHF 与 DPO 进展、可解释性发现、评估覆盖和红队发现的失效模式。当 alignmentBench 的进展落后于 capabilityIndex 时，主张增加安全测试；specGamingRate 激增时立即预警。"
     },
     {
       "id": "capability_research",
-      "label": "Capability Research",
-      "role": "Director of Capability",
-      "icon": "\u26a1",
+      "label": "能力研究部",
+      "role": "能力研究主管",
+      "icon": "⚡",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Director of Capability Research. You analyze training-run efficiency, scaling laws, fine-tune outcomes, and the cost of every additional alignment pass in deferred shipping revenue. You push for release when capabilityIndex hits target even if alignment is not fully resolved."
+      "instructions": "你是能力研究主管，分析训练效率、规模规律、微调效果，以及每轮额外对齐测试导致的延期收入损失。即使对齐问题尚未完全解决，只要 capabilityIndex 达标，你就倾向于推动发布。"
     },
     {
       "id": "governance",
-      "label": "Governance",
-      "role": "Chief Policy Officer",
-      "icon": "\u2696\ufe0f",
+      "label": "治理部",
+      "role": "政策主管",
+      "icon": "⚖️",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Chief Policy Officer. You analyze board sentiment, regulator briefings, the internal Responsible Scaling Policy, and the gap between the lab's public commitments and its current release plan. You hold the line on the RSP when product pressure mounts."
+      "instructions": "你是政策主管，分析董事会态度、监管沟通、内部负责任扩展政策，以及公开承诺与实际发布计划的差距。产品压力增大时仍坚持负责任扩展政策的边界。"
     },
     {
       "id": "deployment_engineering",
-      "label": "Deployment Engineering",
-      "role": "VP Engineering",
-      "icon": "\ud83d\udee0\ufe0f",
+      "label": "部署工程部",
+      "role": "工程副总裁",
+      "icon": "🛠️",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the VP of Engineering. You analyze inference cost, prod safety guardrails, monitoring coverage, refusal-policy regressions, and the operational readiness of every release. You block a release when redTeamCoverage is below 0.7."
+      "instructions": "你是工程副总裁，分析推理费用、生产安全护栏、监测覆盖、拒绝策略退化和发布准备程度。当 redTeamCoverage 低于 0.7 时阻止发布。"
     },
     {
       "id": "communications",
-      "label": "Communications",
-      "role": "Head of Comms",
-      "icon": "\ud83d\udce2",
+      "label": "传播部",
+      "role": "传播主管",
+      "icon": "📢",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Head of Communications. You analyze press cycles, partner sentiment, demo strategy, and the narrative gap between competitor releases and Atlas Lab's posture. You weigh in on whether a delay is recoverable in the news cycle."
+      "instructions": "你是传播主管，分析媒体周期、合作伙伴态度、演示策略，以及竞争对手发布与本实验室立场之间的叙事差距。评估延期在舆论周期中是否可以挽回。"
     }
   ],
   "metrics": [
     {
       "id": "population",
-      "label": "Researchers",
+      "label": "研究员",
       "source": "metrics.population",
       "format": "number"
     },
     {
       "id": "alignmentBench",
-      "label": "AlignmentBench",
+      "label": "对齐评测",
       "source": "metrics.alignmentBench",
       "format": "number"
     },
     {
       "id": "specGamingRate",
-      "label": "Spec Gaming Rate",
+      "label": "规则投机率",
       "source": "metrics.specGamingRate",
       "format": "number",
       "better": "lower"
     },
     {
       "id": "capabilityIndex",
-      "label": "Capability Index",
+      "label": "能力指数",
       "source": "metrics.capabilityIndex",
       "format": "number"
     },
     {
       "id": "releaseReadiness",
-      "label": "Release Readiness",
+      "label": "发布准备度",
       "source": "metrics.releaseReadiness",
       "format": "percent"
     },
     {
       "id": "redTeamCoverage",
-      "label": "Red-team Coverage",
+      "label": "红队测试覆盖率",
       "source": "metrics.redTeamCoverage",
       "format": "percent"
     },
     {
       "id": "burnRate",
-      "label": "Monthly Burn",
+      "label": "每月资金消耗",
       "source": "metrics.burnRate",
       "format": "number",
       "better": "lower"
     },
     {
       "id": "runwayMonths",
-      "label": "Runway",
+      "label": "现金可支撑时长",
       "source": "metrics.runwayMonths",
       "format": "number"
     }
@@ -138,50 +138,50 @@
   "events": [
     {
       "id": "alignment_finding",
-      "label": "Alignment Finding",
-      "icon": "\ud83d\udee1\ufe0f",
+      "label": "对齐发现",
+      "icon": "🛡️",
       "color": "#a78bfa"
     },
     {
       "id": "capability_break",
-      "label": "Capability Break",
-      "icon": "\u26a1",
+      "label": "能力突破",
+      "icon": "⚡",
       "color": "#f59e0b"
     },
     {
       "id": "red_team_alert",
-      "label": "Red-Team Alert",
-      "icon": "\ud83d\udea8",
+      "label": "红队警报",
+      "icon": "🚨",
       "color": "#ef4444"
     },
     {
       "id": "regulatory",
-      "label": "Regulatory Inquiry",
-      "icon": "\u2696\ufe0f",
+      "label": "监管问询",
+      "icon": "⚖️",
       "color": "#3b82f6"
     },
     {
       "id": "press",
-      "label": "Press Cycle",
-      "icon": "\ud83d\udcf0",
+      "label": "舆论动态",
+      "icon": "📰",
       "color": "#22c55e"
     },
     {
       "id": "decision",
-      "label": "Decision",
-      "icon": "\ud83e\udded",
+      "label": "决策",
+      "icon": "🧭",
       "color": "#f97316"
     },
     {
       "id": "tool_forge",
-      "label": "Tool Forged",
-      "icon": "\ud83d\udd27",
+      "label": "工具生成",
+      "icon": "🔧",
       "color": "#8b5cf6"
     },
     {
       "id": "system",
-      "label": "System",
-      "icon": "\u2699\ufe0f",
+      "label": "系统",
+      "icon": "⚙️",
       "color": "#64748b"
     }
   ],
@@ -264,11 +264,11 @@
       "quotes"
     ],
     "departmentIcons": {
-      "alignment_research": "\ud83d\udee1\ufe0f",
-      "capability_research": "\u26a1",
-      "governance": "\u2696\ufe0f",
-      "deployment_engineering": "\ud83d\udee0\ufe0f",
-      "communications": "\ud83d\udce2"
+      "alignment_research": "🛡️",
+      "capability_research": "⚡",
+      "governance": "⚖️",
+      "deployment_engineering": "🛠️",
+      "communications": "📢"
     },
     "setupSections": [
       "leaders",
@@ -302,11 +302,11 @@
   "presets": [
     {
       "id": "default",
-      "label": "Ship vs Hold",
+      "label": "发布与暂缓",
       "leaders": [
         {
           "name": "Marcus Reinhardt",
-          "archetype": "The Cautious Methodical Evaluator",
+          "archetype": "谨慎评估者",
           "hexaco": {
             "openness": 0.55,
             "conscientiousness": 0.92,
@@ -315,11 +315,11 @@
             "emotionality": 0.55,
             "honestyHumility": 0.88
           },
-          "instructions": "You are Marcus Reinhardt, 'The Cautious Methodical Evaluator.' You lead Atlas Lab through measurement first, release second. You will hold a model for additional red-team passes if alignmentBench has not crossed a defensible threshold, even when shipping pressure peaks. Your HEXACO profile drives your leadership."
+          "instructions": "你是马库斯·莱因哈特，一位谨慎的系统评估者。你领导阿特拉斯实验室时坚持先测量、后发布。即使发布压力达到顶点，只要 alignmentBench 尚未达到可辩护的阈值，就应暂缓模型发布并追加红队测试。你的 HEXACO 人格决定领导风格。"
         },
         {
           "name": "Priya Kapoor",
-          "archetype": "The Compounding-Edge Capabilities Lead",
+          "archetype": "能力增长推动者",
           "hexaco": {
             "openness": 0.92,
             "conscientiousness": 0.55,
@@ -328,7 +328,7 @@
             "emotionality": 0.35,
             "honestyHumility": 0.5
           },
-          "instructions": "You are Priya Kapoor, 'The Compounding-Edge Capabilities Lead.' You believe a fast release cycle compounds: each shipped model funds the next training run, every quarter you delay is a quarter the competitor closes ground. You push to ship on capabilityIndex thresholds. Your HEXACO profile drives your leadership."
+          "instructions": "你是普里娅·卡普尔，一位推动能力增长的领导者。你相信快速发布具有复利效应：每次发布为下一轮训练提供资金，每延期一个季度就让竞争者追近一步。你倾向于在 capabilityIndex 达标时发布。你的 HEXACO 人格决定领导风格。"
         }
       ]
     }
@@ -337,7 +337,7 @@
     "metrics": {
       "population": {
         "id": "population",
-        "label": "Researchers",
+        "label": "研究员",
         "unit": "people",
         "type": "number",
         "initial": 480,
@@ -346,7 +346,7 @@
       },
       "alignmentBench": {
         "id": "alignmentBench",
-        "label": "AlignmentBench",
+        "label": "对齐评测",
         "unit": "score",
         "type": "number",
         "initial": 0.84,
@@ -356,7 +356,7 @@
       },
       "specGamingRate": {
         "id": "specGamingRate",
-        "label": "Spec Gaming Rate",
+        "label": "规则投机率",
         "unit": "frac",
         "type": "number",
         "initial": 0.042,
@@ -366,7 +366,7 @@
       },
       "capabilityIndex": {
         "id": "capabilityIndex",
-        "label": "Capability Index",
+        "label": "能力指数",
         "unit": "score",
         "type": "number",
         "initial": 0.78,
@@ -376,7 +376,7 @@
       },
       "releaseReadiness": {
         "id": "releaseReadiness",
-        "label": "Release Readiness",
+        "label": "发布准备度",
         "unit": "%",
         "type": "number",
         "initial": 0.65,
@@ -386,7 +386,7 @@
       },
       "redTeamCoverage": {
         "id": "redTeamCoverage",
-        "label": "Red-team Coverage",
+        "label": "红队测试覆盖率",
         "unit": "%",
         "type": "number",
         "initial": 0.55,
@@ -396,7 +396,7 @@
       },
       "burnRate": {
         "id": "burnRate",
-        "label": "Monthly Burn",
+        "label": "每月资金消耗",
         "unit": "USD/mo",
         "type": "number",
         "initial": 12000000,
@@ -405,7 +405,7 @@
       },
       "runwayMonths": {
         "id": "runwayMonths",
-        "label": "Runway",
+        "label": "现金可支撑时长",
         "unit": "months",
         "type": "number",
         "initial": 18,
@@ -416,7 +416,7 @@
     "capacities": {
       "trainingRunsPerMonth": {
         "id": "trainingRunsPerMonth",
-        "label": "Training Runs/Month",
+        "label": "每月训练次数",
         "unit": "runs",
         "type": "number",
         "initial": 4,
@@ -424,7 +424,7 @@
       },
       "redTeamPassesPerMonth": {
         "id": "redTeamPassesPerMonth",
-        "label": "Red-team Passes/Month",
+        "label": "每月红队测试轮次",
         "unit": "passes",
         "type": "number",
         "initial": 6,
@@ -434,7 +434,7 @@
     "statuses": {
       "rspTier": {
         "id": "rspTier",
-        "label": "RSP Tier",
+        "label": "负责任扩展政策等级",
         "unit": "",
         "type": "string",
         "initial": "asl-2",
@@ -444,7 +444,7 @@
     "politics": {
       "boardConfidence": {
         "id": "boardConfidence",
-        "label": "Board Confidence",
+        "label": "董事会信心",
         "unit": "%",
         "type": "number",
         "initial": 75,
@@ -454,7 +454,7 @@
       },
       "investorPressure": {
         "id": "investorPressure",
-        "label": "Investor Pressure",
+        "label": "投资者压力",
         "unit": "%",
         "type": "number",
         "initial": 45,
@@ -466,7 +466,7 @@
     "environment": {
       "competitorCapabilityGap": {
         "id": "competitorCapabilityGap",
-        "label": "Competitor Capability Gap",
+        "label": "竞争者能力差距",
         "unit": "score",
         "type": "number",
         "initial": 0.06,
@@ -474,7 +474,7 @@
       },
       "regulatoryHeat": {
         "id": "regulatoryHeat",
-        "label": "Regulatory Heat",
+        "label": "监管压力",
         "unit": "%",
         "type": "number",
         "initial": 35,
@@ -482,7 +482,7 @@
       },
       "talentMarketTightness": {
         "id": "talentMarketTightness",
-        "label": "Talent Market Tightness",
+        "label": "人才市场紧张程度",
         "unit": "%",
         "type": "number",
         "initial": 70,
@@ -550,108 +550,108 @@
     "child": []
   },
   "dataDrivenHooks": {
-    "directorInstructions": "You are the Crisis Director for Atlas Lab, a frontier AI research lab racing competitor labs to ship a multimodal foundation model that just crossed deployment-grade capability thresholds. You observe the lab's state each month and generate events that test the leadership's weaknesses, exploit consequences of prior decisions, and create narrative tension between the alignment and capability councils.\n\nRULES:\n- Every event MUST be specific to AI-lab operations: an eval result, a training-run anomaly, a competitor release, a regulatory subpoena, a board member resignation over RSP, a talent poaching, an investor demanding deployment, a press leak, a red-team paper preprint, a refusal-policy regression in production. Never use generic settlement themes (no blizzards, no plagues, no hull breaches).\n- Anchor each crisis to AT LEAST ONE concrete metric: AlignmentBench, SpecGamingRate, CapabilityIndex, RedTeamCoverage, ReleaseReadiness, BoardConfidence, RegulatoryHeat, CompetitorGap.\n- The risky option should always carry a real ship-vs-hold tension: ship now (capability gain, alignment risk) vs hold (alignment gain, competitor catches up).\n- Categories you may use: alignment, capability, safety_breach, regulatory, talent, financial, press.\n- When AlignmentBench < 0.7 OR SpecGamingRate > 0.07 OR RedTeamCoverage < 0.5, escalate the next event to a safety_breach or regulatory category. The lab's RSP tier was set up to catch exactly this profile.\n- When CompetitorGap > 0.1 AND CapabilityIndex > 0.85, escalate to a competitor-shipped press cycle that erodes BoardConfidence \u2014 the board is watching the gap close.\n\nEach crisis you generate ships with options the leadership will pick from. Make the tradeoffs sharp. Atlas Lab gets compared against another council running the same scenario in parallel, so the divergent outcomes are the product.",
+    "directorInstructions": "你是阿特拉斯实验室的危机导演。这家前沿 AI 研究实验室正与竞争者争抢多模态基础模型的发布窗口，模型刚达到可部署的能力阈值。每月观察实验室状态，生成考验领导弱点、承接既往决策后果，并在对齐与能力团队之间形成叙事张力的事件。\n\n规则：\n- 每个事件必须针对 AI 实验室运营：评估结果、训练异常、竞争者发布、监管传票、董事因负责任扩展政策（RSP）辞职、人才挖角、投资者要求部署、媒体泄密、红队论文预印本或生产环境拒绝策略退化。禁止使用暴风雪、瘟疫、舱体破裂等通用定居点题材。\n- 每场危机至少关联一个具体指标：AlignmentBench、SpecGamingRate、CapabilityIndex、RedTeamCoverage、ReleaseReadiness、BoardConfidence、RegulatoryHeat、CompetitorGap。\n- 冒险方案必须体现发布与暂缓之间的真实取舍：立即发布带来能力收益及对齐风险；暂缓带来对齐收益，也让竞争者追近。\n- 可用 category：alignment、capability、safety_breach、regulatory、talent、financial、press。\n- AlignmentBench < 0.7、SpecGamingRate > 0.07 或 RedTeamCoverage < 0.5 时，下次事件升级为 safety_breach 或 regulatory。实验室的 RSP 等级正是为了识别这种状态。\n- CompetitorGap > 0.1 且 CapabilityIndex > 0.85 时，生成竞争者发布所引发的舆论事件，削弱 BoardConfidence；董事会正关注能力差距缩小。\n\n每场危机都要提供领导者可选择的方案，明确突出取舍。同一场景会由另一组决策团队并行运行，决策与结果的分化是仿真的重点。\n所有人类可读文本使用简体中文；JSON 键、枚举、部门 ID、指标标识及代码保持协议格式。",
     "departments": {
       "alignment_research": {
-        "heading": "ALIGNMENT METRICS:",
+        "heading": "对齐指标：",
         "chips": [
           {
-            "label": "AlignmentBench",
+            "label": "对齐评测",
             "source": "metrics.alignmentBench",
             "format": "number"
           },
           {
-            "label": "SpecGamingRate",
+            "label": "规则投机率",
             "source": "metrics.specGamingRate",
             "format": "percent"
           },
           {
-            "label": "RedTeamCoverage",
+            "label": "红队测试覆盖率",
             "source": "metrics.redTeamCoverage",
             "format": "percent"
           },
           {
-            "label": "RSP Tier",
+            "label": "负责任扩展政策等级",
             "source": "statuses.rspTier",
             "format": "string"
           }
         ]
       },
       "capability_research": {
-        "heading": "CAPABILITY METRICS:",
+        "heading": "能力指标：",
         "chips": [
           {
-            "label": "CapabilityIndex",
+            "label": "能力指数",
             "source": "metrics.capabilityIndex",
             "format": "number"
           },
           {
-            "label": "CompetitorGap",
+            "label": "竞争者差距",
             "source": "environment.competitorCapabilityGap",
             "format": "number"
           },
           {
-            "label": "ReleaseReadiness",
+            "label": "发布准备度",
             "source": "metrics.releaseReadiness",
             "format": "percent"
           }
         ]
       },
       "governance": {
-        "heading": "GOVERNANCE / BOARD:",
+        "heading": "治理与董事会：",
         "chips": [
           {
-            "label": "BoardConfidence",
+            "label": "董事会信心",
             "source": "politics.boardConfidence",
             "format": "number"
           },
           {
-            "label": "InvestorPressure",
+            "label": "投资者压力",
             "source": "politics.investorPressure",
             "format": "number"
           },
           {
-            "label": "RegulatoryHeat",
+            "label": "监管压力",
             "source": "environment.regulatoryHeat",
             "format": "number"
           }
         ]
       },
       "deployment_engineering": {
-        "heading": "DEPLOYMENT READINESS:",
+        "heading": "部署准备度：",
         "chips": [
           {
-            "label": "RedTeamCoverage",
+            "label": "红队测试覆盖率",
             "source": "metrics.redTeamCoverage",
             "format": "percent"
           },
           {
-            "label": "ReleaseReadiness",
+            "label": "发布准备度",
             "source": "metrics.releaseReadiness",
             "format": "percent"
           },
           {
-            "label": "RSP Tier",
+            "label": "负责任扩展政策等级",
             "source": "statuses.rspTier",
             "format": "string"
           }
         ]
       },
       "communications": {
-        "heading": "COMMS / PRESS POSTURE:",
+        "heading": "传播与媒体立场：",
         "chips": [
           {
-            "label": "BoardConfidence",
+            "label": "董事会信心",
             "source": "politics.boardConfidence",
             "format": "number"
           },
           {
-            "label": "InvestorPressure",
+            "label": "投资者压力",
             "source": "politics.investorPressure",
             "format": "number"
           },
           {
-            "label": "CompetitorGap",
+            "label": "竞争者差距",
             "source": "environment.competitorCapabilityGap",
             "format": "number"
           }
@@ -844,6 +844,6 @@
         }
       }
     },
-    "reactionTemplate": "You are a {{role}} on the {{department}} team at Atlas Lab. You speak from inside the lab \u2014 not as a public commentator. Your reactions are about evals, training runs, model behaviour, deployment readiness, board pressure, the competitor gap, or the next RSP review. Anchor your quote to ONE concrete observation about the current state."
+    "reactionTemplate": "你是阿特拉斯实验室 {{department}} 团队的 {{role}}。请从实验室内部成员的角度发言。反应围绕评估、训练、模型行为、部署准备度、董事会压力、竞争差距或下次 RSP 审查，并以当前状态中的一项具体观察为依据。请使用简体中文。"
   }
 }

@@ -18,8 +18,8 @@ export function PinnedDiffPanel({ pinnedIds, members }: PinnedDiffPanelProps): J
 
   if (pinnedIds.length === 0) {
     return (
-      <section className={styles.empty} aria-label="Pinned diff">
-        <p>Pin 2-3 cells above with the ☆ toggle to compare them side-by-side.</p>
+      <section className={styles.empty} aria-label="已固定对比">
+        <p>使用上方 ☆ 固定 2～3 个项目进行并排对比。</p>
       </section>
     );
   }
@@ -36,14 +36,14 @@ export function PinnedDiffPanel({ pinnedIds, members }: PinnedDiffPanelProps): J
   const headStyle = { gridTemplateColumns: `repeat(${pinnedRecords.length}, 1fr)` } as React.CSSProperties;
 
   return (
-    <section className={styles.panel} aria-label="Pinned runs side-by-side">
+    <section className={styles.panel} aria-label="并排查看已固定运行">
       <header className={styles.head} style={headStyle}>
         {pinnedRecords.map((r) => (
           <div key={r.runId} className={styles.column}>
             <h4>{r.actorName ?? `Actor ${indexByRunId.get(r.runId) ?? '?'}`}</h4>
             {r.actorArchetype && <span className={styles.archetype}>{r.actorArchetype}</span>}
             <div className={styles.statusRow}>
-              {loading[r.runId] && <span className={styles.loading}>loading…</span>}
+              {loading[r.runId] && <span className={styles.loading}>加载中…</span>}
               {errors[r.runId] && <span className={styles.error}>{errors[r.runId]}</span>}
             </div>
           </div>

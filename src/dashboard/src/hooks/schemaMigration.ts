@@ -49,7 +49,7 @@ export class SchemaVersionTooNewError extends Error {
     public readonly dashboardVersion: number,
   ) {
     super(
-      `Save file is schema v${fileVersion}; this dashboard supports up to v${dashboardVersion}.`,
+      `Save file is schema v${fileVersion}；此控制台最高支持版本 v${dashboardVersion}.`,
     );
     Object.setPrototypeOf(this, SchemaVersionTooNewError.prototype);
   }
@@ -63,7 +63,7 @@ export class SchemaVersionTooNewError extends Error {
 export class SchemaVersionGapError extends Error {
   override readonly name = 'SchemaVersionGapError';
   constructor(public readonly missingFromVersion: number) {
-    super(`No migration registered from schema v${missingFromVersion}.`);
+    super(`没有可用的结构迁移，起始版本 v${missingFromVersion}.`);
     Object.setPrototypeOf(this, SchemaVersionGapError.prototype);
   }
 }

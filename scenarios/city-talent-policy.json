@@ -1,0 +1,196 @@
+{
+  "id": "city-talent-policy",
+  "version": "1.0.0",
+  "engineArchetype": "closed_turn_based_settlement",
+  "labels": {
+    "name": "双城引才：经济成长与城市吸引力",
+    "shortName": "city-talent",
+    "populationNoun": "代表性居民",
+    "settlementNoun": "城市",
+    "currency": "亿元",
+    "eventNoun": "政策议题",
+    "eventNounSingular": "政策议题",
+    "timeUnitNoun": "year",
+    "timeUnitNounPlural": "years",
+    "actorNoun": "市长",
+    "actorNounPlural": "市长",
+    "tagline": "八年政策推演：两座虚拟城市初始条件相同，市长初始人格相同，分别实施直接激励与发展环境两种引才政策。比较经济成长与城市吸引力；数值为未校准的实验假设。"
+  },
+  "theme": {
+    "primaryColor": "#0f766e",
+    "accentColor": "#f59e0b",
+    "cssVariables": { "--accent": "#0f766e" }
+  },
+  "setup": {
+    "defaultTurns": 8,
+    "defaultSeed": 2026,
+    "defaultStartTime": 2026,
+    "defaultTimePerTurn": 1,
+    "defaultPopulation": 100,
+    "maxEventsPerTurn": 1,
+    "mortalityDice": "life",
+    "configurableSections": ["actors", "personnel", "resources", "departments", "events", "models"]
+  },
+  "departments": [
+    {
+      "id": "economy",
+      "label": "经济发展局",
+      "role": "经济发展局长",
+      "icon": "📈",
+      "instructions": "分析实际经济产出指数与劳动生产率，区分人才流入、就业匹配和创新转化的贡献。两城初始条件相同，不根据市长姓名或人格评价政策。只按本城已批准的政策分析；不得预设任何策略必胜。明确效果的时间滞后、假设和不确定性。提出有依据且幅度适中的 recommendedEffects，不能把叙述中的预测当作已经发生的状态变化。所有可读文本使用简体中文。"
+    },
+    {
+      "id": "talent",
+      "label": "人才与就业局",
+      "role": "人才与就业局长",
+      "icon": "🧑‍🎓",
+      "instructions": "分析人才存量指数、留存率、岗位匹配和本地人才发展。区分签约、实际到岗与持续留任，不把补贴申请数等同于新增人才。直接激励关注兑现、匹配和到期留存；发展环境关注岗位质量和平台可用性。不得把代表性居民人数换算为全市人口或人才总量。建议同时报告收益和住房、财政等成本。所有可读文本使用简体中文。"
+    },
+    {
+      "id": "science",
+      "label": "科技与产业局",
+      "role": "科技与产业局长",
+      "icon": "🔬",
+      "instructions": "分析创新转化指数、科研平台利用和企业吸纳能力。区分投入、项目启动、实际成果和经济产出，避免同一收益重复记账。科研与平台建设通常需要时间，但本场景不规定其必然优于直接激励；按实际状态提出小幅、可解释的效果。不得伪造外部研究或把内部工具计算标为真实文献。所有可读文本使用简体中文。"
+    },
+    {
+      "id": "finance",
+      "label": "财政局",
+      "role": "财政局长",
+      "icon": "💰",
+      "instructions": "核对每年的政策支出、累计支出与政策资金余额。两城各有80亿元专项资金，每年目标投入10亿元；只在现有资金内安排，不得依赖未建模的新增税收、债务或中央补助。每笔支出同时建议 policySpend 增加及 fiscalReserve 等额减少；不要重复扣除已由事件结果计入的成本。指出无法核验或超预算的提议。此预算是执行指令，不能声称引擎已实现自动年度预算审计。所有可读文本使用简体中文。"
+    },
+    {
+      "id": "services",
+      "label": "住房与公共服务局",
+      "role": "住房与公共服务局长",
+      "icon": "🏙️",
+      "instructions": "分析住房支出占收入比、公共服务指数和城市吸引力，兼顾引进人才与原有居民。吸引力为0至100的情景代理指数，不是现实城市排名，也不是模型的主观赞美分。只有出现可解释的就业、居住或服务变化时才建议调整。住房负担上升为不利变化；财政补贴不得被等同于长期生活质量改善。所有可读文本使用简体中文。"
+    }
+  ],
+  "metrics": [
+    { "id": "gdpIndex", "label": "实际经济产出指数（基期100）", "source": "metrics.gdpIndex", "format": "number" },
+    { "id": "attractiveness", "label": "城市吸引力（0至100）", "source": "metrics.attractiveness", "format": "number" },
+    { "id": "productivityIndex", "label": "劳动生产率指数（基期100）", "source": "metrics.productivityIndex", "format": "number" },
+    { "id": "talentStockIndex", "label": "科技人才存量指数（基期100）", "source": "metrics.talentStockIndex", "format": "number" },
+    { "id": "retentionRate", "label": "人才留存率（情景代理）", "source": "metrics.retentionRate", "format": "percent" },
+    { "id": "innovationIndex", "label": "创新转化指数（基期100）", "source": "metrics.innovationIndex", "format": "number" },
+    { "id": "publicServicesIndex", "label": "公共服务指数（0至100）", "source": "metrics.publicServicesIndex", "format": "number" },
+    { "id": "housingBurden", "label": "住房支出占收入比", "source": "metrics.housingBurden", "format": "percent", "better": "lower" },
+    { "id": "fiscalReserve", "label": "政策资金余额（亿元）", "source": "metrics.fiscalReserve", "format": "number" },
+    { "id": "policySpend", "label": "累计政策支出（亿元）", "source": "metrics.policySpend", "format": "number", "better": "lower" }
+  ],
+  "events": [
+    { "id": "crisis", "label": "政策议题", "icon": "🏙️", "color": "#0f766e" },
+    { "id": "decision", "label": "政策决策", "icon": "🧭", "color": "#f59e0b" },
+    { "id": "tool_forge", "label": "分析工具生成", "icon": "🔧", "color": "#8b5cf6" }
+  ],
+  "effects": {
+    "policy-launch": { "gdpIndex": 1, "attractiveness": 1, "talentStockIndex": 2, "fiscalReserve": -5, "policySpend": 5 },
+    "talent-market": { "talentStockIndex": 2, "retentionRate": 0.01, "gdpIndex": 1, "housingBurden": 0.005, "fiscalReserve": -5, "policySpend": 5 },
+    "housing-services": { "publicServicesIndex": 2, "housingBurden": -0.005, "attractiveness": 1, "fiscalReserve": -5, "policySpend": 5 },
+    "industry-cycle": { "gdpIndex": 1, "productivityIndex": 1, "innovationIndex": 2, "fiscalReserve": -5, "policySpend": 5 },
+    "retention-review": { "retentionRate": 0.01, "talentStockIndex": 1, "attractiveness": 1, "fiscalReserve": -5, "policySpend": 5 },
+    "innovation-transfer": { "innovationIndex": 2, "productivityIndex": 1, "gdpIndex": 2, "fiscalReserve": -5, "policySpend": 5 },
+    "fiscal-pressure": { "gdpIndex": 1, "attractiveness": 1, "publicServicesIndex": 1, "fiscalReserve": -5, "policySpend": 5 },
+    "final-review": { "gdpIndex": 0, "attractiveness": 0 }
+  },
+  "ui": {
+    "headerMetrics": [
+      { "id": "gdpIndex", "format": "number" },
+      { "id": "attractiveness", "format": "number" },
+      { "id": "talentStockIndex", "format": "number" },
+      { "id": "retentionRate", "format": "percent" },
+      { "id": "fiscalReserve", "format": "number" },
+      { "id": "policySpend", "format": "number" }
+    ],
+    "tooltipFields": ["psychScore"],
+    "reportSections": ["crisis", "departments", "decision", "outcome", "quotes"],
+    "departmentIcons": { "economy": "📈", "talent": "🧑‍🎓", "science": "🔬", "finance": "💰", "services": "🏙️" },
+    "setupSections": ["actors", "personnel", "resources", "departments", "events", "models"]
+  },
+  "policies": {
+    "toolForging": { "enabled": true, "requiredPerDepartment": false },
+    "liveSearch": { "enabled": false, "mode": "off" },
+    "bulletin": { "enabled": true },
+    "characterChat": { "enabled": true },
+    "sandbox": { "timeoutMs": 10000, "memoryMB": 128 }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "label": "相同初始人格，不同引才政策",
+      "leaders": [
+        {
+          "name": "甲城市长·林衡",
+          "archetype": "直接激励政策市长",
+          "hexaco": { "openness": 0.65, "conscientiousness": 0.75, "extraversion": 0.55, "agreeableness": 0.65, "emotionality": 0.45, "honestyHumility": 0.8 },
+          "instructions": "你是甲城的市长林衡。你的初始人格、能力、信息权限、评价目标与乙城市长相同；差异仅是获得授权的人才政策。固定实施政策A：直接激励。年度目标预算10亿元，其中60%用于人才补贴、20%用于住房支持、20%用于科研启动资金；可在年度内将各项占比上下调整10个百分点，总和必须100%，不得改换为政策B。两城初始专项资金均为80亿元，不举债、不虚构追加拨款。每次决策说明当年预算、累计成本及对经济成长和城市吸引力的预期影响；面对相同外部事件，采用本政策范围内的应对。资金不足时缩减执行规模。补贴不得被直接当作GDP增长，人才签约不等于留存，需考虑岗位匹配、兑现和补贴到期。不得因政策名称为本城预设优势。最终分别比较实际经济产出指数和城市吸引力，不按人格评优，不擅自加权选综合冠军。所有可读文本使用简体中文，保留JSON键和指标ID。"
+        },
+        {
+          "name": "乙城市长·林衡",
+          "archetype": "发展环境政策市长",
+          "hexaco": { "openness": 0.65, "conscientiousness": 0.75, "extraversion": 0.55, "agreeableness": 0.65, "emotionality": 0.45, "honestyHumility": 0.8 },
+          "instructions": "你是乙城的市长林衡。你的初始人格、能力、信息权限、评价目标与甲城市长相同；差异仅是获得授权的人才政策。固定实施政策B：发展环境。年度目标预算10亿元，其中40%用于共享科研平台、30%用于产业岗位与成果转化支持、30%用于教育医疗等公共服务；可在年度内将各项占比上下调整10个百分点，总和必须100%，不得改换为政策A。两城初始专项资金均为80亿元，不举债、不虚构追加拨款。每次决策说明当年预算、累计成本及对经济成长和城市吸引力的预期影响；面对相同外部事件，采用本政策范围内的应对。资金不足时缩减执行规模。平台立项不等于产出，须考虑建设时滞、利用率、企业岗位和人才匹配；不得假定长期投入必然成功。不得因政策名称为本城预设优势。最终分别比较实际经济产出指数和城市吸引力，不按人格评优，不擅自加权选综合冠军。所有可读文本使用简体中文，保留JSON键和指标ID。"
+        }
+      ]
+    }
+  ],
+  "world": {
+    "metrics": {
+      "population": { "id": "population", "label": "代表性居民样本（非全市人口）", "unit": "人", "type": "number", "initial": 100, "min": 0, "category": "metric" },
+      "morale": { "id": "morale", "label": "样本居民满意度", "unit": "%", "type": "number", "initial": 0.7, "min": 0, "max": 1, "category": "metric" },
+      "gdpIndex": { "id": "gdpIndex", "label": "实际经济产出指数", "unit": "基期100", "type": "number", "initial": 100, "min": 0, "category": "metric" },
+      "attractiveness": { "id": "attractiveness", "label": "城市吸引力", "unit": "分", "type": "number", "initial": 50, "min": 0, "max": 100, "category": "metric" },
+      "productivityIndex": { "id": "productivityIndex", "label": "劳动生产率指数", "unit": "基期100", "type": "number", "initial": 100, "min": 0, "category": "metric" },
+      "talentStockIndex": { "id": "talentStockIndex", "label": "科技人才存量指数", "unit": "基期100", "type": "number", "initial": 100, "min": 0, "category": "metric" },
+      "retentionRate": { "id": "retentionRate", "label": "人才留存率代理", "unit": "%", "type": "number", "initial": 0.75, "min": 0, "max": 1, "category": "metric" },
+      "innovationIndex": { "id": "innovationIndex", "label": "创新转化指数", "unit": "基期100", "type": "number", "initial": 100, "min": 0, "category": "metric" },
+      "publicServicesIndex": { "id": "publicServicesIndex", "label": "公共服务指数", "unit": "分", "type": "number", "initial": 60, "min": 0, "max": 100, "category": "metric" },
+      "housingBurden": { "id": "housingBurden", "label": "住房支出占收入比", "unit": "%", "type": "number", "initial": 0.3, "min": 0, "max": 1, "category": "metric" },
+      "fiscalReserve": { "id": "fiscalReserve", "label": "政策资金余额", "unit": "亿元", "type": "number", "initial": 80, "min": 0, "category": "metric" },
+      "policySpend": { "id": "policySpend", "label": "累计政策支出", "unit": "亿元", "type": "number", "initial": 0, "min": 0, "category": "metric" }
+    },
+    "capacities": {},
+    "statuses": {
+      "experimentScope": { "id": "experimentScope", "label": "实验口径", "unit": "", "type": "string", "initial": "虚拟城市；八年相同事件；初始人格相同；政策通过市长指令执行；指标及效果表未经实证校准。", "category": "status" },
+      "measurementNotes": { "id": "measurementNotes", "label": "指标解释", "unit": "", "type": "string", "initial": "经济累计增长率=(gdpIndex/100-1)×100%；吸引力比较期末水平及相对初始50分的变化。留存率为代理指标，没有逐批人才队列。policySpend与fiscalReserve需核对，不保证自动资金守恒。", "category": "status" }
+    },
+    "politics": {},
+    "environment": {
+      "annualPolicyBudget": { "id": "annualPolicyBudget", "label": "年度目标政策预算", "unit": "亿元", "type": "number", "initial": 10, "category": "environment" }
+    }
+  },
+  "knowledge": { "topics": {}, "categoryMapping": {} },
+  "names": { "first": ["衡", "宁", "安", "清", "远"], "last": ["林", "陈", "周", "许", "王"], "child": [] },
+  "dataDrivenHooks": {
+    "directorInstructions": "这是两座初始条件相同的虚拟城市引才政策比较。默认八轮均使用预设的相同年度议题，不根据市长人格或政策改变外部冲击。若用户延长运行，新增事件只能围绕人才市场、住房服务、产业周期、创新转化和财政约束，类别限于现有效果表。延长后不再保证两城事件一致。不能宣称模型输出是实证结论；不得引入火星辐射、生命保障、战争等无关情节。可读文本使用简体中文。",
+    "departments": {
+      "economy": { "heading": "经济成长：", "chips": [{ "label": "实际经济产出", "source": "metrics.gdpIndex", "format": "number" }, { "label": "生产率", "source": "metrics.productivityIndex", "format": "number" }, { "label": "创新转化", "source": "metrics.innovationIndex", "format": "number" }] },
+      "talent": { "heading": "人才流动：", "chips": [{ "label": "人才存量", "source": "metrics.talentStockIndex", "format": "number" }, { "label": "留存率代理", "source": "metrics.retentionRate", "format": "percent" }, { "label": "城市吸引力", "source": "metrics.attractiveness", "format": "number" }] },
+      "science": { "heading": "研发与转化：", "chips": [{ "label": "创新转化", "source": "metrics.innovationIndex", "format": "number" }, { "label": "生产率", "source": "metrics.productivityIndex", "format": "number" }, { "label": "人才存量", "source": "metrics.talentStockIndex", "format": "number" }] },
+      "finance": { "heading": "政策财政：", "chips": [{ "label": "剩余资金（亿元）", "source": "metrics.fiscalReserve", "format": "number" }, { "label": "累计支出（亿元）", "source": "metrics.policySpend", "format": "number" }, { "label": "年度目标（亿元）", "source": "environment.annualPolicyBudget", "format": "number" }] },
+      "services": { "heading": "生活与吸引力：", "chips": [{ "label": "城市吸引力", "source": "metrics.attractiveness", "format": "number" }, { "label": "住房负担", "source": "metrics.housingBurden", "format": "percent" }, { "label": "公共服务", "source": "metrics.publicServicesIndex", "format": "number" }] }
+    },
+    "postureRules": [
+      { "posture": "财政承压", "when": { "field": "fiscalReserve", "op": "<", "value": 10 } },
+      { "posture": "成长与吸引力同步提升", "when": { "all": [{ "field": "gdpIndex", "op": ">=", "value": 110 }, { "field": "attractiveness", "op": ">=", "value": 60 }] } }
+    ],
+    "fingerprintAxes": [
+      { "name": "economic-growth", "bands": [{ "label": "成长", "when": { "field": "gdpIndex", "op": ">", "value": 100 } }, { "label": "持平或收缩" }] },
+      { "name": "city-attraction", "bands": [{ "label": "增强", "when": { "field": "attractiveness", "op": ">", "value": 50 } }, { "label": "持平或下降" }] }
+    ],
+    "politics": {},
+    "reactionTemplate": "你是本城的代表性居民，部门为{{department}}，岗位为{{role}}。从就业机会、住房负担、公共服务与家庭发展角度回应本轮政策。只描述可感知的生活变化，不虚构全市统计。使用简体中文。",
+    "milestones": [
+      { "turn": 1, "event": { "title": "引才计划启动与年度预算分配", "description": "两城各有80亿元政策专项资金，初始实际经济产出和科技人才存量指数均为100，吸引力50分。按各自已批准的政策落实第一年目标10亿元预算。政策名称不代表效果优劣，所有指标变化需有解释。", "category": "policy-launch", "options": [{ "id": "option_a", "label": "分阶段兑现", "description": "按本城政策分期安排，核验到岗或项目里程碑后继续投入。", "isRisky": false }, { "id": "option_b", "label": "前置集中实施", "description": "在相同年度预算内前置实施本城政策，争取较快见效，承担匹配与执行风险。", "isRisky": true }], "riskyOptionId": "option_b", "riskSuccessProbability": 0.55, "researchKeywords": [], "relevantDepartments": ["economy", "talent", "science", "finance", "services"], "turnSummary": "相同起点，分别启动两种引才政策。" } },
+      { "turn": 2, "event": { "title": "区域科技岗位竞争升温", "description": "共同外部冲击：区域企业对科技人才的需求上升，招聘竞争增强。两城面对相同市场变化，分别在固定政策方向内应对，不能虚构另一城市的状态或抢走其账户中的人才。", "category": "talent-market", "options": [{ "id": "option_a", "label": "先匹配再扩展", "description": "核验岗位与人才匹配，再落实本城政策支持。", "isRisky": false }, { "id": "option_b", "label": "提前锁定资源", "description": "在年度预算内提前承诺支持，承担兑现和岗位匹配风险。", "isRisky": true }], "riskyOptionId": "option_b", "riskSuccessProbability": 0.6, "researchKeywords": [], "relevantDepartments": ["talent", "economy", "finance"], "turnSummary": "检验两种政策对人才市场竞争的适应。" } },
+      { "turn": 3, "event": { "title": "住房与公共服务承载力审查", "description": "共同外部冲击：区域住房供给调整速度有限，人才家庭更关注教育、医疗和通勤。评估本城的实际住房负担和服务水平，不能把共同冲击描述为两城已经出现相同结果。", "category": "housing-services", "options": [{ "id": "option_a", "label": "按承载力分期落实", "description": "在原政策范围内分期兑现，先解决已出现的服务瓶颈。", "isRisky": false }, { "id": "option_b", "label": "同步推进多个项目", "description": "在年度预算内同步执行，承担项目协同和服务挤兑风险。", "isRisky": true }], "riskyOptionId": "option_b", "riskSuccessProbability": 0.5, "researchKeywords": [], "relevantDepartments": ["services", "talent", "finance"], "turnSummary": "检验人才吸引与居民生活成本之间的权衡。" } },
+      { "turn": 4, "event": { "title": "科技产业需求放缓", "description": "共同外部冲击：科技企业订单预期转弱，新增岗位趋于谨慎。检查人才到岗后能否获得适合的工作，以及科研投入能否被产业吸收。不允许凭叙述自动增加GDP。", "category": "industry-cycle", "options": [{ "id": "option_a", "label": "优先支持可验证需求", "description": "在原政策内先支持有明确需求和执行条件的对象。", "isRisky": false }, { "id": "option_b", "label": "保持逆周期推进", "description": "在年度预算内维持提前布局，承担需求恢复不及预期的风险。", "isRisky": true }], "riskyOptionId": "option_b", "riskSuccessProbability": 0.45, "researchKeywords": [], "relevantDepartments": ["economy", "science", "talent", "finance"], "turnSummary": "共同产业逆风下比较政策的适应性。" } },
+      { "turn": 5, "event": { "title": "中期留存与政策兑现评估", "description": "共同评估节点：首批政策支持进入兑现与续期阶段。分别检查人才留存率代理、岗位匹配及政策成本。本场景没有逐批人才队列，不能将代理留存率称为精确的三年队列留存率。", "category": "retention-review", "options": [{ "id": "option_a", "label": "按成效续期", "description": "在原政策方向内按已核验成效安排后续支持。", "isRisky": false }, { "id": "option_b", "label": "提前承诺后续支持", "description": "在资金允许范围内提前稳定预期，承担效果和兑现风险。", "isRisky": true }], "riskyOptionId": "option_b", "riskSuccessProbability": 0.55, "researchKeywords": [], "relevantDepartments": ["talent", "services", "finance"], "turnSummary": "区分短期引进与持续留任。" } },
+      { "turn": 6, "event": { "title": "科研成果转化窗口出现", "description": "共同外部机会：区域企业开放一批技术合作需求。两城按照各自既有政策与当前能力对接，区分研发投入、可用成果和经济贡献，不能重复计算收益。", "category": "innovation-transfer", "options": [{ "id": "option_a", "label": "小范围验证后推广", "description": "先验证合作需求与成果适配，再在本城政策内推广。", "isRisky": false }, { "id": "option_b", "label": "集中对接合作需求", "description": "在年度预算内集中执行，争取转化窗口，承担技术和商业匹配风险。", "isRisky": true }], "riskyOptionId": "option_b", "riskSuccessProbability": 0.6, "researchKeywords": [], "relevantDepartments": ["science", "economy", "talent", "finance"], "turnSummary": "检验人才和研发投入能否转化为经济成长。" } },
+      { "turn": 7, "event": { "title": "财政约束与后续承诺核查", "description": "共同审查要求：不得通过新增债务或虚构拨款填补政策缺口。核对当前资金余额、累计支出和后续承诺；若80亿元与余额加支出不一致，应明确标注核算偏差，不能自行编造平账。", "category": "fiscal-pressure", "options": [{ "id": "option_a", "label": "按可用资金安排兑现", "description": "优先完成可核验承诺，必要时缩减执行规模。", "isRisky": false }, { "id": "option_b", "label": "在余额内集中兑现", "description": "在可用资金内加速既有政策，承担执行和后续维护压力。", "isRisky": true }], "riskyOptionId": "option_b", "riskSuccessProbability": 0.5, "researchKeywords": [], "relevantDepartments": ["finance", "economy", "services"], "turnSummary": "检查政策效果与财政可持续性。" } },
+      { "turn": "final", "event": { "title": "经济成长与城市吸引力终期评估", "description": "分别报告实际经济产出指数及累计增长率=(指数/100-1)×100%，以及城市吸引力期末分数和相对50分的变化。补充生产率、人才存量、留存率代理、住房负担和累计政策成本。结论须来自内核实际状态，不能用预测替换结果。不得把样本人数当全市人口，不得声称严格因果识别或实证政策排名，不擅自设置综合权重。此轮只评估，不提出新的财政和指标调整。", "category": "final-review", "options": [{ "id": "option_a", "label": "按统一口径审计报告", "description": "如实报告状态、预算偏差、局限和不确定性；不新增指标效果。", "isRisky": false }, { "id": "option_b", "label": "增加有条件的未来展望", "description": "保留同样的审计结果，额外提出有条件预测，承担解释误导风险；不新增指标效果。", "isRisky": true }], "riskyOptionId": "option_b", "riskSuccessProbability": 0.5, "researchKeywords": [], "relevantDepartments": ["economy", "talent", "science", "finance", "services"], "turnSummary": "分别比较经济成长和吸引力，不按市长人格评优。" } }
+    ]
+  }
+}

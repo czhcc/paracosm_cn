@@ -108,24 +108,25 @@ export function ForkModal(props: ForkModalProps) {
       >
         <header className={styles.header}>
           <h3 id="fork-modal-title">
-            Fork at {labels.Time} {atTurn}
+
+            创建分支于 {labels.Time} {atTurn}
           </h3>
           <button
             type="button"
             className={styles.closeButton}
             onClick={onClose}
-            aria-label="Close fork modal"
+            aria-label="关闭分支弹窗"
           >
             ×
           </button>
         </header>
 
         <div className={styles.field}>
-          <label htmlFor="fork-leader-select">Override leader</label>
+          <label htmlFor="fork-leader-select">替换决策者</label>
           {presets.length === 0 ? (
             <p className={styles.warning}>
-              No preset leaders available for this scenario. Add leaders in
-              Settings or pick a scenario with presets to continue.
+
+              此场景没有可用的预设决策者。请在设置中添加，或选择带预设的场景。
             </p>
           ) : (
             <select
@@ -143,30 +144,31 @@ export function ForkModal(props: ForkModalProps) {
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="fork-seed">Seed override (optional)</label>
+          <label htmlFor="fork-seed">替换随机种子（可选）</label>
           <input
             id="fork-seed"
             type="number"
             placeholder={
               parentSeed !== undefined
                 ? `Parent seed: ${parentSeed}`
-                : '(use parent seed)'
+                : "（使用父运行随机种子）"
             }
             value={seedText}
             onChange={e => setSeedText(e.target.value)}
           />
           <span className={styles.hint}>
-            Leave blank to resume from the parent's RNG state.
+
+            留空则沿用父运行的随机数状态。
           </span>
         </div>
 
         <details className={styles.advanced}>
-          <summary>Advanced: custom events</summary>
+          <summary>高级：自定义事件</summary>
           <textarea
             rows={4}
             placeholder={
-              'One event per line, format: "turn: title: description"\n' +
-              'Example: 5: Supply drop: Relief arrives with 3 months of food.'
+              "每行一个事件，格式：“回合: 标题: 描述”\n" +
+              "示例：5: 物资补给: 救援带来可供使用 3 个月的食物。"
             }
             value={customEventsText}
             onChange={e => setCustomEventsText(e.target.value)}
@@ -174,16 +176,17 @@ export function ForkModal(props: ForkModalProps) {
         </details>
 
         <div className={styles.costEstimate} role="status">
-          <span>Estimated cost</span>
+          <span>预计费用</span>
           <strong>{costEstimate}</strong>
           <span className={styles.costDetail}>
-            for {turnsRemaining} more {turnsRemaining === 1 ? labels.time : labels.times}
+
+            用于 {turnsRemaining} 更多 {turnsRemaining === 1 ? labels.time : labels.times}
           </span>
         </div>
 
         <footer className={styles.footer}>
           <button type="button" onClick={onClose} className={styles.cancelButton}>
-            Cancel
+            取消
           </button>
           <button
             type="button"
@@ -191,7 +194,8 @@ export function ForkModal(props: ForkModalProps) {
             disabled={presets.length === 0}
             className={styles.confirmButton}
           >
-            Fork
+
+            创建分支
           </button>
         </footer>
       </div>

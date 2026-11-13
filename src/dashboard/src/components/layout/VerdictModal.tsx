@@ -67,12 +67,12 @@ export function CohortVerdictDetails({ v }: { v: Record<string, unknown> }) {
   return (
     <div className={styles.cohortDetails}>
       <header className={styles.cohortHeader}>
-        <div className={styles.cohortKicker}>★ Cohort of {actorCount} · Verdict</div>
+        <div className={styles.cohortKicker}>★ 对比组人数： {actorCount} · 评判</div>
         <h2 className={styles.cohortHeadline}>{headline}</h2>
         {summary && <p className={styles.cohortSummary}>{summary}</p>}
         {keyDivergence && (
           <p className={styles.cohortDivergence}>
-            <strong>Key divergence:</strong> {keyDivergence}
+            <strong>关键分歧：</strong> {keyDivergence}
           </p>
         )}
       </header>
@@ -93,10 +93,10 @@ export function CohortVerdictDetails({ v }: { v: Record<string, unknown> }) {
                 <div className={styles.cohortRankBody}>
                   <div className={styles.cohortRankName}>{r.actorName}</div>
                   <div className={styles.cohortRankScores}>
-                    <span title="Survival">S {r.scores?.survival ?? '?'}</span>
-                    <span title="Prosperity">P {r.scores?.prosperity ?? '?'}</span>
-                    <span title="Morale">M {r.scores?.morale ?? '?'}</span>
-                    <span title="Innovation">I {r.scores?.innovation ?? '?'}</span>
+                    <span title="生存">S {r.scores?.survival ?? '?'}</span>
+                    <span title="繁荣">P {r.scores?.prosperity ?? '?'}</span>
+                    <span title="士气">M {r.scores?.morale ?? '?'}</span>
+                    <span title="创新">I {r.scores?.innovation ?? '?'}</span>
                   </div>
                   {r.rationale && <p className={styles.cohortRankRationale}>{r.rationale}</p>}
                 </div>
@@ -107,7 +107,7 @@ export function CohortVerdictDetails({ v }: { v: Record<string, unknown> }) {
 
       {reasoning && (
         <details className={styles.cohortReasoning}>
-          <summary>Full reasoning</summary>
+          <summary>完整分析</summary>
           <pre>{reasoning}</pre>
         </details>
       )}
@@ -135,7 +135,7 @@ export function VerdictModal({ verdict, onClose }: VerdictModalProps) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Simulation verdict full breakdown"
+      aria-label="仿真结论完整分析"
       onClick={onClose}
       className={styles.backdrop}
     >
@@ -147,7 +147,7 @@ export function VerdictModal({ verdict, onClose }: VerdictModalProps) {
       >
         <button
           onClick={onClose}
-          aria-label="Close verdict"
+          aria-label="关闭结论"
           className={styles.closeButton}
         >
           ×

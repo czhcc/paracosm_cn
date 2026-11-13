@@ -28,7 +28,7 @@ export function Toolbar({ state, onSave, onLoad, onClear }: ToolbarProps) {
     <div
       className="toolbar shrink-0"
       role="toolbar"
-      aria-label="Simulation controls"
+      aria-label="仿真控制"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -44,11 +44,11 @@ export function Toolbar({ state, onSave, onLoad, onClear }: ToolbarProps) {
       </span>
       <div style={{ flex: 1 }} />
       {hasEvents && (
-        <button onClick={onSave} style={btnStyle} aria-label="Save simulation data" title="Export current simulation events and results as a .json file">Save</button>
+        <button onClick={onSave} style={btnStyle} aria-label="保存仿真数据" title="将当前仿真事件和结果导出为 .json 文件">保存</button>
       )}
-      <button onClick={onLoad} style={btnStyle} aria-label="Load saved simulation" title="Load a previously saved simulation from a .json file exported via the Save button">Load Game</button>
+      <button onClick={onLoad} style={btnStyle} aria-label="加载已保存的仿真" title="加载通过保存按钮导出的 .json 仿真文件">加载仿真</button>
       {hasEvents && (
-        <button onClick={onClear} style={{ ...btnStyle, color: 'var(--rust)' }} aria-label="Clear simulation data" title="Clear all simulation data and reset to settings. Cannot be undone.">Clear</button>
+        <button onClick={onClear} style={{ ...btnStyle, color: 'var(--rust)' }} aria-label="清除仿真数据" title="清除全部仿真数据并返回设置，此操作不可撤销。">清空</button>
       )}
     </div>
   );

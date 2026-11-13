@@ -43,11 +43,11 @@ export function SimFooterBar({ citationRegistry, toolRegistry, layoutToggle }: S
 
   return (
     <>
-      <div role="region" aria-label="Simulation evidence" className={styles.bar}>
-        <span className={styles.label}>Evidence</span>
+      <div role="region" aria-label="仿真依据" className={styles.bar}>
+        <span className={styles.label}>依据</span>
         {refsCount > 0 && (
           <FooterCta
-            label="References"
+            label="参考资料"
             count={refsCount}
             onClick={() => setOpen('refs')}
             ariaLabel={`Open References list (${refsCount} sources)`}
@@ -55,7 +55,7 @@ export function SimFooterBar({ citationRegistry, toolRegistry, layoutToggle }: S
         )}
         {toolsCount > 0 && (
           <FooterCta
-            label="Forged Toolbox"
+            label="动态工具箱"
             count={toolsCount}
             onClick={() => setOpen('tools')}
             ariaLabel={`Open Forged Toolbox (${toolsCount} tools)`}
@@ -63,7 +63,7 @@ export function SimFooterBar({ citationRegistry, toolRegistry, layoutToggle }: S
         )}
         {layoutToggle}
         <span className={styles.spacer} />
-        <span className={styles.hint}>Click any inline [N] pill to jump to its source.</span>
+        <span className={styles.hint}>点击正文中的引用编号 [N] 可查看来源。</span>
       </div>
 
       {open === 'refs' && (
@@ -72,7 +72,7 @@ export function SimFooterBar({ citationRegistry, toolRegistry, layoutToggle }: S
           onClose={close}
           extraActions={
             <ExportButton
-              label="EXPORT JSON"
+              label="导出 JSON"
               filename="paracosm-references.json"
               data={citationRegistry.list.map(e => ({
                 n: e.n,
@@ -94,7 +94,7 @@ export function SimFooterBar({ citationRegistry, toolRegistry, layoutToggle }: S
           onClose={close}
           extraActions={
             <ExportButton
-              label="EXPORT JSON"
+              label="导出 JSON"
               filename="paracosm-toolbox.json"
               data={toolRegistry.list.map(e => ({
                 n: e.n,
@@ -162,7 +162,7 @@ function Modal({ title, onClose, children, extraActions }: { title: string; onCl
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>{title}</h2>
           {extraActions}
-          <button onClick={onClose} aria-label="Close" className={styles.modalClose}>×</button>
+          <button onClick={onClose} aria-label="关闭" className={styles.modalClose}>×</button>
         </div>
         <div className={styles.modalBody}>{children}</div>
       </div>

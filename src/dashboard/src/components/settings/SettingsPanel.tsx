@@ -29,8 +29,8 @@ import styles from './SettingsPanel.module.scss';
 type SettingsSubTab = 'config' | 'log';
 
 const SETTINGS_SUB_TABS = [
-  { id: 'config' as const, label: 'Settings' },
-  { id: 'log' as const, label: 'Event Log' },
+  { id: 'config' as const, label: "设置" },
+  { id: 'log' as const, label: "事件日志" },
 ];
 
 const DEFAULT_HEXACO: Record<string, number> = {
@@ -81,11 +81,11 @@ const DEFAULT_TIER_MODELS: Record<'openai' | 'anthropic', Record<ModelTier, stri
 };
 
 const TIER_LABELS: Record<ModelTier, { label: string; help: string }> = {
-  departments:    { label: 'Departments (forges)',   help: 'Writes code, schemas, test cases. Quality matters — cheap tier produces broken forges.' },
-  commander:      { label: 'Commander',              help: 'Picks option from department reports. Mid-tier is fine.' },
-  director:       { label: 'Event Director',         help: 'Generates crisis events as structured JSON batches.' },
-  judge:          { label: 'Judge (code review)',    help: 'Reviews forged tool code for safety + correctness.' },
-  agentReactions: { label: 'Agent Reactions',        help: 'One to two sentences per colonist per turn. Highest volume — pick cheapest.' },
+  departments:    { label: '部门（工具生成）',   help: "编写工具代码、结构定义与测试用例。需要较高质量，过低配置可能导致工具创建失败。" },
+  commander:      { label: '指挥官',              help: "根据部门报告选择方案，通常可使用中档模型。" },
+  director:       { label: "事件导演",         help: "以结构化 JSON 批量生成危机事件。" },
+  judge:          { label: '工具评审（代码审查）',    help: "审查动态工具代码的安全性与正确性。" },
+  agentReactions: { label: "成员反应",        help: "每回合为每位居民生成一两句话。调用量最大，建议使用经济型模型。" },
 };
 
 /**
@@ -307,6 +307,7 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
 
   // API key state: env flags tell us what's configured server-side; overrides are user-entered values
   const [envKeys, setEnvKeys] = useState<Record<string, boolean>>({});
+  const [defaultModels, setDefaultModels] = useState<Record<string, string>>({});
   const [hostedDemo, setHostedDemo] = useState(false);
   // The server's ADMIN_WRITE setting, from /admin-config: the Admin Token
   // field shows only where admin writes are on.
@@ -354,8 +355,13 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
   );
   useEffect(() => {
     const p = (provider as 'openai' | 'anthropic');
-    if (DEFAULT_TIER_MODELS[p]) setTierModels(DEFAULT_TIER_MODELS[p]);
-  }, [provider]);
+    if (DEFAULT_TIER_MODELS[p]) {
+      const model = defaultModels[p];
+      setTierModels(model ? {
+        departments: model, commander: model, director: model, judge: model, agentReactions: model,
+      } : DEFAULT_TIER_MODELS[p]);
+    }
+  }, [provider, defaultModels]);
 
   // Show the per-tier model picker when ANY LLM key is available AND the
   // server is not operating as a hosted demo. On local dev the .env keys
@@ -392,6 +398,7 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
       .then(r => r.json())
       .then(data => {
         if (data.keys) setEnvKeys(data.keys);
+        if (data.defaultModels) setDefaultModels(data.defaultModels);
         if (typeof data.hostedDemo === 'boolean') setHostedDemo(data.hostedDemo);
         if (typeof data.adminWrite === 'boolean') setAdminWrite(data.adminWrite);
         if (typeof data.serverMode === 'string') setServerMode(data.serverMode as DashboardServerMode);
@@ -479,7 +486,7 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
       if (data.redirect) {
         // The server took the run: it replaces the Digital Twin views.
         runStart();
-        setStatus('Running...');
+        setStatus("运行中…");
         emitLaunched(window, data.visitorId);
         const targetHref = resolveSetupRedirectHref(window.location.href, data.redirect);
         const resolvedTab = getDashboardTabFromHref(targetHref);
@@ -503,7 +510,7 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
         options={SETTINGS_SUB_TABS}
         active={subTab}
         onChange={handleSubTabChange}
-        ariaLabel="Settings sub-navigation"
+        ariaLabel="设置子导航"
       />
       {subTab === 'log' && <EventLogPanel events={events} />}
       {subTab === 'config' && (
@@ -517,7 +524,7 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
       {scenarios.length > 0 && (
         <div className={`responsive-stack ${styles.scenarioRow}`}>
           <label htmlFor="scenario-select" style={SETTINGS_LABEL_STYLE} className={styles.scenarioLabel}>
-            Scenario
+            场景
           </label>
           <select
             id="scenario-select"
@@ -529,19 +536,19 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
               const sourceTag = s.description?.includes('(memory)')
                 ? ' [memory]'
                 : s.description?.includes('(disk)')
-                ? ' [disk]'
+                ? "[已保存]"
                 : s.description?.includes('compiled')
-                ? ' [compiled]'
+                ? "[已编译]"
                 : '';
               return (
                 <option key={s.id} value={s.id}>
-                  {s.id === activeId ? '● ' : ''}{s.name} ({s.departments} depts){sourceTag}
+                  {s.id === activeId ? '● ' : ''}{s.name} ({s.departments} 个部门）{sourceTag}
                 </option>
               );
             })}
           </select>
           <span className={styles.scenarioActiveTag}>
-            Active: <strong className={styles.scenarioActiveValue}>{activeId}</strong>
+            当前： <strong className={styles.scenarioActiveValue}>{activeId}</strong>
           </span>
         </div>
       )}
@@ -551,7 +558,7 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
         <p className={styles.scenarioTagline}>{scenario.labels.tagline}</p>
       )}
       <p className={styles.lead}>
-        Configure your leaders and launch. {scenario.departments.length} departments: {scenario.departments.map(d => d.label).join(', ')}.
+        配置决策者后启动仿真。 {scenario.departments.length} 个部门： {scenario.departments.map(d => d.label).join(', ')}.
       </p>
       {scenario.sourceUrl && (
         <p className={styles.scenarioSourceLink}>
@@ -560,12 +567,12 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
             target="_blank"
             rel="noopener noreferrer"
           >
-            View scenario JSON on GitHub →
+            在 GitHub 查看场景 JSON →
           </a>
         </p>
       )}
       <p className={styles.leadHint}>
-        Server mode: <strong className={styles.leadStrong}>{serverModeInfo.label}</strong>. {serverModeInfo.description}
+        服务器模式： <strong className={styles.leadStrong}>{serverModeInfo.label}</strong>. {serverModeInfo.description}
       </p>
 
       {/* Leaders grid. Renders N actor forms (2 ≤ N ≤ MAX_ACTORS).
@@ -580,7 +587,7 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
         {actors.map((actor, idx) => (
           <div key={idx} className={styles.leaderCardWrap} style={{ position: 'relative' }}>
             <ActorConfig
-              label={`Commander ${String.fromCharCode(65 + (idx % 26))}`}
+              label={`决策者 ${String.fromCharCode(65 + (idx % 26))}`}
               sideColor={getActorColorVar(idx)}
               data={actor}
               onChange={(next) => updateActor(idx, next)}
@@ -590,7 +597,7 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
                 type="button"
                 onClick={() => removeActor(idx)}
                 className={styles.leaderRemoveBtn}
-                aria-label={`Remove ${actor.name || `actor ${idx + 1}`} from the cohort`}
+                aria-label={`从对比组移除 ${actor.name || `决策者 ${idx + 1}`}`}
                 title="Remove this actor"
               >
                 ✕
@@ -605,13 +612,13 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
             type="button"
             onClick={addActor}
             className={styles.leaderAddBtn}
-            aria-label="Add another actor to the cohort"
+            aria-label="向对比组添加决策者"
           >
-            + Add actor ({actors.length}/{MAX_ACTORS})
+            ＋ 添加决策者（{actors.length}/{MAX_ACTORS})
           </button>
         ) : (
           <span className={styles.leaderAddCap}>
-            Max {MAX_ACTORS} actors from Settings · use Quickstart's generate-N flow for larger cohorts.
+            最多 {MAX_ACTORS} 位决策者；更多决策者请通过“快速开始”生成。
           </span>
         )}
       </div>
@@ -619,7 +626,7 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
       {/* Simulation config */}
       <fieldset className={styles.fieldset}>
         <legend style={SETTINGS_SECTION_HEADER_STYLE} className={styles.legend}>
-          Simulation
+          仿真
         </legend>
         {/* Demo-mode cap hint: rendered inline with the Simulation
             fieldset so users see what values the server will force
@@ -627,19 +634,17 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
             backend. Disappears once a session LLM key is entered. */}
         {isLocked && (
           <div className={styles.demoBanner}>
-            <strong className={styles.demoBannerLabel}>Demo caps will apply:</strong>{' '}
-            turns clamped to {demoCaps.maxTurns}, population to {demoCaps.maxPopulation}, active departments to {demoCaps.maxActiveDepartments}.
-            Values you enter below are honored up to those ceilings. Add a
-            session API key above to lift the caps.
+            <strong className={styles.demoBannerLabel}>演示限额：</strong>{' '}
+            回合数最多为 {demoCaps.maxTurns}，人口最多为 {demoCaps.maxPopulation}，活跃部门最多为 {demoCaps.maxActiveDepartments}。下方设置受这些上限约束，填写自己的会话密钥可解除限额。
           </div>
         )}
         <div className={`responsive-grid-4 ${styles.simRow5}`}>
           <div>
             <label htmlFor="turns-input" style={SETTINGS_LABEL_STYLE}>
-              Turns
+              回合数
               {isLocked && (
-                <span className={styles.lockTag} title={`Hosted demo caps turns at ${demoCaps.maxTurns}. Add a session API key to unlock.`}>
-                  🔒 demo:{demoCaps.maxTurns}
+                <span className={styles.lockTag} title={`托管演示的回合数上限为 ${demoCaps.maxTurns}。填写会话 API 密钥可解除限制。`}>
+                  🔒 演示上限：{demoCaps.maxTurns}
                 </span>
               )}
             </label>
@@ -652,11 +657,11 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
               max={20}
               disabled={isLocked}
               className={inputCls(isLocked)}
-              title={isLocked ? `Locked at ${demoCaps.maxTurns} in hosted demo mode. Add your own OpenAI or Anthropic key above to unlock full scope.` : ''}
+              title={isLocked ? `Locked at ${demoCaps.maxTurns} （托管演示限制）。在上方填写自己的 OpenAI 或 Anthropic 密钥可解除限制。` : ''}
             />
           </div>
           <div>
-            <label htmlFor="ypt-input" style={SETTINGS_LABEL_STYLE}>{labels.Times}/Turn</label>
+            <label htmlFor="ypt-input" style={SETTINGS_LABEL_STYLE}>{labels.Times}/回合</label>
             <input
               id="ypt-input"
               type="number"
@@ -665,24 +670,24 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
               min={0}
               max={50}
               placeholder="auto"
-              title={`${labels.Times} per turn. 0 = accelerating schedule (default). 1 = 1 ${labels.time} per turn. 5 = 5 ${labels.times} per turn.`}
+              title={`${labels.Times} ／回合。0 表示按默认加速计划推进；1 表示每回合推进 1 ${labels.time} per turn. 5 = 5 ${labels.times} per turn.`}
               className={styles.input}
             />
           </div>
           <div>
-            <label htmlFor="seed-input" style={SETTINGS_LABEL_STYLE}>Seed</label>
+            <label htmlFor="seed-input" style={SETTINGS_LABEL_STYLE}>随机种子</label>
             <input id="seed-input" type="number" value={seed} onChange={e => { editedSetupFields.current.add('seed'); setSeed(parseInt(e.target.value) || scenario.setup.defaultSeed); }} className={styles.input} />
           </div>
           <div>
-            <label htmlFor="time-input" style={SETTINGS_LABEL_STYLE}>Start {labels.Time}</label>
+            <label htmlFor="time-input" style={SETTINGS_LABEL_STYLE}>开始 {labels.Time}</label>
             <input id="time-input" type="number" value={startTime} onChange={e => { editedSetupFields.current.add('startTime'); setStartTime(parseInt(e.target.value) || scenario.setup.defaultStartTime); }} className={styles.input} />
           </div>
           <div>
             <label htmlFor="pop-input" style={SETTINGS_LABEL_STYLE}>
-              Population
+              人口
               {isLocked && (
-                <span className={styles.lockTag} title="Hosted demo caps population at 30. Add a session API key to unlock.">
-                  🔒 demo:30
+                <span className={styles.lockTag} title="托管演示人口上限为 30，填写会话 API 密钥可解除限制。">
+                  🔒 演示上限：30
                 </span>
               )}
             </label>
@@ -693,29 +698,29 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
               onChange={e => { editedSetupFields.current.add('population'); setPopulation(parseInt(e.target.value) || scenario.setup.defaultPopulation); }}
               disabled={isLocked}
               className={inputCls(isLocked)}
-              title={isLocked ? 'Locked at 30 in hosted demo mode. Add your own OpenAI or Anthropic key above to unlock full scope.' : ''}
+              title={isLocked ? "托管演示人口固定为 30，在上方填写自己的模型服务密钥可解除限制。" : ''}
             />
           </div>
         </div>
         <div className={`responsive-grid-3 ${styles.grid3}`}>
           <div>
-            <label htmlFor="provider-select" style={SETTINGS_LABEL_STYLE}>Provider</label>
+            <label htmlFor="provider-select" style={SETTINGS_LABEL_STYLE}>模型服务商</label>
             <select id="provider-select" className={`pc-select ${styles.input}`} value={provider} onChange={e => setProvider(e.target.value)}>
               <option value="openai">OpenAI</option>
               <option value="anthropic">Anthropic</option>
             </select>
           </div>
           <div>
-            <label htmlFor="search-select" style={SETTINGS_LABEL_STYLE}>Live Search</label>
+            <label htmlFor="search-select" style={SETTINGS_LABEL_STYLE}>实时搜索</label>
             <select id="search-select" className={`pc-select ${styles.input}`} value={String(liveSearch)} onChange={e => setLiveSearch(e.target.value === 'true')}>
-              <option value="false">Off</option>
-              <option value="true">On (requires search API keys)</option>
+              <option value="false">关闭</option>
+              <option value="true">开启（需要搜索 API 密钥）</option>
             </select>
           </div>
           <div>
             <label htmlFor="economics-select" style={SETTINGS_LABEL_STYLE}>
-              Economics
-              {isLocked && <span className={styles.lockTag}>🔒 forced:economy</span>}
+              费用配置
+              {isLocked && <span className={styles.lockTag}>🔒 固定使用经济配置</span>}
             </label>
             <select
               id="economics-select"
@@ -741,41 +746,35 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
       {/* API Keys */}
       <fieldset className={styles.fieldset}>
         <legend style={SETTINGS_SECTION_HEADER_STYLE} className={styles.legend}>
-          API Keys
+          API 密钥
         </legend>
         <div className={styles.keysIntro}>
           <p className={styles.keysIntroPara}>
-            <strong className={styles.keysIntroBoldNeutral}>How key resolution works:</strong> The server checks for keys in this order:
-            your session overrides below, then the server .env file. If a key exists in either place, it's used. Values entered here are never displayed back.
+            <strong className={styles.keysIntroBoldNeutral}>密钥使用顺序：</strong> 服务器优先使用下方填写的会话密钥，其次使用服务器 .env 配置。任一位置存在有效密钥即可使用，已提交的密钥值不会回显。
           </p>
           <p className={styles.keysIntroPara}>
-            <strong className={styles.keysIntroBoldGreen}>Rate limiting:</strong> The hosted demo limits simulations per IP per day when using the server's API keys.
-            Provide your own <strong>OpenAI</strong> or <strong>Anthropic</strong> key to bypass the rate limit and run unlimited simulations.
-            Only one LLM provider key is required. If both are provided, the simulation uses whichever you select as the provider.
+            <strong className={styles.keysIntroBoldGreen}>调用限额：</strong> 托管演示使用服务器密钥时，按 IP 限制每日运行次数。填写自己的 <strong>OpenAI</strong> 或 <strong>Anthropic</strong> 密钥可解除演示限额。只需配置一个模型服务商的密钥；若同时配置两个，则使用所选服务商。
           </p>
           <p className={styles.keysIntroPara}>
-            <strong className={styles.keysIntroBoldAmber}>Research and citations:</strong> Live web search requires at least one search key (Serper, Firecrawl, Tavily).
-            Without any search key, departments fall back to the scenario's built-in research bundle. Cohere enables neural reranking of search results for higher-quality citations.
-            These are optional enhancements, not required to run a simulation.
+            <strong className={styles.keysIntroBoldAmber}>研究与引用：</strong> 实时网络搜索至少需要一个搜索服务密钥（Serper、Firecrawl 或 Tavily）。未配置时使用场景内置研究资料。Cohere 可对搜索结果重排序，提高引用质量。这些均为可选增强，不是运行仿真的必要条件。
           </p>
           <p className={styles.keysIntroParaLast}>
-            <strong className={styles.keysIntroBoldRust}>No keys at all?</strong> If neither a server .env key nor a session override exists for any LLM provider,
-            the simulation cannot run. You need at least one OpenAI or Anthropic key configured somewhere.
+            <strong className={styles.keysIntroBoldRust}>尚未配置密钥？</strong> 如果会话和服务器 .env 都未配置模型服务密钥，仿真将无法运行。至少需要配置一个 OpenAI 或 Anthropic 密钥。
           </p>
         </div>
         <div className={`responsive-grid-2 ${styles.grid2}`}>
           {([
-            ['openai', 'OpenAI', 'Required (or Anthropic). Powers commander, departments, crisis director.'],
-            ['anthropic', 'Anthropic', 'Required (or OpenAI). Alternative LLM provider for all simulation roles.'],
-            ['serper', 'Serper (search)', 'Optional. Enables live Google search for department research citations.'],
-            ['firecrawl', 'Firecrawl (scrape)', 'Optional. Enables web page scraping for deeper research context.'],
-            ['tavily', 'Tavily (search)', 'Optional. Additional search provider. Multiple providers improve coverage.'],
-            ['cohere', 'Cohere (rerank)', 'Optional. Neural reranking of search results for citation quality.'],
+            ['openai', 'OpenAI', "与 Anthropic 二选一，为指挥官、部门和事件导演提供模型能力。"],
+            ['anthropic', 'Anthropic', "与 OpenAI 二选一，可为所有仿真角色提供模型能力。"],
+            ['serper', "Serper（搜索）", "可选，为部门研究提供实时 Google 搜索引用。"],
+            ['firecrawl', "Firecrawl（网页提取）", "可选，提取网页内容以补充研究背景。"],
+            ['tavily', "Tavily（搜索）", "可选，补充搜索来源，多服务商可提高覆盖范围。"],
+            ['cohere', "Cohere（重排序）", "可选，对搜索结果进行重排序，改善引用质量。"],
           ] as const).map(([key, label, desc]) => (
             <div key={key}>
               <label htmlFor={`key-${key}`} style={SETTINGS_LABEL_STYLE}>
                 {label}
-                {envKeys[key] && <span className={styles.keyEnvTag}>(.env active)</span>}
+                {envKeys[key] && <span className={styles.keyEnvTag}>（使用 .env 配置）</span>}
               </label>
               <input
                 id={`key-${key}`}
@@ -783,7 +782,7 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
                 autoComplete="off"
                 value={keyOverrides[key]}
                 onChange={e => setKeyOverrides(prev => ({ ...prev, [key]: e.target.value }))}
-                placeholder={envKeys[key] ? 'Using .env value' : 'Not configured'}
+                placeholder={envKeys[key] ? '使用 .env 配置' : "未配置"}
                 className={styles.input}
               />
               <div className={styles.fieldHint}>{desc}</div>
@@ -800,12 +799,10 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
       {canPickModels && (provider === 'openai' || provider === 'anthropic') && (
         <fieldset className={styles.fieldset}>
           <legend style={SETTINGS_SECTION_HEADER_STYLE} className={styles.legend}>
-            Model Tiers
+            各角色模型
           </legend>
           <div className={styles.modelTiersIntro}>
-            Assign a model to each agent tier. Departments do the forging and benefit most from the flagship class.
-            Agent reactions fan out to hundreds of parallel calls per turn and should be the cheapest class available.
-            These overrides are only used when you run against your own API key.
+            为各类角色指定模型。部门负责生成工具，更适合高能力模型；成员反应每回合可能产生数百次调用，适合低费用模型。这些覆盖配置仅在使用自己的 API 密钥时生效。
           </div>
           <div className={`responsive-grid-2 ${styles.grid2}`}>
             {(Object.keys(TIER_LABELS) as ModelTier[]).map(tier => (
@@ -813,16 +810,19 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
                 <label htmlFor={`model-${tier}`} style={SETTINGS_LABEL_STYLE}>
                   {TIER_LABELS[tier].label}
                 </label>
-                <select
+                <input
                   id={`model-${tier}`}
-                  className={`pc-select ${styles.input}`}
+                  list={`model-options-${tier}`}
+                  className={styles.input}
                   value={tierModels[tier]}
                   onChange={e => setTierModels(prev => ({ ...prev, [tier]: e.target.value }))}
-                >
+                  placeholder="选择或输入自定义模型 ID"
+                />
+                <datalist id={`model-options-${tier}`}>
                   {MODEL_OPTIONS[provider as 'openai' | 'anthropic'].map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
-                </select>
+                </datalist>
                 <div className={styles.fieldHint}>
                   {TIER_LABELS[tier].help}
                 </div>
@@ -834,10 +834,10 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
 
       {!canPickModels && (
         <div className={styles.demoMode}>
-          <strong className={styles.demoModeStrong}>Demo mode.</strong>{' '}
+          <strong className={styles.demoModeStrong}>演示模式。</strong>{' '}
           {hostedDemo
-            ? `Runs against the host API keys are capped to ${demoCaps.maxTurns} turns, ${demoCaps.maxPopulation} colonists, ${demoCaps.maxActiveDepartments} departments, and the cheapest model class. Add your own OpenAI or Anthropic key above to unlock full scope and per-tier model selection.`
-            : 'No API key configured. Add an OpenAI or Anthropic key above or set one in .env to enable simulations and the per-tier model picker.'}
+            ? `使用服务器密钥时，最多运行 ${demoCaps.maxTurns} 回合、${demoCaps.maxPopulation} 位成员和 ${demoCaps.maxActiveDepartments} 个部门，并使用最低费用模型。在上方填写自己的 OpenAI 或 Anthropic 密钥后，可使用完整规模和分层模型选择。`
+            : "尚未配置 API 密钥。请在上方填写 OpenAI 或 Anthropic 密钥，或在 .env 中配置，以启用仿真和分层模型选择。"}
         </div>
       )}
 
@@ -846,7 +846,7 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
       {adminWrite && (
         <fieldset className={styles.fieldset}>
           <legend style={SETTINGS_SECTION_HEADER_STYLE} className={styles.legend}>
-            Admin Token
+            管理员令牌
           </legend>
           <AdminTokenField />
         </fieldset>
@@ -861,10 +861,10 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
         <button
           onClick={launch}
           disabled={launching || !scenarioReady}
-          aria-label={launching ? 'Simulation running' : scenarioReady ? 'Launch simulation' : 'Loading scenario'}
+          aria-label={launching ? "仿真运行中" : scenarioReady ? "启动仿真" : "正在加载场景"}
           className={styles.launchBtn}
         >
-          {launching ? 'Running...' : scenarioReady ? 'Launch Simulation' : 'Loading scenario…'}
+          {launching ? "运行中…" : scenarioReady ? "启动仿真" : "正在加载场景…"}
         </button>
         {status && <span role="status" className={styles.launchStatus}>{status}</span>}
       </div>

@@ -10,13 +10,13 @@ export interface AggregateStripProps {
 
 export function AggregateStrip({ aggregate, members }: AggregateStripProps): JSX.Element {
   return (
-    <section className={styles.strip} aria-label="Bundle aggregate stats">
-      <Tile label="Actors" value={`${aggregate.count}`} />
+    <section className={styles.strip} aria-label="运行组汇总指标">
+      <Tile label="位决策者" value={`${aggregate.count}`} />
       <Tile
-        label="Total cost"
+        label="总费用"
         value={aggregate.costTotalUSD > 0 ? `$${aggregate.costTotalUSD.toFixed(2)}` : '—'}
       />
-      <Tile label="Mean run time" value={formatDuration(aggregate.meanDurationMs)} />
+      <Tile label="平均运行时间" value={formatDuration(aggregate.meanDurationMs)} />
       <TrajectoryOverlay members={members} />
     </section>
   );
@@ -38,8 +38,8 @@ function TrajectoryOverlay({ members }: { members: RunRecord[] }): JSX.Element {
   if (series.length === 0) {
     return (
       <div className={styles.overlayTile}>
-        <div className={styles.tileLabel}>Trajectory overlay</div>
-        <div className={styles.tileEmpty}>no sparkline data</div>
+        <div className={styles.tileLabel}>演变曲线叠加</div>
+        <div className={styles.tileEmpty}>暂无趋势数据</div>
       </div>
     );
   }
@@ -54,12 +54,12 @@ function TrajectoryOverlay({ members }: { members: RunRecord[] }): JSX.Element {
   const stepX = (W - pad * 2) / Math.max(1, maxLen - 1);
   return (
     <div className={styles.overlayTile}>
-      <div className={styles.tileLabel}>Trajectory overlay (all actors)</div>
+      <div className={styles.tileLabel}>演变曲线叠加（全部决策者）</div>
       <svg
         className={styles.overlay}
         viewBox={`0 0 ${W} ${H}`}
         role="img"
-        aria-label="All actors trajectory overlay"
+        aria-label="全部决策者轨迹叠加"
       >
         {series.map((s, i) => {
           const points = s
@@ -78,7 +78,7 @@ function TrajectoryOverlay({ members }: { members: RunRecord[] }): JSX.Element {
         })}
       </svg>
       <div className={styles.overlayCaption}>
-        Representative metric (population &rarr; morale &rarr; first available), normalized across the bundle. X = turn.
+        代表性指标（优先人口，其次士气，再取首个可用指标），在对比组内归一化。横轴为回合。
       </div>
     </div>
   );

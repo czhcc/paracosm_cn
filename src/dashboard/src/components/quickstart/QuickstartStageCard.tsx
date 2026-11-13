@@ -140,7 +140,7 @@ export function QuickstartStageCard({
               <span className={styles.lineTs}>—</span>
               <span className={styles.lineGlyph}>·</span>
               <span className={styles.lineBody}>
-                {status === 'pending' ? 'Waiting for previous stage…' : 'No events yet.'}
+                {status === 'pending' ? "等待上一阶段完成…" : "暂无事件。"}
               </span>
             </div>
           )}

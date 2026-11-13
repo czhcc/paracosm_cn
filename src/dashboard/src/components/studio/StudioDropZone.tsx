@@ -94,8 +94,8 @@ export function StudioDropZone({ onLoaded }: StudioDropZoneProps): JSX.Element {
           }
         }}
       >
-        <div>Drop a paracosm RunArtifact JSON here, or click to browse</div>
-        <div className={styles.dropZoneHint}>Single artifact or bundle (array of artifacts), max 10 MB</div>
+        <div>将 Paracosm 运行记录 JSON 拖入此处，或点击选择文件</div>
+        <div className={styles.dropZoneHint}>支持单次记录或记录数组，最大 10 MB</div>
         <input
           ref={inputRef}
           type="file"

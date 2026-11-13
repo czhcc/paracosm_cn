@@ -42,7 +42,7 @@ const activeStyle: React.CSSProperties = {
 export function SimLayoutToggle({ layout, actorCount, onChange }: SimLayoutToggleProps): JSX.Element {
   void actorCount;
   return (
-    <div role="group" aria-label="Sim layout" style={{ display: 'inline-flex', gap: 0 }}>
+    <div role="group" aria-label="仿真布局" style={{ display: 'inline-flex', gap: 0 }}>
       <button
         type="button"
         data-layout="side-by-side"
@@ -52,9 +52,9 @@ export function SimLayoutToggle({ layout, actorCount, onChange }: SimLayoutToggl
           ...(layout === 'side-by-side' ? activeStyle : buttonStyle),
           borderRadius: '3px 0 0 3px',
         }}
-        title="Side-by-side: per-actor columns with horizontal scroll for 3+"
+        title="并排视图：每位决策者一列，超过两位时可横向滚动"
       >
-        Side-by-side
+        并排对比
       </button>
       <button
         type="button"
@@ -66,9 +66,9 @@ export function SimLayoutToggle({ layout, actorCount, onChange }: SimLayoutToggl
           borderRadius: '0 3px 3px 0',
           borderLeft: 'none',
         }}
-        title="Constellation: radial cohort layout"
+        title="星座视图：放射状对比组布局"
       >
-        Constellation
+        关系星图
       </button>
     </div>
   );

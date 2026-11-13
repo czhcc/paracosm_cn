@@ -75,7 +75,7 @@ test('buildResearchLog: fallback note when no groundingSummary', () => {
   }));
   assert.equal(lines.length, 1);
   assert.equal(lines[0].tone, 'active');
-  assert.match(lines[0].body, /Grounding scenario with web research/);
+  assert.match(lines[0].body, /正在检索网络资料/);
 });
 
 test('buildResearchLog: skipped surfaces a single warn line with reason', () => {
@@ -119,14 +119,14 @@ test('buildResearchLog: real citations render dispatch + per-query + per-source 
   // dispatch + 2 query buckets + 3 source rows + 1 summary = 7 lines.
   assert.equal(lines.length, 7);
   assert.equal(lines[0].tag, 'POST');
-  assert.match(lines[0].body, /2 queries/);
+  assert.match(lines[0].body, /2 条查询/);
   assert.match(lines[0].body, /serper \+ tavily/);
   assert.equal(lines[1].tag, 'QUERY');
   // Provider tag now drives the source tag, not the domain.
   assert.equal(lines[2].tag, 'SERPER');
   assert.equal(lines[3].tag, 'TAVILY');
   assert.equal(lines[lines.length - 1].tone, 'done');
-  assert.match(lines[lines.length - 1].body, /3 unique sources attached/);
+  assert.match(lines[lines.length - 1].body, /已为场景补充 3 个独立来源/);
   assert.match(lines[lines.length - 1].body, /4\.4s/);
 });
 
@@ -159,7 +159,7 @@ test('buildActorsLog: dispatch + OK lines once next stage starts', () => {
   }));
   assert.equal(lines.length, 2);
   assert.match(lines[0].body, /count=4/);
-  assert.match(lines[1].body, /4 actors generated/);
+  assert.match(lines[1].body, /已生成 4 位决策者/);
 });
 
 test('buildActorsLog: singular copy when actorCount is 1', () => {
@@ -168,7 +168,7 @@ test('buildActorsLog: singular copy when actorCount is 1', () => {
     actorCount: 1,
     phaseTransitionMs: { compile: T0, research: T0, actors: T0 + 100, running: T0 + 200 },
   }));
-  assert.match(lines[1].body, /1 actor generated/);
+  assert.match(lines[1].body, /已生成 1 位决策者/);
 });
 
 test('buildRunningLog: maps SSE events to log lines, dropping status', () => {
@@ -202,7 +202,7 @@ test('buildRunningLog: events with no useful summary still render type', () => {
   ];
   const lines = buildRunningLog(ctx({ events }));
   assert.equal(lines.length, 1);
-  assert.match(lines[0].body, /bulletin fired/);
+  assert.match(lines[0].body, /收到事件：bulletin/);
 });
 
 test('buildRunningLog: a report kept without unheld keys is tagged a salvage, not a fallback', () => {
@@ -213,7 +213,7 @@ test('buildRunningLog: a report kept without unheld keys is tagged a salvage, no
     { type: 'validation_fallback', leader: 'A', data: { site: 'commander:turn1:event1', schemaName: 'CommanderDecision', summary: 'schema fallback: CommanderDecision' } },
   ];
   const lines = buildRunningLog(ctx({ events }));
-  assert.deepEqual(lines.map(l => l.tag), ['SALVAGE', 'FALLBACK']);
+  assert.deepEqual(lines.map(l => l.tag), ['修复保留', 'FALLBACK']);
 });
 
 test('buildLogForStage: routes to correct builder', () => {

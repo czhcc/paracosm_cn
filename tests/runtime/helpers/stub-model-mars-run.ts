@@ -43,6 +43,11 @@ const aria = recorded.ruleReplies.runs.find(r => r.leader === 'Aria Chen');
 if (!aria) throw new Error('the fixture holds Aria Chen\'s recorded replies');
 /** Aria Chen's recorded reply for each event title. */
 const REPLIES = new Map(aria.decisions.map(d => [d.title, d.reply]));
+// Recorded replies predate the Chinese milestone labels; the option ids are unchanged.
+for (const [localized, original] of [['首次着陆', 'Landfall'], ['殖民地发展评估', 'Legacy Assessment']]) {
+  const reply = REPLIES.get(original);
+  if (reply) REPLIES.set(localized, reply);
+}
 
 /** What the stub model saw and answered. */
 export interface StubModelLog {

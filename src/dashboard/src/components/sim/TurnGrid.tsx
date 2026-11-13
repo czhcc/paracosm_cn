@@ -59,7 +59,7 @@ export function TurnGrid({ state }: TurnGridProps) {
     <div className={`sim-columns ${styles.grid}`}>
       <div ref={scrollRef} onScroll={onScroll} className={styles.scroll}>
         {turns.length === 0 ? (
-          <div className={styles.empty}>No turns yet — events will appear as the run progresses.</div>
+          <div className={styles.empty}>暂无回合，运行过程中事件将逐步显示。</div>
         ) : (
           turns.map(t => {
             const entry = diffMap.get(t)!;

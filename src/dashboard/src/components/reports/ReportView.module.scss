@@ -587,11 +587,11 @@
 }
 
 .eventDescription {
-  font-size: var(--font-sm);
+  font-size: var(--font-md);
   color: var(--text-3);
-  line-height: 1.5;
+  line-height: 1.75;
   margin-bottom: 8px;
-  font-style: italic;
+  font-style: normal;
 }
 
 .eventDecision {
@@ -625,11 +625,11 @@
 }
 
 .eventRationale {
-  font-size: var(--font-sm);
+  font-size: var(--font-md);
   color: var(--text-2);
-  line-height: 1.6;
+  line-height: 1.75;
   margin-top: 4px;
-  font-style: italic;
+  font-style: normal;
   padding-left: 8px;
   border-left: 2px solid var(--side-color, var(--border));
 }
@@ -650,6 +650,8 @@
 }
 
 .deptHead {
+  flex-wrap: wrap;
+  gap: 4px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -667,8 +669,9 @@
 }
 
 .deptSummary {
+  font-size: var(--font-md);
   color: var(--text-2);
-  line-height: 1.5;
+  line-height: 1.75;
   margin-top: 2px;
 }
 
@@ -716,11 +719,11 @@
 }
 
 .reactionItem {
-  font-size: var(--font-sm);
+  font-size: var(--font-md);
   padding: 4px 8px;
   background: var(--bg-deep);
   border-radius: 4px;
-  line-height: 1.5;
+  line-height: 1.75;
 }
 
 .reactionHead {
@@ -747,8 +750,10 @@
 }
 
 .reactionQuote {
+  font-size: var(--font-md);
+  line-height: 1.75;
   color: var(--text-2);
-  font-style: italic;
+  font-style: normal;
 }
 
 .reactionRole {

@@ -46,13 +46,13 @@ export function useSimSavedToast({ events, tourActive, userTriggeredRun }: UseSi
     }
     if (status === 'saved') {
       const id = typeof d.id === 'string' ? d.id.slice(0, 8) : 'run';
-      toast('success', 'Saved to cache', `Run ${id}… stored. Open LOAD to replay.`);
+      toast('success', "已保存到缓存", `Run ${id}… 已保存，打开加载菜单可回放。`);
     } else if (status === 'failed') {
-      toast('error', 'Cache save failed', String(d.error ?? 'Unknown error'));
+      toast('error', "缓存保存失败", String(d.error ?? "未知错误"));
     } else if (status === 'skipped') {
       const reason = String(d.reason ?? 'unknown');
       if (reason !== 'below_min_turns') {
-        toast('info', 'Not cached', `Skipped: ${reason.replace(/_/g, ' ')}.`);
+        toast('info', "未缓存", `Skipped: ${reason.replace(/_/g, ' ')}.`);
       }
     }
   }, [events, tourActive, userTriggeredRun, toast]);

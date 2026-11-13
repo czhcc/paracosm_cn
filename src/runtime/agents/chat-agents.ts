@@ -1,3 +1,4 @@
+import { chinesePrompt } from '../../llm/chinese.js';
 /**
  * @fileoverview Colonist Chat Agents — post-simulation character chat powered by AgentOS.
  *
@@ -14,6 +15,7 @@
  */
 
 import { agent as createAgent, AgentMemory } from '@framers/agentos';
+import { configuredModel } from '../../engine/provider/model-config.js';
 import type { LlmProvider, ScenarioLabels } from '../../engine/types.js';
 import { scenarioWords } from '../util/scenario-words.js';
 import {
@@ -120,6 +122,7 @@ export async function getOrCreateChatAgent(
   memories: ColonistMemoryEntry[],
   opts: {
     provider?: LlmProvider;
+    model?: string;
     apiKey?: string;
     anthropicKey?: string;
     settlementNoun?: string;
@@ -147,9 +150,12 @@ export async function getOrCreateChatAgent(
 ): Promise<{ session: PoolEntry['session']; isNew: boolean }> {
   const provider = resolveProviderFromCredentials(opts.provider, opts, 'openai');
   const providerApiKey = apiKeyForProvider(provider, opts);
+  const model = opts.model ?? configuredModel(provider)
+    ?? (provider === 'anthropic' ? 'claude-haiku-4-5-20251001' : 'gpt-4o-mini');
   const key = [
     colonist.agentId,
     provider,
+    model,
     credentialFingerprint(providerApiKey),
     opts.runKey ?? '',
     opts.leader ?? '',
@@ -215,8 +221,6 @@ export async function getOrCreateChatAgent(
   } : undefined;
 
   const instructions = buildInstructions(colonist, settlement, popNoun, roster, opts.labels);
-
-  const model = provider === 'anthropic' ? 'claude-haiku-4-5-20251001' : 'gpt-4o-mini';
 
   const chatAgent = createAgent({
     provider,
@@ -403,7 +407,7 @@ export function buildInstructions(
     `nostalgic, blunt when scared. 2-4 sentences per response. No filler.`
   );
 
-  return lines.join(' ');
+  return chinesePrompt(lines.join(' '));
 }
 
 /**
@@ -452,7 +456,7 @@ export function extractColonistMemories(
     }
 
     // Crises (the colonist witnessed these)
-    if (evt.type === 'turn_start' && d.title && d.title !== 'Director generating...') {
+    if (evt.type === 'turn_start' && d.title && !['Director generating...', '事件导演正在生成…'].includes(String(d.title))) {
       memories.push({
         type: 'crisis',
         turn, time,

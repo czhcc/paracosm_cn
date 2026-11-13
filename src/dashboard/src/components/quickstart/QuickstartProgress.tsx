@@ -115,18 +115,18 @@ export function QuickstartProgress({
   );
 
   const stages: Array<{ id: Stage; label: string }> = [
-    { id: 'compile', label: 'Compile scenario' },
-    { id: 'research', label: 'Ground with citations' },
-    { id: 'actors', label: `Generate ${resolvedActorCount} actor${resolvedActorCount === 1 ? '' : 's'}` },
-    { id: 'running', label: `Run ${resolvedActorCount} simulation${resolvedActorCount === 1 ? '' : 's'}` },
+    { id: 'compile', label: "编译场景" },
+    { id: 'research', label: '检索并补充引用' },
+    { id: 'actors', label: `生成 ${resolvedActorCount} 位决策者` },
+    { id: 'running', label: `运行 ${resolvedActorCount} 条仿真` },
   ];
 
   return (
-    <section className={styles.progress} role="region" aria-label="Quickstart progress">
+    <section className={styles.progress} role="region" aria-label="快速开始进度">
       <header className={styles.heading}>
-        <span className={styles.title}>Quickstart run</span>
+        <span className={styles.title}>快速开始运行</span>
         <span className={styles.subtitle}>
-          Live trace of every step from seed text to ready-to-explore artifacts.
+          实时跟踪从背景资料到可查看运行记录的每个步骤。
         </span>
       </header>
 
@@ -159,12 +159,12 @@ export function QuickstartProgress({
           className={styles.jumpToSim}
           onClick={() => navigate('sim')}
         >
-          Jump to live SIM →
+          查看实时仿真 →
         </button>
       )}
       {onCancel && stage !== 'done' && (
         <button type="button" className={styles.cancel} onClick={onCancel}>
-          Cancel run
+          取消运行
         </button>
       )}
     </section>

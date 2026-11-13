@@ -67,5 +67,5 @@ test('TrajectoryStrip risk flags render as colored dots above their column', () 
 
 test('TrajectoryStrip empty timepoints renders an empty-state placeholder', () => {
   const html = renderToString(React.createElement(TrajectoryStrip, { timepoints: [], primaryMetric: moraleSpec }));
-  assert.ok(html.includes('No trajectory data'));
+  assert.ok(html.includes('暂无轨迹数据'));
 });

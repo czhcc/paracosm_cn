@@ -73,7 +73,7 @@ export function ViewAsCodePanel(props: ViewAsCodePanelProps) {
         disabled={disabled}
         onClick={() => setExpanded(v => !v)}
       >
-        {expanded ? '▾ Hide code' : '▸ View as code'}
+        {expanded ? '▾ 收起代码' : '▸ 查看代码'}
       </button>
 
       {expanded && (
@@ -83,7 +83,7 @@ export function ViewAsCodePanel(props: ViewAsCodePanelProps) {
           aria-labelledby={activeTabId}
           className={styles.panel}
         >
-          <div className={styles.tabRow} role="tablist" aria-label="Recipe language">
+          <div className={styles.tabRow} role="tablist" aria-label="示例代码语言">
             <button
               type="button"
               id={tsTabId}
@@ -112,9 +112,9 @@ export function ViewAsCodePanel(props: ViewAsCodePanelProps) {
               type="button"
               className={styles.copyBtn}
               onClick={handleCopy}
-              aria-label={`Copy ${tab === 'ts' ? 'TypeScript' : 'curl'} recipe`}
+              aria-label={`复制 ${tab === 'ts' ? 'TypeScript' : 'curl'} 示例`}
             >
-              {copyState === 'ok' ? 'Copied ✓' : copyState === 'fail' ? 'Press ⌘C' : 'Copy'}
+              {copyState === 'ok' ? '已复制 ✓' : copyState === 'fail' ? '请手动复制' : '复制'}
             </button>
           </div>
           <pre className={styles.code}><code>{activeCode}</code></pre>

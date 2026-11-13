@@ -15,7 +15,7 @@ export interface HumanizeInput {
  * labels that read as internal jargon in the dashboard.
  */
 export function humanizeOutcome(input: HumanizeInput): string {
-  const firstClause = (input.decision || '').split(/[.;]/)[0].trim();
+  const firstClause = (input.decision || '').split(/[.;。；]/)[0].trim();
   const shortDecision = firstClause.length > 80
     ? firstClause.slice(0, 77) + '...'
     : firstClause;
@@ -23,10 +23,10 @@ export function humanizeOutcome(input: HumanizeInput): string {
   const isSuccess = input.outcome.endsWith('success');
 
   const verb = shortDecision.length === 0
-    ? 'held position'
+    ? '维持现状'
     : isRisky
-    ? (isSuccess ? 'gambled on' : 'took the risk of')
-    : 'chose';
+    ? (isSuccess ? '冒险选择了' : '承担风险选择了')
+    : '选择了';
 
   const target = shortDecision.length === 0
     ? ''
@@ -39,15 +39,15 @@ export function humanizeOutcome(input: HumanizeInput): string {
     : `${input.actorName} ${verb}`;
 
   const lossClause = input.deaths > 0 && input.dominantCause
-    ? `, ${input.deaths} lost to ${input.dominantCause}`
+    ? `，${input.deaths} 人因 ${input.dominantCause} 死亡`
     : input.deaths > 0
-    ? `, ${input.deaths} lost`
+    ? `，${input.deaths} 人死亡`
     : '';
 
   const moraleClause = input.moraleDelta <= -0.08
-    ? '; morale cracked'
+    ? '；士气受挫'
     : input.moraleDelta >= 0.08
-    ? '; morale steadied'
+    ? '；士气回升'
     : '';
 
   return `${core}${lossClause}${moraleClause}`;

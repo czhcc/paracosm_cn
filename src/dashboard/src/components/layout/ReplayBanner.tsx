@@ -80,7 +80,7 @@ export function ReplayBanner({ replaySessionId }: ReplayBannerProps) {
     return () => { cancelled = true; };
   }, [replaySessionId]);
 
-  const headline = meta?.title || meta?.scenarioName || 'saved run';
+  const headline = meta?.title || meta?.scenarioName || "已保存的运行";
   const subline: string[] = [];
   if (meta) {
     if (meta.scenarioName) subline.push(meta.scenarioName);
@@ -105,12 +105,12 @@ export function ReplayBanner({ replaySessionId }: ReplayBannerProps) {
   return (
     <div role="status" className={styles.activeBanner}>
       <span>
-        <strong className={styles.activeBannerHeadline}>REPLAYING</strong>
+        <strong className={styles.activeBannerHeadline}>正在回放</strong>
         <span className={styles.activeBannerSubline}>· {headline}</span>
         {subline.length > 0 && (
           <span className={styles.activeBannerSubline}> · {subline.join(' · ')}</span>
         )}
-        <span className={styles.activeBannerCacheTag}>· cached playback (no new LLM cost)</span>
+        <span className={styles.activeBannerCacheTag}>· 缓存回放（不产生新的模型费用）</span>
         {seedTeaser && (
           <span className={styles.activeBannerSeed}>
             “{seedTeaser}”
@@ -131,7 +131,7 @@ export function ReplayBanner({ replaySessionId }: ReplayBannerProps) {
         }}
         className={styles.exitButton}
       >
-        EXIT REPLAY
+        退出回放
       </button>
     </div>
   );
@@ -144,8 +144,8 @@ export function ReplayNotFoundBanner({ replaySessionId }: ReplayBannerProps) {
   return (
     <div role="alert" className={styles.notFoundBanner}>
       <span>
-        <strong className={styles.notFoundLabel}>REPLAY NOT FOUND</strong>{' '}
-        · The saved run <code>{replaySessionId}</code> no longer exists. It may have been evicted from the 10-run cache, or the URL was mistyped.
+        <strong className={styles.notFoundLabel}>未找到回放</strong>{' '}
+        · 已保存的运行 <code>{replaySessionId}</code> 已不存在，可能已超出缓存容量被移除，或链接有误。
       </span>
       <button
         type="button"
@@ -157,7 +157,7 @@ export function ReplayNotFoundBanner({ replaySessionId }: ReplayBannerProps) {
         }}
         className={styles.returnButton}
       >
-        ← Back to live mode
+        ← 返回实时模式
       </button>
     </div>
   );

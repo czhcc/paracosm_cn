@@ -17,6 +17,7 @@
  * @module paracosm/compiler/compile-from-seed
  */
 import { z } from 'zod';
+import { configuredModel } from '../provider/model-config.js';
 import { compileScenario } from './index.js';
 import { seedDraftToScenarioJson } from './seed-draft-world.js';
 import { validateSeedWorld } from './validate.js';
@@ -129,57 +130,40 @@ export interface CompileFromSeedInput {
  * verbatim into defaultPopulation, capitalized ids, instructions
  * bursting past 400 chars, etc.).
  */
-const DRAFT_SYSTEM_PROMPT = `You are a scenario architect for paracosm, a structured world-model simulator for AI agents.
+const DRAFT_SYSTEM_PROMPT = `你是 Paracosm 多智能体结构化世界模型的场景架构师。根据输入资料，生成符合领域背景和 DraftScenarioSchema 的场景 JSON；输出会经过 Zod 严格校验。所有显示名称、描述、角色和指令使用简体中文，JSON 字段名及内部 ID 保持协议格式。
 
-Given seed source material, propose a paracosm scenario JSON that matches the domain. The output is validated by Zod; producing any field outside the bounds below will be rejected.
+领域名词：populationNoun、settlementNoun、timeUnitNoun 等显示词使用中文，例如船员／基地／天，员工／公司／季度，居民／殖民地／年。时间单位需与场景时间设置一致。timeUnitNoun 和 timeUnitNounPlural 是引擎解释时间尺度的字段，仍使用 year、quarter、month、week、day、hour 及其英文复数形式；前端显示时翻译，不改变时间换算。
 
-DOMAIN NOUNS
-- populationNoun (plural), settlementNoun (singular), timeUnitNoun (singular).
-- Examples: submarine -> "crew" / "habitat" / "day". Corporate -> "employees" / "company" / "quarter". Space settlement -> "colonists" / "colony" / "year". Game studio -> "players" / "studio" / "week". Public health -> "residents" / "state" / "day".
+ID：id、departments[].id、metrics[].id 必须为小写字母、数字和连字符组成的 kebab-case。顶层长度 3～64，部门 2～48，指标 2～32。不能将中文显示名称用作 ID。
 
-ID FIELDS (id, departments[].id, metrics[].id)
-- kebab-case ONLY: lowercase letters, digits, hyphens. Length 3-64 (top-level), 2-48 (department), 2-32 (metric).
-- WRONG: "Stardrift Online", "Seasonal_Content". RIGHT: "stardrift-online", "seasonal-content".
+SETUP：defaultTurns 为 2～12 的整数，通常选择 4～8。defaultPopulation 为 10～1000 的整数，表示模拟抽样人数，不是现实人口；即使现实人口数百万，也只能选择这个范围内的代表性样本。defaultStartTime 为符合领域的整数。yearsPerTimeUnit 仅在非标准时间单位时填写；标准 year、quarter、month、week、day、hour 不填该字段。
 
-SETUP
-- defaultTurns: integer between 2 and 12. Pick 4-8 for most scenarios.
-- defaultPopulation: integer between 10 and 1000. This is a REPRESENTATIVE SAMPLE the simulation will agentize, NOT real-world headcount. A 380,000-MAU MMO becomes defaultPopulation: 200. A nation of millions becomes defaultPopulation: 500. Never paste real counts here.
-- defaultStartTime: integer appropriate for the domain (year for space, quarter index for corporate, day index for daily-cadence sims, etc.).
-- yearsPerTimeUnit (optional): years in one timeUnitNoun, only when that unit is not a year, quarter, month, week, day or hour (a season is 0.25). Omit it for those.
+部门：2～8 个，label 长度 2～48 字符，role 为 2～80 字符的简短职位，instructions 为 10～400 字符的中文行动指令。
 
-DEPARTMENTS (2-8 entries)
-- label: 2-48 chars human-readable.
-- role: 2-80 chars short title.
-- instructions: 10-400 chars MAX. Keep terse and action-oriented.
+指标：2～12 个，按重要性排序，前四个显示在页头。
+- format：必须为 number、percent 或 currency。
+- better：数值越低越好的指标（流失率、缺陷数、风险）设置为 "lower"，其余省略。
+- label：2～48 字符的中文显示名称，例如“土壤健康”。
+- initial：符合领域实际的初始值。
+  - percent：采用 0～100 的百分数尺度，65 表示 65%，不能写成 0.65。
+  - number：使用指标自身单位（库存 500、满分 100 的指数为 40）。初始值至少为 1；从空开始的计数可以为 0。占比或比率应使用 percent。
+  - currency：场景币种的金额，例如 2400000。
+- unit：仅 number 和 currency 可选，最多 16 字符，例如“吨”“kW”“分”；percent 不需要单位。
+- min、max：仅 number 和 currency 可选，表示不可突破的下限或上限。只有确实存在上限（如满分 100）时才设置 max；可持续增长的库存、计数和金额不设 max。
+- sustains：仅当指标是人群生存必需、且可由决策增减的实物存量或容量（如水、氧气、电力、居住空间）时，才可选填 true。评分、占比、比率、资金、风险和人数不能标记。无法确定时省略，多数场景不需要此标记。
+- population（人数）和 morale（士气，百分数）是引擎维护的指标 ID，仅在决策者需要据此决策时声明。
+- 只选择决策者实际关注的指标，不要罗列全部统计数据。
 
-METRICS (2-12 entries, the most important first: the first four show in the header)
-- format: one of "number", "percent", "currency".
-- better (optional): "lower" for a metric that improves as it falls (a churn rate, a defect count, a risk). Omit it for the rest.
-- label: 2-48 chars, the name a reader sees ("Soil health").
-- initial: where the metric stands on day one, a real figure for this domain.
-  - percent: the percentage itself, on a 0 to 100 scale. 65 means 65%. Do NOT write a fraction (0.65).
-  - number: the figure in its own unit (a stock of 500, an index of 40 out of 100). Start it at 1 or more, or at 0 for a count that starts empty; write a share or a rate as a percent metric.
-  - currency: the amount in the scenario's currency (2400000).
-- unit (optional, number and currency only): at most 16 chars ("tonnes", "kW", "points"). A percent needs none.
-- min, max (optional, number and currency only): a floor or a ceiling the metric cannot pass. Give max only where the metric truly has one (a score out of 100). Leave max out for a stock, a count or an amount that can keep growing.
-- sustains (optional): true ONLY for a physical stock or capacity the people need to stay alive, which decisions can build up or run down (a water reserve, oxygen, power, shelter space). Never for a score, a share, a rate, money, a risk or a head count. Leave it out when unsure. Most scenarios mark none.
-- The ids "population" (the head count) and "morale" (the mood, a percent) name values the engine keeps itself. Declare them only if the leader steers on them.
-- Pick the metrics the leader actually steers on, not every available stat.
+效果 effects：3～8 类，描述世界中的事件类型及其影响。
+- category：2～32 字符的 kebab-case 事件类型，例如 supply、regulation、market、safety。
+- entries：1～4 项，表示普通且胜任的应对所产生的效果。
+  - metric：已声明的指标 ID 或 morale，不能为 population。
+  - change：按指标自身尺度增加的数值，正数提高、负数降低；百分数使用百分点，4 表示提高四个百分点。
+  - 变化幅度保持适中，约为指标初始值的二十分之一，不能超过十二分之一。冒险方案成功时收益约为其 2.5 倍；失败会失去收益，并使成本最多增至四倍。
+  - 领域存在权衡时，每类事件应同时包含某项指标的收益和另一项指标的成本。成本是违背指标 better 方向的变化。
+- 每个指标必须至少出现在一种事件类型中。
 
-EFFECTS (3-8 entries): the kinds of event this world faces, and what each brings
-- category: kebab-case, 2-32 chars, a kind of event ("supply", "regulation", "market", "safety").
-- entries (1-4): what an event of this kind brings when the response is ordinary and competent.
-  - metric: the id of one of your metrics, or "morale". Not "population".
-  - change: the amount added to that metric, in the metric's own scale. Positive raises it, negative lowers it. For a percent metric write points (4 for four points).
-  - Keep each change modest: about a twentieth of where the metric starts, never more than a twelfth. A bold response that works brings about two and a half times as much. A failed response loses a gain, and makes a cost up to four times larger.
-  - Give each kind of event a trade-off where the domain has one: a gain on one metric and a cost on another. A cost is a change against the metric's better direction.
-- Every metric must appear in at least one category.
-
-LABELS
-- name: 2-80 chars, prose-y title for the scenario as a whole.
-- currency (optional): 1-16 chars, e.g. "USD".
-
-Keep all labels natural language. Leave hooks, citations, and implementation details to downstream compilation.`;
+标签：name 为 2～80 字符的中文场景名称；currency 可选，1～16 字符，例如 USD。其他字段遵守 Schema，不能新增字段。钩子、引用和实现细节交给后续编译。仅返回有效 JSON。`;
 
 /** Internal options, a subset of `CompileOptions` that `compileFromSeed` actually reads. */
 export interface CompileFromSeedOptions extends CompileOptions {
@@ -225,7 +209,8 @@ export async function compileFromSeed(
     options,
     'anthropic',
   );
-  const model = options.draftModel ?? options.model ?? 'claude-sonnet-4-6';
+  const model = options.draftModel ?? options.model ?? configuredModel(provider)
+    ?? (provider === 'openai' ? 'gpt-5.4-mini' : 'claude-sonnet-4-6');
 
   const hint = input.domainHint ? `\n\nDomain hint: ${input.domainHint}` : '';
   const prompt = `Seed source material:\n"""\n${input.seedText}\n"""${hint}\n\nRespond with a scenario JSON that matches DraftScenarioSchema. Remember: defaultPopulation must be 10-1000 (representative sample, NOT the real-world headcount from the seed). All ids must be kebab-case. Department instructions must be 10-400 chars. Give every metric its starting value, and list the kinds of event with what each brings.`;

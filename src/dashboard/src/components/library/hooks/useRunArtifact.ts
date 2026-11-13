@@ -30,13 +30,13 @@ export function useRunArtifact(runId: string | null): RunArtifactResult {
         if (r.ok) {
           setState({ record: body.record, artifact: body.artifact, loading: false, error: null, status: 'ok' });
         } else if (r.status === 404) {
-          setState({ record: null, artifact: null, loading: false, error: 'Run not found', status: 'not_found' });
+          setState({ record: null, artifact: null, loading: false, error: "未找到运行记录", status: 'not_found' });
         } else if (r.status === 410) {
           setState({
             record: body.record ?? null,
             artifact: null,
             loading: false,
-            error: body.message ?? 'Artifact unavailable',
+            error: body.message ?? "运行记录不可用",
             status: body.error === 'artifact_unavailable' ? 'unavailable' : 'unreadable',
           });
         } else {

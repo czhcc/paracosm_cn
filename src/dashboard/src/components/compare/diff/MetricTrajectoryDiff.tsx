@@ -18,18 +18,18 @@ export function MetricTrajectoryDiff({ artifacts }: MetricTrajectoryDiffProps): 
   const metrics = React.useMemo<MetricSeries[]>(() => collectMetrics(artifacts), [artifacts]);
   if (metrics.length === 0) {
     return (
-      <section className={styles.diffSection} aria-label="Metric trajectory comparison">
+      <section className={styles.diffSection} aria-label="指标轨迹对比">
         <header className={styles.diffHead}>
-          <h5 className={styles.diffTitle}>Metric trajectories</h5>
+          <h5 className={styles.diffTitle}>指标变化</h5>
         </header>
-        <p className={styles.diffEmpty}>No timepoint metrics in any artifact.</p>
+        <p className={styles.diffEmpty}>所有运行记录中均无时间点指标。</p>
       </section>
     );
   }
   return (
-    <section className={styles.diffSection} aria-label="Metric trajectory comparison">
+    <section className={styles.diffSection} aria-label="指标轨迹对比">
       <header className={styles.diffHead}>
-        <h5 className={styles.diffTitle}>Metric trajectories</h5>
+        <h5 className={styles.diffTitle}>指标变化</h5>
       </header>
       <div className={styles.metricGrid}>
         {metrics.map((m) => (
@@ -61,7 +61,7 @@ function MultiSparkline({ series }: { series: Array<Array<{ turn: number; value:
       className={styles.metricSparkline}
       viewBox={`0 0 ${W} ${H}`}
       role="img"
-      aria-label="Metric over turns, one series per artifact"
+      aria-label="各运行记录逐回合的指标变化"
     >
       {series.map((s, i) => {
         if (s.length < 2) return null;

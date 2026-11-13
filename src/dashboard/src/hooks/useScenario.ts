@@ -1,3 +1,4 @@
+import { localizeTemplate } from '../template-localization';
 import { useState, useEffect } from 'react';
 import { subscribeScenarioUpdates } from '../scenario-sync';
 
@@ -110,7 +111,7 @@ const LONGEST_RETRY_MS = 15_000;
  * fetch tries again, with `ready` false, until the server answers.
  */
 export function useScenario() {
-  const [scenario, setScenario] = useState<ScenarioClientPayload>(MARS_FALLBACK);
+  const [scenario, setScenario] = useState<ScenarioClientPayload>(localizeTemplate(MARS_FALLBACK));
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -133,7 +134,7 @@ export function useScenario() {
           if (request !== latestRequest) return;
           if (data?.id) {
             failures = 0;
-            setScenario(data);
+            setScenario(localizeTemplate(data));
             setReady(true);
           } else {
             tryAgain();

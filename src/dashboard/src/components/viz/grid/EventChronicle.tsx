@@ -1,3 +1,4 @@
+import { displayLabel } from '../../../template-localization';
 import { useMemo, useState, type CSSProperties } from 'react';
 import styles from './EventChronicle.module.scss';
 
@@ -12,11 +13,11 @@ interface ChronicleEvent {
 type ChronicleFilter = 'all' | 'birth' | 'death' | 'forge' | 'crisis';
 
 const FILTER_CHIPS: { key: ChronicleFilter; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'birth', label: 'Births' },
-  { key: 'death', label: 'Deaths' },
-  { key: 'forge', label: 'Forges' },
-  { key: 'crisis', label: 'Crises' },
+  { key: 'all', label: "全部" },
+  { key: 'birth', label: '出生' },
+  { key: 'death', label: '死亡' },
+  { key: 'forge', label: '工具生成' },
+  { key: 'crisis', label: '危机' },
 ];
 
 interface EventChronicleProps {
@@ -99,14 +100,14 @@ export function EventChronicle({
         const turn = Number(e.turn ?? e.data?.turn ?? 0);
         if (turn <= 0) continue;
         if (e.type === 'birth') {
-          out.push({ turn, kind: 'birth', side, label: `T${turn}: birth (${side.toUpperCase()})` });
+          out.push({ turn, kind: 'birth', side, label: `T${turn}: 出生 (${side.toUpperCase()})` });
         } else if (e.type === 'death') {
           const name = typeof e.data?.name === 'string' ? e.data.name : '';
           out.push({
             turn,
             kind: 'death',
             side,
-            label: `T${turn}: ${name ? name + ' died' : 'death'} (${side.toUpperCase()})`,
+            label: `T${turn}: ${name ? name + ' 去世' : '死亡'} (${side.toUpperCase()})`,
           });
         } else if (e.type === 'forge_attempt') {
           const name = typeof e.data?.name === 'string' ? e.data.name : 'tool';
@@ -115,7 +116,7 @@ export function EventChronicle({
             turn,
             kind: 'forge',
             side,
-            label: `T${turn}: ${approved ? 'forged' : 'rejected'} ${name} (${side.toUpperCase()}) — click for lineage`,
+            label: `T${turn}: ${approved ? '已生成' : '已拒绝'} ${name} (${side.toUpperCase()}) — 点击查看工具谱系`,
             toolName: name,
           });
         } else if (e.type === 'event_start' || e.type === 'director_crisis') {
@@ -125,7 +126,7 @@ export function EventChronicle({
               turn,
               kind: 'crisis',
               side,
-              label: `T${turn}: ${cat} crisis (${side.toUpperCase()})`,
+              label: `T${turn}: ${displayLabel(cat)}危机 (${side.toUpperCase()})`,
             });
           }
         }
@@ -154,9 +155,10 @@ export function EventChronicle({
   if (chronicle.length === 0) return null;
 
   return (
-    <div aria-label="Event filter" className={styles.bar}>
+    <div aria-label="事件筛选" className={styles.bar}>
       <span className={styles.heading}>
-        Events ({filtered.length}
+
+        事件（{filtered.length}
         {filter !== 'all' ? `/${chronicle.length}` : ''})
       </span>
       <div className={styles.filterRow}>
@@ -221,7 +223,7 @@ export function EventChronicle({
                 onHoverTurnChange?.(null);
                 onHoverEventChange?.(null);
               }}
-              title={`${ev.label}${onJumpToReports ? ' · Shift+click to open in Reports' : ''}`}
+              title={`${ev.label}${onJumpToReports ? " · 按住 Shift 点击可在报告中打开" : ''}`}
               aria-label={ev.label}
               className={dotCls}
               style={dotStyle}

@@ -1,3 +1,4 @@
+import { displayLabel } from '../../template-localization';
 import * as React from 'react';
 import type { LeaderInfo, TurnEventInfo } from '../../hooks/useGameState';
 import { getActorColorVar } from '../../hooks/useGameState';
@@ -180,7 +181,7 @@ export function ActorBar({
         {pop !== null && (
           <>
             <span className={styles.compactSep}>·</span>
-            <span className={styles.compactStat}>POP {Math.round(pop)}</span>
+            <span className={styles.compactStat}>人口 {Math.round(pop)}</span>
           </>
         )}
         {morale !== null && (
@@ -190,7 +191,7 @@ export function ActorBar({
                 so the SparkLine reads it directly). Multiplying by 100
                 again here was producing MORALE 3200% on the live SIM
                 actor bar. Round-display only. */}
-            <span className={styles.compactStat}>MORALE {Math.round(morale)}%</span>
+            <span className={styles.compactStat}>士气 {Math.round(morale)}%</span>
           </>
         )}
         {mood && (
@@ -199,7 +200,7 @@ export function ActorBar({
             title={`Mood: ${mood.label}`}
           >
             <span aria-hidden="true">{mood.icon}</span>
-            <span>{mood.label}</span>
+            <span>{displayLabel(mood.label)}</span>
           </span>
         )}
         {event?.title && (
@@ -213,7 +214,7 @@ export function ActorBar({
         )}
         {pendingDecision && (
           <span className={styles.compactDeciding} title={pendingDecision}>
-            DECIDING…
+            决策中…
           </span>
         )}
       </div>
@@ -258,7 +259,7 @@ export function ActorBar({
         )}
         {verdictPlacement && (
           <span
-            title={verdictPlacement === 'winner' ? 'Verdict: this leader won' : verdictPlacement === 'tie' ? 'Verdict: tie' : 'Verdict: runner-up'}
+            title={verdictPlacement === 'winner' ? "结论：此决策者获胜" : verdictPlacement === 'tie' ? 'Verdict: tie' : 'Verdict: runner-up'}
             className={verdictClass}
           >
             {verdictPlacement === 'winner' ? '★ WINNER' : verdictPlacement === 'tie' ? '= TIE' : '2ND'}
@@ -269,7 +270,7 @@ export function ActorBar({
             <b className={styles.tooltipHeading}>
               {archetype ? `${archetype}: ` : ''}{name}
             </b>
-            {unit && <div>Unit: {unit}</div>}
+            {unit && <div>所属单位： {unit}</div>}
             {leader?.instructions && (
               <div className={styles.tooltipInstructions}>{leader.instructions}</div>
             )}
@@ -315,15 +316,15 @@ export function ActorBar({
             // Tells the user the card is alive and just waiting for data
             // rather than implying a leader with no personality.
             if (popHistory.length === 0 && moraleHistory.length === 0) {
-              return <span className={styles.awaiting}>Awaiting first turn…</span>;
+              return <span className={styles.awaiting}>等待首个回合…</span>;
             }
             return '';
           })()}
         </span>
         <span className={`leader-sparklines ${styles.sparklines}`}>
-          <SparkLine data={popHistory} label="POP" color={sideColor} />
+          <SparkLine data={popHistory} label="人口" color={sideColor} />
           {'  '}
-          <SparkLine data={moraleHistory} label="MORALE" suffix="%" color="var(--amber)" />
+          <SparkLine data={moraleHistory} label="士气" suffix="%" color="var(--amber)" />
         </span>
       </div>
       <DynamicStateRow
@@ -374,11 +375,11 @@ function DynamicStateRow({
       {mood && (
         <span
           className={`${styles.chip} ${styles[`mood_${mood.tone}`] ?? ''}`.trim()}
-          title={`Mood derived from current morale (${Math.round(lastMorale!)}%)`}
+          title={`情绪根据当前士气推导（${Math.round(lastMorale!)}%)`}
         >
           <span aria-hidden="true">{mood.icon}</span>
-          <span className={styles.chipLabel}>Mood</span>
-          <span className={styles.chipValue}>{mood.label}</span>
+          <span className={styles.chipLabel}>情绪</span>
+          <span className={styles.chipValue}>{displayLabel(mood.label)}</span>
         </span>
       )}
       {event?.title && (
@@ -395,7 +396,7 @@ function DynamicStateRow({
       {pendingDecision && (
         <span className={`${styles.chip} ${styles.chipDeciding}`} title={pendingDecision}>
           <span aria-hidden="true">⏳</span>
-          <span className={styles.chipLabel}>Deciding</span>
+          <span className={styles.chipLabel}>决策中</span>
         </span>
       )}
       {statusChips.map(({ key, label, value }) => (

@@ -13,23 +13,23 @@ export const ECONOMICS_PROFILE_OPTIONS: Array<{
 }> = [
   {
     value: 'economy',
-    label: 'Economy',
-    description: 'Cheapest path: gated research, cheap verdicts, tighter spend controls.',
+    label: "经济",
+    description: "最低费用：按需研究、经济型结论评估及更严格的费用控制。",
   },
   {
     value: 'balanced',
-    label: 'Balanced',
-    description: 'Current default mix for good quality per dollar on normal runs.',
+    label: "均衡",
+    description: "适用于常规运行的默认组合，兼顾质量和费用。",
   },
   {
     value: 'quality',
-    label: 'Quality',
-    description: 'Push strategic roles and verdict synthesis upward when quality matters more than spend.',
+    label: "高质量",
+    description: '优先提高战略角色与结论汇总的质量，适用于更重视质量的运行。',
   },
   {
     value: 'deterministic_first',
-    label: 'Deterministic First',
-    description: 'Skip verdict synthesis and live-search escalation to reduce variance and cost.',
+    label: "优先确定性计算",
+    description: '跳过结论汇总与实时搜索升级，降低结果波动和费用。',
   },
 ];
 
@@ -37,19 +37,19 @@ export function describeServerMode(mode: DashboardServerMode): { label: string; 
   switch (mode) {
     case 'hosted_demo':
       return {
-        label: 'Hosted demo',
-        description: 'Host-billed runs are capped and forced onto the economy guardrails.',
+        label: "托管演示",
+        description: '由服务器承担费用，运行次数受限，并使用经济配置的费用保护。',
       };
     case 'platform_api':
       return {
-        label: 'Platform API',
-        description: 'Authenticated `/api/v1/*` routes are enabled; demo-only assumptions are off.',
+        label: "平台 API",
+        description: '启用需要认证的 /api/v1/* 接口，使用平台服务配置。',
       };
     case 'local_demo':
     default:
       return {
-        label: 'Local demo',
-        description: 'Single-process local server. Good for product exploration, not a hosted control plane.',
+        label: "本地演示",
+        description: '单进程本地服务器，适合探索产品功能。',
       };
   }
 }

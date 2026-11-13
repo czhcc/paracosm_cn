@@ -269,8 +269,8 @@ test('a Studio bundle holding a run whose JSON alone passes the limit is refused
     const outcome = await withPageFetch(served.base, calls, () => importBundle(bundle));
     assert.equal(outcome.ok, false);
     if (outcome.ok) return;
-    assert.match(outcome.error, /^The server takes at most 5\.0 MiB in one request \(MAX_REQUEST_BODY_BYTES\), and this run passes that on its own: /);
-    assert.match(outcome.error, new RegExp(`${escaped(oversize.metadata.runId)} \\(\\d+\\.\\d MiB\\)\\. Nothing was imported\\.$`));
+    assert.match(outcome.error, /^服务器单次请求最多接收 5\.0 MiB（MAX_REQUEST_BODY_BYTES），以下运行记录单独就超过此上限：/);
+    assert.match(outcome.error, new RegExp(`${escaped(oversize.metadata.runId)} \\(\\d+\\.\\d MiB\\)。未导入任何记录。$`));
     assert.deepEqual(outcome.imported, []);
     assert.deepEqual(outcome.notImported, bundle.map(a => a.metadata.runId));
     // One request: the whole bundle, which the server refused, stating its limit.
@@ -310,12 +310,12 @@ test('a Studio bundle that fails part way reports which runs were imported and w
     assert.ok(outcome.bundleId, 'the imported runs are in a bundle');
     assert.ok(
       outcome.error.startsWith(
-        `Imported ${imported.length} of ${reported.length} runs into ${outcome.bundleId}: ${imported.join(', ')}. `
-        + `Not imported: ${lastReported}. `,
+        `已将 ${reported.length} 次运行中的 ${imported.length} 次导入记录包 ${outcome.bundleId}：${imported.join(', ')}。`
+        + `未导入：${lastReported}。`,
       ),
       outcome.error,
     );
-    assert.match(outcome.error, /Failed to insert bundle item \d+: the disk is full\. Promote again to add the rest to the same bundle\.$/);
+    assert.match(outcome.error, /Failed to insert bundle item \d+: the disk is full\. 请再次导入，将剩余运行添加到同一个记录包。$/);
     assert.equal(await memberCount(served.base, outcome.bundleId), imported.length);
     assert.equal(await recordOf(served.base, lastReported), null);
 

@@ -78,12 +78,12 @@ export function useLoadPreview(opts: UseLoadPreviewOptions): UseLoadPreviewApi {
         dispatch({ type: 'open-failed' });
         if (parsed.reason === 'too-new') {
           opts.onError?.(
-            `This file was saved under schema v${parsed.fileVersion}; ` +
-              `this dashboard supports up to v${parsed.dashboardVersion}. ` +
-              `Update the dashboard to load it.`,
+            `此文件保存时使用结构版本 v${parsed.fileVersion}; ` +
+              `此控制台最高支持版本 v${parsed.dashboardVersion}. ` +
+              "请升级控制台后加载。",
           );
         } else {
-          opts.onError?.('No valid game data found in file.');
+          opts.onError?.("文件中没有有效的仿真数据。");
         }
         return;
       }
@@ -94,13 +94,13 @@ export function useLoadPreview(opts: UseLoadPreviewOptions): UseLoadPreviewApi {
       );
       if (!metadata) {
         dispatch({ type: 'open-failed' });
-        opts.onError?.('No valid game data found in file.');
+        opts.onError?.("文件中没有有效的仿真数据。");
         return;
       }
       dispatch({ type: 'open-succeeded', metadata, data: parsed.data });
     } catch {
       dispatch({ type: 'open-failed' });
-      opts.onError?.('Failed to read file.');
+      opts.onError?.("无法读取文件。");
     }
   }, [opts]);
 

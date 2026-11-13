@@ -39,7 +39,7 @@ export function DeptBand({ label, tiles, selectedId, divergedIds, onSelect, diff
       role="group"
       aria-label={
         showDiff
-          ? `${label}, ${tiles.length} colonists. Diverged from other leader.`
+          ? `${label}, ${tiles.length} 位居民，与另一位决策者产生分歧。`
           : `${label}, ${tiles.length} colonists`
       }
       style={{

@@ -75,12 +75,12 @@ const EMPTY_INTERVENTION: InterventionForm = {
 
 const PRESETS: Record<string, Preset> = {
   medical: {
-    label: 'Patient · treatment',
-    blurb: 'Type 2 diabetes patient on a 12-week semaglutide + lifestyle protocol.',
+    label: "患者 · 治疗",
+    blurb: "2 型糖尿病患者接受 12 周司美格鲁肽与生活方式干预。",
     subject: {
       id: 'patient-maria-2026',
-      name: 'Maria Chen',
-      description: '58 y/o T2D for 4 yrs, sedentary, family hx CVD, on metformin.',
+      name: "陈玛丽",
+      description: "58 岁，2 型糖尿病病程 4 年，久坐，有心血管病家族史，正在使用二甲双胍。",
       profileJson: JSON.stringify({
         age: 58,
         yearsWithT2D: 4,
@@ -90,31 +90,31 @@ const PRESETS: Record<string, Preset> = {
         fastingGlucose: 156,
         sleepHoursBaseline: 6.2,
         exerciseMinPerWeek: 0,
-        comorbidities: 'hypertension, dyslipidemia',
+        comorbidities: "高血压、血脂异常",
       }, null, 2),
     },
     intervention: {
       id: 'glp1-12wk-protocol',
-      name: '12-week semaglutide + lifestyle protocol',
-      description: 'Initiate semaglutide 0.25mg weekly, titrate to 1.0mg by week 4. Pair with dietitian-led nutrition plan and 150min/wk graded exercise. Behavioral health checkpoints biweekly. Monitor for GI side effects, gallbladder, pancreatitis.',
+      name: "12 周司美格鲁肽与生活方式干预方案",
+      description: "每周使用司美格鲁肽 0.25mg，第 4 周前增至 1.0mg。配合营养师指导的饮食计划与每周 150 分钟分级运动，每两周进行行为健康评估，监测胃肠道不良反应、胆囊问题和胰腺炎。",
       durationValue: '84',
       durationUnit: 'days',
       adherence: '0.85',
     },
     signalsJson: JSON.stringify([
       { label: 'HbA1c', value: 7.8, unit: '%', recordedAt: '2026-09-15T00:00:00Z' },
-      { label: 'Fasting glucose', value: 156, unit: 'mg/dL', recordedAt: '2026-09-15T00:00:00Z' },
-      { label: 'Weight', value: 178, unit: 'lb', recordedAt: '2026-09-15T00:00:00Z' },
+      { label: "空腹血糖", value: 156, unit: 'mg/dL', recordedAt: '2026-09-15T00:00:00Z' },
+      { label: "体重", value: 178, unit: 'lb', recordedAt: '2026-09-15T00:00:00Z' },
       { label: 'BMI', value: 31, unit: 'kg/m²', recordedAt: '2026-09-15T00:00:00Z' },
     ], null, 2),
   },
   policy: {
-    label: 'Jurisdiction · ordinance',
-    blurb: 'A mid-size city pilots downtown congestion pricing for 12 months.',
+    label: "辖区 · 政策",
+    blurb: "一座中等城市试行 12 个月市中心交通拥堵收费。",
     subject: {
       id: 'city-portland-2026',
-      name: 'Portland Metro',
-      description: 'Pacific Northwest mid-size city with dense urban core, mature transit, organized downtown business association.',
+      name: "波特兰都市区",
+      description: "美国太平洋西北部中等城市，市中心人口密集、公共交通成熟，且有组织完善的市中心商业协会。",
       profileJson: JSON.stringify({
         population: 650000,
         downtownEmployment: 110000,
@@ -128,25 +128,25 @@ const PRESETS: Record<string, Preset> = {
     },
     intervention: {
       id: 'congestion-pricing-12mo',
-      name: 'Downtown congestion pricing pilot',
-      description: 'Charge $9/peak-hour ($3 off-peak) on vehicles entering the central business district 6am-7pm Mon-Fri. Revenue funds two new BRT lines and a 30% transit fare cut for low-income riders. Pilot runs 12 months with quarterly review.',
+      name: "市中心拥堵收费试点",
+      description: "周一至周五 6～19 时进入中央商务区的车辆，高峰收费 9 美元、非高峰 3 美元。收入用于新增两条快速公交线路，并为低收入乘客降低 30% 票价。试点持续 12 个月，每季度评估。",
       durationValue: '12',
       durationUnit: 'months',
       adherence: '0.78',
     },
     signalsJson: JSON.stringify([
-      { label: 'Downtown VMT', value: 1.42, unit: 'million-mi/day', recordedAt: '2026-04-01T00:00:00Z' },
-      { label: 'Transit ridership', value: 118000, unit: 'boardings/day', recordedAt: '2026-04-01T00:00:00Z' },
-      { label: 'Peak speed', value: 14.2, unit: 'mph', recordedAt: '2026-04-01T00:00:00Z' },
+      { label: "市中心车辆行驶里程", value: 1.42, unit: 'million-mi/day', recordedAt: '2026-04-01T00:00:00Z' },
+      { label: "公交客流量", value: 118000, unit: 'boardings/day', recordedAt: '2026-04-01T00:00:00Z' },
+      { label: "高峰速度", value: 14.2, unit: 'mph', recordedAt: '2026-04-01T00:00:00Z' },
     ], null, 2),
   },
   product: {
-    label: 'Market · launch',
-    blurb: 'A SaaS launches a new mid-tier price point against a price-sensitive prosumer segment.',
+    label: "市场 · 产品发布",
+    blurb: "一家 SaaS 企业面向价格敏感的专业个人用户推出中间价位套餐。",
     subject: {
       id: 'segment-prosumer-creators',
-      name: 'Prosumer creators',
-      description: 'Independent creators earning $40k-$120k/yr who self-fund their tooling. Cross-tool stackers; price-sensitive within 20% bands.',
+      name: "专业个人创作者",
+      description: "年收入 4 万～12 万美元、自费购买工具的独立创作者，通常组合使用多种工具，对 20% 区间内的价格变化敏感。",
       profileJson: JSON.stringify({
         addressableUsers: 1800000,
         currentPaidConversion: 0.034,
@@ -159,15 +159,15 @@ const PRESETS: Record<string, Preset> = {
     },
     intervention: {
       id: 'mid-tier-pricing-launch',
-      name: 'New $14/mo mid-tier launch',
-      description: 'Introduce a third pricing tier at $14/mo (between Free and the existing $29/mo Pro), unlocking 60% of Pro features. Bundle with 90-day grandfathering for current Pro subs and a quarterly migration check-in. 6-month pilot before deciding to globalize.',
+      name: "推出每月 14 美元中档套餐",
+      description: "在免费版与现有每月 29 美元专业版之间新增每月 14 美元的第三档套餐，开放专业版 60% 的功能。现有专业版订阅者保留原权益 90 天，每季度检查迁移情况。试点 6 个月后决定是否全面推广。",
       durationValue: '6',
       durationUnit: 'months',
       adherence: '0.72',
     },
     signalsJson: JSON.stringify([
-      { label: 'Free → Paid conversion', value: 0.034, unit: 'rate', recordedAt: '2026-04-01T00:00:00Z' },
-      { label: 'Monthly churn', value: 0.038, unit: 'rate', recordedAt: '2026-04-01T00:00:00Z' },
+      { label: "免费转付费比例", value: 0.034, unit: 'rate', recordedAt: '2026-04-01T00:00:00Z' },
+      { label: "月流失率", value: 0.038, unit: 'rate', recordedAt: '2026-04-01T00:00:00Z' },
       { label: 'NPS', value: 41, unit: 'score', recordedAt: '2026-04-01T00:00:00Z' },
     ], null, 2),
   },
@@ -278,7 +278,7 @@ export function InterventionDemoCard({ onResult, onError, onRunStart }: Interven
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({} as { error?: string }));
-        throw new Error(body.error ?? `Digital twin run failed: HTTP ${res.status}`);
+        throw new Error(body.error ?? `数字孪生运行失败：HTTP ${res.status}`);
       }
       const body = await res.json() as { artifact: RunArtifact; durationMs: number; visitorId?: string };
       emitLaunched(window, body.visitorId);
@@ -294,17 +294,15 @@ export function InterventionDemoCard({ onResult, onError, onRunStart }: Interven
   return (
     <div className={styles.card}>
       <div className={styles.heading}>
-        <h3 className={styles.title}>Run a digital twin</h3>
-        <span className={styles.eyebrow}>any subject · any intervention</span>
+        <h3 className={styles.title}>运行数字孪生</h3>
+        <span className={styles.eyebrow}>任意对象 · 任意干预措施</span>
       </div>
       <p className={styles.copy}>
-        Define a subject (patient, market segment, jurisdiction, vehicle, anything) and an intervention to apply to it.
-        Paracosm runs a real LLM-driven simulation across a five-department analysis team and returns a typed RunArtifact
-        with the trajectory.
+        定义一个对象（如患者、细分市场、辖区或车辆），再指定干预措施。Paracosm 通过五部门分析团队执行模型驱动的仿真，并返回包含演变过程的结构化运行记录。
       </p>
 
       <div className={styles.presetRow}>
-        <span className={styles.presetLabel}>Examples</span>
+        <span className={styles.presetLabel}>示例</span>
         {Object.entries(PRESETS).map(([key, preset]) => (
           <button
             key={key}
@@ -322,7 +320,7 @@ export function InterventionDemoCard({ onResult, onError, onRunStart }: Interven
           className={styles.presetClear}
           disabled={running}
         >
-          Clear
+          清空
         </button>
       </div>
       {activePreset && (
@@ -331,7 +329,7 @@ export function InterventionDemoCard({ onResult, onError, onRunStart }: Interven
 
       <div className={styles.formGrid}>
         <fieldset className={styles.formCell} disabled={running}>
-          <legend className={styles.formLegend}>Subject</legend>
+          <legend className={styles.formLegend}>对象</legend>
           <label className={styles.field}>
             <span className={styles.fieldLabel}>ID</span>
             <input
@@ -343,27 +341,27 @@ export function InterventionDemoCard({ onResult, onError, onRunStart }: Interven
             />
           </label>
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>Name</span>
+            <span className={styles.fieldLabel}>名称</span>
             <input
               type="text"
               value={subject.name}
               onChange={(e) => setSubject((s) => ({ ...s, name: e.target.value }))}
-              placeholder="Maria Chen"
+              placeholder="陈玛丽"
               className={styles.input}
             />
           </label>
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>Description</span>
+            <span className={styles.fieldLabel}>描述</span>
             <textarea
               value={subject.description}
               onChange={(e) => setSubject((s) => ({ ...s, description: e.target.value }))}
-              placeholder="Age, key attributes, baseline state."
+              placeholder="年龄、关键属性及初始状态。"
               className={styles.textarea}
               rows={3}
             />
           </label>
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>Profile (JSON)</span>
+            <span className={styles.fieldLabel}>属性（JSON）</span>
             <textarea
               value={subject.profileJson}
               onChange={(e) => setSubject((s) => ({ ...s, profileJson: e.target.value }))}
@@ -374,7 +372,7 @@ export function InterventionDemoCard({ onResult, onError, onRunStart }: Interven
             />
           </label>
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>Signals (JSON)</span>
+            <span className={styles.fieldLabel}>观测信号（JSON）</span>
             <textarea
               value={signalsJson}
               onChange={(e) => setSignalsJson(e.target.value)}
@@ -387,7 +385,7 @@ export function InterventionDemoCard({ onResult, onError, onRunStart }: Interven
         </fieldset>
 
         <fieldset className={styles.formCell} disabled={running}>
-          <legend className={styles.formLegend}>Intervention</legend>
+          <legend className={styles.formLegend}>干预措施</legend>
           <label className={styles.field}>
             <span className={styles.fieldLabel}>ID</span>
             <input
@@ -399,28 +397,28 @@ export function InterventionDemoCard({ onResult, onError, onRunStart }: Interven
             />
           </label>
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>Name</span>
+            <span className={styles.fieldLabel}>名称</span>
             <input
               type="text"
               value={intervention.name}
               onChange={(e) => setIntervention((iv) => ({ ...iv, name: e.target.value }))}
-              placeholder="12-week semaglutide protocol"
+              placeholder="12 周司美格鲁肽方案"
               className={styles.input}
             />
           </label>
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>Description</span>
+            <span className={styles.fieldLabel}>描述</span>
             <textarea
               value={intervention.description}
               onChange={(e) => setIntervention((iv) => ({ ...iv, description: e.target.value }))}
-              placeholder="What is being applied, by whom, with what monitoring."
+              placeholder="采取什么措施、由谁执行，以及如何监测。"
               className={styles.textarea}
               rows={5}
             />
           </label>
           <div className={styles.fieldRow}>
             <label className={`${styles.field} ${styles.fieldThird}`}>
-              <span className={styles.fieldLabel}>Duration</span>
+              <span className={styles.fieldLabel}>持续时间</span>
               <input
                 type="number"
                 min="1"
@@ -430,21 +428,21 @@ export function InterventionDemoCard({ onResult, onError, onRunStart }: Interven
               />
             </label>
             <label className={`${styles.field} ${styles.fieldThird}`}>
-              <span className={styles.fieldLabel}>Unit</span>
+              <span className={styles.fieldLabel}>单位</span>
               <select
                 value={intervention.durationUnit}
                 onChange={(e) => setIntervention((iv) => ({ ...iv, durationUnit: e.target.value }))}
                 className={styles.input}
               >
-                <option value="days">days</option>
-                <option value="weeks">weeks</option>
-                <option value="months">months</option>
-                <option value="quarters">quarters</option>
-                <option value="years">years</option>
+                <option value="days">天</option>
+                <option value="weeks">周</option>
+                <option value="months">月</option>
+                <option value="quarters">季度</option>
+                <option value="years">年</option>
               </select>
             </label>
             <label className={`${styles.field} ${styles.fieldThird}`}>
-              <span className={styles.fieldLabel}>Adherence</span>
+              <span className={styles.fieldLabel}>执行程度</span>
               <input
                 type="number"
                 min="0"
@@ -461,15 +459,15 @@ export function InterventionDemoCard({ onResult, onError, onRunStart }: Interven
 
       <div className={styles.actions}>
         <button onClick={handleRun} disabled={running || !formIsValid} className={styles.button}>
-          {running ? 'Running…' : 'Run digital twin'}
+          {running ? '运行中…' : "运行数字孪生"}
         </button>
         {running ? (
           <span className={styles.timer} role="status" aria-live="polite">
             <span className={styles.spinner} aria-hidden="true" />
-            {elapsedSec}s elapsed · 2 turns × LLM decisions, typically 40-90s
+            {elapsedSec}秒已用时 · 2 个回合的模型决策，通常需要 40～90 秒
           </span>
         ) : (
-          <span className={styles.helper}>2 turns · seed 11 · economy preset</span>
+          <span className={styles.helper}>2 个回合 · 随机种子 11 · 经济配置</span>
         )}
       </div>
     </div>

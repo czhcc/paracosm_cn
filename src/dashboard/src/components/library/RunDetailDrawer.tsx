@@ -109,24 +109,24 @@ export function RunDetailDrawer(props: RunDetailDrawerProps): JSX.Element {
         ref={drawerRef}
         className={[styles.drawer, open ? styles.open : ''].filter(Boolean).join(' ')}
         role="dialog"
-        aria-label="Run detail"
+        aria-label="运行详情"
         aria-modal={open ? 'true' : 'false'}
         aria-hidden={!open}
       >
         <header className={styles.head}>
-          <button onClick={onClose} className={styles.closeBtn} aria-label="Close detail">×</button>
+          <button onClick={onClose} className={styles.closeBtn} aria-label="关闭详情">×</button>
           {artifact && <ReplayPanel artifact={artifact} onReplayed={onReplayed} />}
           {record?.sessionId && <ShareVizButton sessionId={record.sessionId} />}
         </header>
 
         <section className={styles.body}>
-          {loading && <p className={styles.placeholder}>Loading…</p>}
+          {loading && <p className={styles.placeholder}>加载中…</p>}
           {error && status !== 'ok' && (
             <div className={styles.error}>
               <strong>{
-                status === 'not_found' ? 'Run not found' :
-                status === 'unavailable' ? 'Artifact path not preserved' :
-                status === 'unreadable' ? 'Artifact file unreadable' :
+                status === 'not_found' ? "未找到运行记录" :
+                status === 'unavailable' ? "未保存运行记录路径" :
+                status === 'unreadable' ? "无法读取运行记录文件" :
                 'Error'
               }</strong>
               <p>{error}</p>
@@ -142,7 +142,7 @@ export function RunDetailDrawer(props: RunDetailDrawerProps): JSX.Element {
                   {record.actorArchetype ? ` · ${record.actorArchetype}` : ''}
                 </p>
                 <p className={styles.meta}>
-                  {(artifact.trajectory?.timepoints?.length ?? 0)} timepoints · {record.costUSD != null ? `$${record.costUSD.toFixed(2)}` : '-'} · {record.createdAt.slice(0, 19).replace('T', ' ')}
+                  {(artifact.trajectory?.timepoints?.length ?? 0)} 个时间点 · {record.costUSD != null ? `$${record.costUSD.toFixed(2)}` : '-'} · {record.createdAt.slice(0, 19).replace('T', ' ')}
                 </p>
               </section>
 
@@ -185,11 +185,11 @@ function ShareVizButton({ sessionId }: { sessionId: string }): JSX.Element {
     <button
       type="button"
       onClick={handleClick}
-      aria-label="Copy a deep link that opens this run on the visualization tab"
-      title="Copy viz share link"
+      aria-label="复制可直接打开此次运行可视化页面的链接"
+      title="复制可视化分享链接"
       className={styles.closeBtn}
     >
-      {copied ? 'Copied!' : 'Share viz link'}
+      {copied ? 'Copied!' : "分享可视化链接"}
     </button>
   );
 }

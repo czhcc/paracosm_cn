@@ -19,7 +19,7 @@ export function ActorPresetPicker({ onSelect, onClose }: ActorPresetPickerProps)
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Swap leader"
+      aria-label="更换决策者"
       className={styles.backdrop}
       onClick={onClose}
     >
@@ -30,8 +30,8 @@ export function ActorPresetPicker({ onSelect, onClose }: ActorPresetPickerProps)
         onClick={e => e.stopPropagation()}
       >
         <header className={styles.header}>
-          <h3>Swap leader</h3>
-          <button type="button" onClick={onClose} aria-label="Close">×</button>
+          <h3>更换决策者</h3>
+          <button type="button" onClick={onClose} aria-label="关闭">×</button>
         </header>
         <ul className={styles.list}>
           {Object.values(ACTOR_PRESETS).map(p => (

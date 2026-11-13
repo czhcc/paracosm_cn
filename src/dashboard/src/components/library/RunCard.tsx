@@ -45,7 +45,7 @@ export function RunCard(props: RunCardProps): JSX.Element {
       // and Replay buttons (see below) which are the explicit
       // affordances. The previous setup gave the article a tabIndex
       // and key handler too, which axe flagged as nested-interactive.
-      aria-label={`Run ${record.scenarioId} by ${record.actorName ?? 'unknown leader'}`}
+      aria-label={`Run ${record.scenarioId} by ${record.actorName ?? "未知决策者"}`}
       data-run-card
       data-run-id={record.runId}
       onClick={onOpen}
@@ -61,14 +61,14 @@ export function RunCard(props: RunCardProps): JSX.Element {
         {record.actorArchetype ? ` · ${record.actorArchetype}` : ''}
       </p>
       <div className={styles.actions}>
-        <button onClick={(e) => { e.stopPropagation(); onOpen(); }} className={styles.actionBtn}>Open</button>
-        <button onClick={(e) => { e.stopPropagation(); onReplay(); }} className={styles.actionBtn} aria-label="Replay">Replay</button>
+        <button onClick={(e) => { e.stopPropagation(); onOpen(); }} className={styles.actionBtn}>打开</button>
+        <button onClick={(e) => { e.stopPropagation(); onReplay(); }} className={styles.actionBtn} aria-label="回放">回放</button>
         {canShare && (
           <button
             onClick={handleShare}
             className={styles.actionBtn}
-            aria-label="Copy a deep link that opens this run on the visualization tab"
-            title="Copy viz share link"
+            aria-label="复制可直接打开此次运行可视化页面的链接"
+            title="复制可视化分享链接"
           >
             {copied ? 'Copied!' : 'Share'}
           </button>

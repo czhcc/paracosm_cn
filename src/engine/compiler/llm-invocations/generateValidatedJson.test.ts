@@ -1,3 +1,4 @@
+import { chinesePrompt } from '../../../llm/chinese.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { z } from 'zod';
@@ -92,5 +93,5 @@ test('passes cacheBreakpoint system block through generateText', async () => {
     generateText: mock as any,
   });
   assert.ok(typeof captured === 'object');
-  assert.deepEqual((captured as { system: unknown }).system, [{ text: 'stable', cacheBreakpoint: true }]);
+  assert.deepEqual((captured as { system: unknown }).system, [{ text: chinesePrompt('stable'), cacheBreakpoint: true }]);
 });

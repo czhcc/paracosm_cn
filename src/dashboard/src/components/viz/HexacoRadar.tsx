@@ -45,7 +45,7 @@ export function HexacoRadar({ profile, colonyMean, size = 160 }: HexacoRadarProp
   const cy = size / 2;
   const gridRadius = size / 2 - 8;
   return (
-    <svg width={size} height={size} role="img" aria-label="HEXACO profile radar">
+    <svg width={size} height={size} role="img" aria-label="HEXACO 人格雷达图">
       {[0.25, 0.5, 0.75, 1.0].map(p => (
         <circle
           key={p}

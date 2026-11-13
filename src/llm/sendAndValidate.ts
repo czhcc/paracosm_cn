@@ -1,3 +1,4 @@
+import { chinesePrompt } from './chinese.js';
 /**
  * Session-aware schema-validated wrapper over an AgentOS session's
  * `.send()` call. Adds a retry-with-Zod-feedback loop while preserving
@@ -83,9 +84,9 @@ function summarizeZodErrors(err: ZodError | undefined): string {
 
 function buildRetryPrompt(err: ZodError | undefined, parseError?: string): string {
   if (parseError) {
-    return `Your previous response was not valid JSON (${parseError}). Return ONLY a valid JSON object matching the schema. No markdown, no code fences, no explanation.`;
+    return `上一次回复不是有效 JSON (${parseError}). 仅返回符合 Schema 的有效 JSON 对象，不要使用 Markdown、代码围栏或额外解释。`;
   }
-  return `Your previous JSON did not match the required schema. Validation errors:\n${summarizeZodErrors(err)}\n\nReturn ONLY the corrected JSON object. No markdown, no code fences, no explanation.`;
+  return `上一次 JSON 不符合要求的 Schema。校验错误：\n${summarizeZodErrors(err)}\n\n仅返回修正后的 JSON 对象，不要使用 Markdown、代码围栏或额外解释。`;
 }
 
 export async function sendAndValidate<T extends ZodType>(
@@ -103,7 +104,7 @@ export async function sendAndValidate<T extends ZodType>(
       ? opts.prompt
       : buildRetryPrompt(lastError, lastParseError);
 
-    const r = await opts.session.send(prompt);
+    const r = await opts.session.send(chinesePrompt(prompt));
     opts.onUsage?.({ usage: r.usage });
     lastText = r.text;
     lastParseError = undefined;

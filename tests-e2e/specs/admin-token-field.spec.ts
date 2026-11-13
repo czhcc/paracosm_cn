@@ -31,17 +31,17 @@ const TOKEN_KEY = 'paracosm:adminToken';
 const submarine = readFileSync(path.resolve(__dirname, '../../scenarios/submarine.json'), 'utf-8');
 const SCENARIO_ID = (JSON.parse(submarine) as { id: string }).id;
 
-const WHERE = 'Enter it in Settings, under Admin Token, and press Save.';
-const REFUSED = `Disk write refused: the admin token is missing or wrong. ${WHERE}`;
-const SAVED = new RegExp(`Saved "${SCENARIO_ID}" (draft JSON )?to disk at scenarios/${SCENARIO_ID}\\.json`);
+const WHERE = '请在“设置”的“管理员令牌”中输入令牌，然后点击“保存”。';
+const REFUSED = `磁盘写入被拒绝：缺少管理员令牌或令牌错误。${WHERE}`;
+const SAVED = new RegExp(`已将“${SCENARIO_ID}”(?:的 JSON 草稿)?保存到 scenarios/${SCENARIO_ID}\\.json`);
 
-const settingsLaunch = (page: Page) => page.getByRole('button', { name: /Launch simulation|Loading scenario/i });
-const editor = (page: Page) => page.getByRole('textbox', { name: 'Scenario JSON editor' });
-const saveToDisk = (page: Page) => page.getByRole('button', { name: 'Save scenario to disk' });
-const tokenGroup = (page: Page) => page.getByRole('group', { name: 'Admin Token' });
+const settingsLaunch = (page: Page) => page.getByRole('button', { name: /启动仿真|正在加载场景/ });
+const editor = (page: Page) => page.getByRole('textbox', { name: '场景 JSON 编辑器' });
+const saveToDisk = (page: Page) => page.getByRole('button', { name: '将场景保存到磁盘' });
+const tokenGroup = (page: Page) => page.getByRole('group', { name: '管理员令牌' });
 const tokenInput = (page: Page) => page.locator('#admin-token');
-const saveToken = (page: Page) => page.getByRole('button', { name: 'Save admin token' });
-const clearToken = (page: Page) => page.getByRole('button', { name: 'Clear admin token' });
+const saveToken = (page: Page) => page.getByRole('button', { name: '保存管理员令牌' });
+const clearToken = (page: Page) => page.getByRole('button', { name: '清除管理员令牌' });
 const tokenStatus = (page: Page) => page.locator('#admin-token-status');
 
 /** Opens Settings on `base` and waits for the form, which follows GET /scenario. */
@@ -102,13 +102,13 @@ test.describe('Admin token field @admin', () => {
     // The field is a password field with a name, and it does not autofill.
     await expect(tokenInput(page)).toHaveAttribute('type', 'password');
     await expect(tokenInput(page)).toHaveAttribute('autocomplete', 'off');
-    await expect(tokenInput(page)).toHaveAccessibleName('Token for this server');
-    await expect(tokenStatus(page)).toHaveText(/No token is saved in this browser/);
+    await expect(tokenInput(page)).toHaveAccessibleName('此服务器的管理员令牌');
+    await expect(tokenStatus(page)).toHaveText(/此浏览器尚未保存管理员令牌/);
 
     // Entered and saved: kept under the one key, never shown back.
     await tokenInput(page).fill(TOKEN);
     await saveToken(page).click();
-    await expect(tokenStatus(page)).toHaveText(/A token is saved in this browser/);
+    await expect(tokenStatus(page)).toHaveText(/此浏览器已保存管理员令牌/);
     await expect(tokenInput(page)).toHaveValue('');
     expect(await page.evaluate(key => window.localStorage.getItem(key), TOKEN_KEY)).toBe(TOKEN);
 
@@ -132,7 +132,7 @@ test.describe('Admin token field @admin', () => {
 
     // Cleared: gone from the browser, and the next disk write is refused with the same words.
     await clearToken(page).click();
-    await expect(tokenStatus(page)).toHaveText(/No token is saved in this browser/);
+    await expect(tokenStatus(page)).toHaveText(/此浏览器尚未保存管理员令牌/);
     expect(await page.evaluate(key => window.localStorage.getItem(key), TOKEN_KEY)).toBeNull();
     // The save reloaded the active scenario into the editor; whichever scenario it holds, the write is refused first.
     await expect(saveToDisk(page)).toBeEnabled();
@@ -169,7 +169,7 @@ test.describe('Admin token field @admin', () => {
       // Inside its panel, which the row does not stretch.
       expect(input.x, `${width}px: starts inside the group`).toBeGreaterThanOrEqual(group.x);
       expect(clear.x + clear.width, `${width}px: ends inside the group`).toBeLessThanOrEqual(group.x + group.width);
-      const apiKeys = await box(page.getByRole('group', { name: 'API Keys' }), `${width}px: the API Keys group`);
+      const apiKeys = await box(page.getByRole('group', { name: 'API 密钥' }), `${width}px: the API Keys group`);
       expect(group.width, `${width}px: no wider than the API Keys panel above it`).toBeLessThanOrEqual(apiKeys.width + 0.5);
       // Room to type in.
       expect(input.width, `${width}px: input width`).toBeGreaterThanOrEqual(80);
@@ -208,11 +208,11 @@ test.describe('Admin token field @admin', () => {
       }
     }, TOKEN_KEY);
     await openSettings(page, ADMIN_BASE);
-    await expect(tokenStatus(page)).toHaveText(/No token is saved in this browser/);
+    await expect(tokenStatus(page)).toHaveText(/此浏览器尚未保存管理员令牌/);
 
     await tokenInput(page).fill(TOKEN);
     await saveToken(page).click();
-    await expect(tokenStatus(page)).toHaveText(/kept only until this page reloads/);
+    await expect(tokenStatus(page)).toHaveText(/仅在本次页面打开期间有效/);
 
     await fillEditor(page);
     await saveToDisk(page).click();
@@ -224,13 +224,13 @@ test.describe('Admin token field @admin', () => {
     await openSettings(page, ADMIN_BASE);
     await tokenInput(page).fill('not-the-token');
     await saveToken(page).click();
-    await expect(tokenStatus(page)).toHaveText(/A token is saved in this browser/);
+    await expect(tokenStatus(page)).toHaveText(/此浏览器已保存管理员令牌/);
 
-    await page.getByRole('button', { name: 'Open run actions menu' }).click();
-    await page.getByRole('menuitem', { name: 'Clear local data' }).click();
+    await page.getByRole('button', { name: '打开运行操作菜单' }).click();
+    await page.getByRole('menuitem', { name: '清空本地数据' }).click();
 
-    await expect(page.getByText(`Server-side wipe skipped: the admin token was refused and has been cleared. ${WHERE}`).first()).toBeVisible();
-    await expect(tokenStatus(page)).toHaveText(/No token is saved in this browser/);
+    await expect(page.getByText(`未执行服务器清除：管理员令牌被拒绝，已清除该令牌。${WHERE}`).first()).toBeVisible();
+    await expect(tokenStatus(page)).toHaveText(/此浏览器尚未保存管理员令牌/);
     expect(await page.evaluate(key => window.localStorage.getItem(key), TOKEN_KEY)).toBeNull();
   });
 
@@ -239,25 +239,25 @@ test.describe('Admin token field @admin', () => {
     const questions: string[] = [];
     page.on('dialog', dialog => { questions.push(dialog.message()); void dialog.dismiss(); });
     const askToClear = async () => {
-      await page.getByRole('button', { name: 'Open run actions menu' }).click();
-      await page.getByRole('menuitem', { name: 'Clear local data' }).click();
+      await page.getByRole('button', { name: '打开运行操作菜单' }).click();
+      await page.getByRole('menuitem', { name: '清空本地数据' }).click();
     };
     await openSettings(page, ADMIN_BASE);
 
     // No token: the click clears this browser only, and the question says the server's data is kept.
     await askToClear();
     await expect.poll(() => questions.length).toBe(1);
-    expect(questions[0]).toContain('Server-stored runs, sessions, and on-disk artifact files are kept.');
+    expect(questions[0]).toContain('服务器保存的运行、会话和磁盘记录将保留。');
 
     // A token saved: the same click also sends the server wipe, so the question says that instead.
     await tokenInput(page).fill(TOKEN);
     await saveToken(page).click();
-    await expect(tokenStatus(page)).toHaveText(/A token is saved in this browser/);
+    await expect(tokenStatus(page)).toHaveText(/此浏览器已保存管理员令牌/);
     await askToClear();
     await expect.poll(() => questions.length).toBe(2);
-    expect(questions[1]).toContain('asks the server to delete its stored runs, saved sessions and run output files');
-    expect(questions[1]).not.toContain('are kept');
-    await expect(tokenStatus(page)).toHaveText(/A token is saved in this browser/);
+    expect(questions[1]).toContain('请求服务器删除所有访客的运行记录、已保存会话和运行输出文件');
+    expect(questions[1]).not.toContain('将保留');
+    await expect(tokenStatus(page)).toHaveText(/此浏览器已保存管理员令牌/);
   });
 
   test('a token entered where an older one is stored and the new one cannot be is the one sent', async ({ page }) => {
@@ -274,11 +274,11 @@ test.describe('Admin token field @admin', () => {
     }, { key: TOKEN_KEY, older: 'an-older-token' });
     const requests = recordRequests(page);
     await openSettings(page, ADMIN_BASE);
-    await expect(tokenStatus(page)).toHaveText(/A token is saved in this browser/);
+    await expect(tokenStatus(page)).toHaveText(/此浏览器已保存管理员令牌/);
 
     await tokenInput(page).fill(TOKEN);
     await saveToken(page).click();
-    await expect(tokenStatus(page)).toHaveText(/kept only until this page reloads/);
+    await expect(tokenStatus(page)).toHaveText(/仅在本次页面打开期间有效/);
 
     // The disk write carries the token just entered, not the older one.
     await fillEditor(page);
@@ -308,12 +308,12 @@ test.describe('Admin token field @admin', () => {
     // The token is entered while that request is out.
     await tokenInput(page).fill(TOKEN);
     await saveToken(page).click();
-    await expect(tokenStatus(page)).toHaveText(/A token is saved in this browser/);
+    await expect(tokenStatus(page)).toHaveText(/此浏览器已保存管理员令牌/);
 
     // The server refuses the first request. The token entered since is not the one it refused.
     letGo();
     await expect(page.getByText(REFUSED)).toBeVisible();
-    await expect(tokenStatus(page)).toHaveText(/A token is saved in this browser/);
+    await expect(tokenStatus(page)).toHaveText(/此浏览器已保存管理员令牌/);
     expect(await page.evaluate(key => window.localStorage.getItem(key), TOKEN_KEY)).toBe(TOKEN);
 
     await saveToDisk(page).click();

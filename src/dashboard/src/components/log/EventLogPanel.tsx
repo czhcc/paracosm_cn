@@ -107,13 +107,13 @@ export function EventLogPanel({ events }: EventLogPanelProps) {
       onScroll={onScroll}
       className={`flex-1 overflow-y-auto p-4 font-mono text-xs ${styles.panel}`}
       role="log"
-      aria-label="Event log"
+      aria-label="事件日志"
       aria-live="polite"
     >
       <div className={styles.header}>
         <h2 className={styles.heading}>
-          Event Log ({filteredEvents.length}
-          {hasActiveFilter ? ` of ${events.length}` : ''} events)
+          事件日志（{filteredEvents.length}
+          {hasActiveFilter ? ` of ${events.length}` : ''} 个事件）
         </h2>
       </div>
       <EventLogFilterBar
@@ -124,8 +124,8 @@ export function EventLogPanel({ events }: EventLogPanelProps) {
       {filteredEvents.length === 0 && (
         <div className={styles.emptyState}>
           {hasActiveFilter
-            ? 'No events matched the current filter. Adjust or press Reset.'
-            : 'No events yet. Run a simulation to see the raw SSE event stream.'}
+            ? "没有符合当前筛选的事件，请调整条件或重置。"
+            : "暂无事件，运行仿真后可查看原始 SSE 事件流。"}
         </div>
       )}
       {filteredEvents.map((e, i) => {

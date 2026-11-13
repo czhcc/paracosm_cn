@@ -112,3 +112,9 @@ export function deriveLabels(scenario: ScenarioLabelsInput | null | undefined): 
     Times: cap(timePlural),
   };
 }
+
+/** 本地化派生的显示单位，时间协议本身仍保留英文枚举。 */
+export function localizeScenarioLabels(labels: ScenarioLabels): ScenarioLabels {
+  const words: Record<string, string> = { colonist: '居民', colonists: '居民', researcher: '研究员', researchers: '研究员', citizen: '市民', citizens: '市民', crew: '船员', 'crew member': '船员', operator: '操作员', operators: '操作员', member: '成员', members: '成员', patient: '患者', patients: '患者', employee: '员工', employees: '员工', colony: '殖民地', colonies: '殖民地', lab: '实验室', labs: '实验室', station: '站点', stations: '站点', habitat: '栖息地', habitats: '栖息地', settlement: '聚居地', settlements: '聚居地', year: '年', years: '年', quarter: '季度', quarters: '季度', month: '月', months: '月', week: '周', weeks: '周', day: '天', days: '天', hour: '小时', hours: '小时', tick: '时间步', ticks: '时间步', turn: '回合', turns: '回合' };
+  return Object.fromEntries(Object.entries(labels).map(([key, value]) => [key, words[value.toLowerCase()] ?? value.replace(/([\u3400-\u9fff])s$/, '$1')])) as unknown as ScenarioLabels;
+}

@@ -1,3 +1,4 @@
+import { localizeTemplate } from '../../template-localization';
 /**
  * The scenario's header scores as the verdict broadcast carries them in
  * `finalStats.metrics` (one row per score, both leaders' final values).
@@ -31,12 +32,14 @@ export function scenarioStatRows(finalStats: unknown): ScenarioStatRow[] | null 
 
 /** A score's label with its unit. */
 export function scenarioStatLabel(row: Pick<ScenarioStatRow, 'label' | 'unit'>): string {
-  return row.unit ? `${row.label} (${row.unit})` : row.label;
+  const label = localizeTemplate(row.label);
+  const unit = row.unit === 'months' ? '月' : row.unit === 'years' ? '年' : row.unit;
+  return unit ? `${label}（${unit}）` : label;
 }
 
 /** A final value in the score's format; a percent score is a fraction shown as a percentage. */
 export function formatScenarioStat(v: number | undefined, format: ScenarioStatRow['format'], currency?: string): string {
-  if (typeof v !== 'number' || !Number.isFinite(v)) return 'n/a';
+  if (typeof v !== 'number' || !Number.isFinite(v)) return '—';
   if (format === 'percent') return `${Math.round(v * 1000) / 10}%`;
   const text = formatPlain(v);
   return format === 'currency' && currency ? `${text} ${currency}` : text;
@@ -64,5 +67,6 @@ export function statLeader(a: number | undefined, b: number | undefined, better?
 /** The stats block title in the scenario's word for the settlement. */
 export function finalStatsTitle(settlementNoun: unknown): string {
   const noun = typeof settlementNoun === 'string' && settlementNoun.trim() ? settlementNoun.trim() : 'colony';
-  return `FINAL ${noun.toUpperCase()} STATS`;
+  const names: Record<string, string> = { colony: '殖民地', company: '公司', lab: '实验室', council: '理事会', station: '研究站', outpost: '前哨站', clinic: '诊疗组', habitat: '栖息地' };
+  return `${names[noun.toLowerCase()] ?? localizeTemplate(noun)}最终统计`;
 }

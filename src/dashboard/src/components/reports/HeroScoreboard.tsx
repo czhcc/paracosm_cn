@@ -48,13 +48,13 @@ interface StatRowDef {
 }
 
 const STAT_ROWS: StatRowDef[] = [
-  { key: 'population', label: 'Population', format: 'int' },
-  { key: 'morale',     label: 'Morale',     format: 'percent' },
-  { key: 'food',       label: 'Food (mo)',  format: 'decimal' },
-  { key: 'power',      label: 'Power (kW)', format: 'decimal' },
-  { key: 'modules',    label: 'Modules',    format: 'decimal' },
-  { key: 'science',    label: 'Science',    format: 'int' },
-  { key: 'tools',      label: 'Tools Forged', format: 'int' },
+  { key: 'population', label: "人口", format: 'int' },
+  { key: 'morale',     label: "士气",     format: 'percent' },
+  { key: 'food',       label: "食物（月）",  format: 'decimal' },
+  { key: 'power',      label: "功率（kW）", format: 'decimal' },
+  { key: 'modules',    label: "模块",    format: 'decimal' },
+  { key: 'science',    label: "科研",    format: 'int' },
+  { key: 'tools',      label: "已创建工具", format: 'int' },
 ];
 
 function fmt(value: number, format: StatRowDef['format']): string {
@@ -117,7 +117,7 @@ export function HeroScoreboard(props: HeroScoreboardProps) {
             text: (n: number | undefined) => formatScenarioStat(n, r.format, r.currency),
             better: r.better,
           })),
-          { key: 'tools', label: 'Tools Forged', a: Number(finalA.tools ?? 0), b: Number(finalB.tools ?? 0), text: (n: number | undefined) => fmt(n ?? 0, 'int') },
+          { key: 'tools', label: "已创建工具", a: Number(finalA.tools ?? 0), b: Number(finalB.tools ?? 0), text: (n: number | undefined) => fmt(n ?? 0, 'int') },
         ]
       : STAT_ROWS.map(row => ({
           key: row.key,
@@ -135,10 +135,10 @@ export function HeroScoreboard(props: HeroScoreboardProps) {
   });
 
   return (
-    <section aria-label="Run summary" className={styles.section}>
+    <section aria-label="运行总结" className={styles.section}>
       <div className={styles.header}>
-        <div className={styles.kicker}>Run Summary</div>
-        {winnerName && <div className={styles.winner}>{winnerName} wins</div>}
+        <div className={styles.kicker}>运行总结</div>
+        {winnerName && <div className={styles.winner}>{winnerName}  获胜</div>}
         {headline && <div className={styles.headline}>{headline}</div>}
         {keyDivergence && <div className={styles.divergence}>{keyDivergence}</div>}
       </div>
@@ -147,7 +147,7 @@ export function HeroScoreboard(props: HeroScoreboardProps) {
         <div className={styles.body}>
           <div className={styles.bodyHeader}>
             <span className={styles.nameA}>{props.leaderAName}</span>
-            <span>Final stats</span>
+            <span>最终指标</span>
             <span className={styles.nameB}>{props.leaderBName}</span>
           </div>
           {rows.map(row => {
@@ -182,13 +182,15 @@ export function HeroScoreboard(props: HeroScoreboardProps) {
           })}
           <div className={styles.viewWrap}>
             <button type="button" onClick={scroll} className={styles.viewBtn}>
-              View full verdict ›
+
+              查看完整结论 ›
             </button>
           </div>
         </div>
       ) : (
         <div className={styles.empty}>
-          Simulation in progress. Scoreboard will populate when the verdict arrives.
+
+          仿真正在运行，结论生成后将显示记分板。
         </div>
       )}
     </section>

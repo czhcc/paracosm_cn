@@ -10,7 +10,7 @@ test('lunarScenario satisfies ScenarioPackage interface', () => {
 });
 
 test('lunarScenario has correct labels', () => {
-  assert.equal(lunarScenario.labels.name, 'Lunar Outpost');
+  assert.equal(lunarScenario.labels.name, '月球前哨站');
   assert.equal(lunarScenario.labels.populationNoun, 'crew members');
   assert.equal(lunarScenario.labels.settlementNoun, 'outpost');
 });
@@ -37,16 +37,16 @@ test('lunarScenario has all hooks registered', () => {
   assert.ok(lunarScenario.hooks.getMilestoneEvent);
 });
 
-test('lunarScenario milestone crisis returns Lunar Arrival for turn 1', () => {
+test('lunarScenario milestone crisis returns 抵达月球 for turn 1', () => {
   const crisis = lunarScenario.hooks.getMilestoneEvent!(1, 8);
   assert.ok(crisis);
-  assert.equal(crisis.title, 'Lunar Arrival');
+  assert.equal(crisis.title, '抵达月球');
 });
 
-test('lunarScenario milestone returns Mission Review for final turn', () => {
+test('lunarScenario milestone returns 任务评审 for final turn', () => {
   const crisis = lunarScenario.hooks.getMilestoneEvent!(8, 8);
   assert.ok(crisis);
-  assert.equal(crisis.title, 'Mission Review');
+  assert.equal(crisis.title, '任务评审');
 });
 
 test('lunarScenario progression hook applies regolith and bone loss', () => {
@@ -64,8 +64,8 @@ test('lunarScenario progression hook applies regolith and bone loss', () => {
 
 test('lunarScenario director instructions mention lunar science', () => {
   const instructions = lunarScenario.hooks.directorInstructions!();
-  assert.ok(instructions.includes('lunar'));
-  assert.ok(instructions.includes('regolith'));
+  assert.ok(instructions.includes('月球'));
+  assert.ok(instructions.includes('月壤'));
   assert.ok(instructions.includes('mining'));
 });
 

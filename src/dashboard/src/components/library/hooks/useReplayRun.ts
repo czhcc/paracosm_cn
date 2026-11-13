@@ -42,7 +42,7 @@ export function useReplayRun(onCounted?: () => void): {
     try {
       const runId = artifact.metadata?.runId;
       if (!runId) {
-        setResult({ kind: 'error', error: 'Artifact has no runId.' });
+        setResult({ kind: 'error', error: "运行记录缺少 runId。" });
         return;
       }
       // The server re-executes the kernel against the stored artifact
@@ -51,22 +51,22 @@ export function useReplayRun(onCounted?: () => void): {
         ? await fetch(`/api/v1/runs/${encodeURIComponent(runId)}/replay`, { method: 'POST' })
         : null;
       if (!res) {
-        setResult({ kind: 'error', error: 'fetch is not available in this environment.' });
+        setResult({ kind: 'error', error: "此环境无法发起网络请求。" });
         return;
       }
       if (res.status === 404) {
-        setResult({ kind: 'error', error: 'The server has no stored run with this id, so there is nothing to replay.' });
+        setResult({ kind: 'error', error: "服务器没有此 ID 的运行记录，无法回放。" });
         return;
       }
       if (res.status === 422) {
         // The run lacks what replay needs, a run saved before replay could
         // verify it among them (#235): the server's message says which.
         const body = await res.json().catch(() => ({})) as { message?: string };
-        setResult({ kind: 'error', error: body.message || 'Replay cannot verify this run (HTTP 422).' });
+        setResult({ kind: 'error', error: body.message || '无法验证此运行记录的回放结果（HTTP 422）。' });
         return;
       }
       if (!res.ok) {
-        setResult({ kind: 'error', error: `Replay request failed (HTTP ${res.status}).` });
+        setResult({ kind: 'error', error: `回放请求失败（HTTP ${res.status}).` });
         return;
       }
       const body = await res.json() as { matches: boolean; divergence?: string };

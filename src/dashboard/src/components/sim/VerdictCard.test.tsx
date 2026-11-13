@@ -38,13 +38,13 @@ function cardValues(html: string): string[] {
   return [...html.matchAll(/--stat-color:([^;"]+)[^>]*>([^<]*)</g)].map(m => `${m[1]} ${m[2]}`);
 }
 
-test('a score no run holds on one side reads n/a and names no leader', () => {
+test('a score no run holds on one side reads a missing-value marker and names no leader', () => {
   const rows = [{ id: 'x', label: 'Throughput', format: 'number', a: 5 }];
   const values = cardValues(card(rows)).slice(0, 2);
-  assert.deepEqual(values, ['var(--text-2) 5', 'var(--text-2) n/a']);
+  assert.deepEqual(values, ['var(--text-2) 5', 'var(--text-2) —']);
 
   const scoreboard = hero(rows);
-  assert.match(scoreboard, />n\/a</);
+  assert.match(scoreboard, />—</);
   assert.doesNotMatch(scoreboard, />0</);
   assert.doesNotMatch(scoreboard, /--val-weight:700/);
 });
@@ -60,7 +60,7 @@ test('the card and the scoreboard show a score with its unit and currency', () =
     { id: 'arr', label: 'ARR', format: 'currency', currency: 'USD', a: 1200, b: 1500 },
   ];
   for (const html of [card(rows), hero(rows)]) {
-    assert.match(html, /Power \(kW\)/);
+    assert.match(html, /功率（kW）/);
     assert.match(html, /1200 USD/);
     assert.match(html, /1500 USD/);
   }
@@ -75,4 +75,15 @@ test('the scoreboard stays out of a finished cohort, which has its own view', ()
     />,
   );
   assert.equal(html, '');
+});
+
+
+test('the verdict uses Chinese final statistics headings and preserves source metric labels', () => {
+  const rows = [{ id: 'foodMonthsReserve', label: 'Food', format: 'number', unit: 'months', a: 12, b: 15 }];
+  const html = card(rows);
+  assert.match(html, /诊疗组最终统计/);
+  assert.match(html, /食物（月）/);
+  assert.doesNotMatch(html, /FINAL|WINS|EXPORT MD/);
+  assert.equal(rows[0].label, 'Food');
+  assert.equal(rows[0].id, 'foodMonthsReserve');
 });

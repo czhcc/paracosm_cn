@@ -56,7 +56,7 @@ function Card({ s, onPick }: { s: StoredSessionMeta; onPick: () => void }) {
   const roster = formatRoster(s);
   const deterministicTitle = roster
     ? `${roster}${s.scenarioName ? ` · ${s.scenarioName}` : ''}`
-    : s.scenarioName || 'Simulation Run';
+    : s.scenarioName || "仿真运行";
   const title = s.title || s.scenarioName || deterministicTitle;
   const actors = roster;
   const scenarioSub = s.title && s.scenarioName ? s.scenarioName : '';
@@ -141,10 +141,10 @@ export function LoadMenu(props: LoadMenuProps) {
         className={styles.trigger}
         aria-haspopup="menu"
         aria-expanded={open}
-        title="Load a saved simulation (from file or from server cache)"
+        title="从文件或服务器缓存加载已保存的仿真"
         onClick={() => setOpen(o => !o)}
       >
-        LOAD
+        加载
       </button>
       {open && (
         <div role="menu" className={styles.popover}>
@@ -158,34 +158,34 @@ export function LoadMenu(props: LoadMenuProps) {
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setCacheExpanded(v => !v); } }}
                 aria-expanded={cacheExpanded}
               >
-                <span>Load from cache</span>
+                <span>从缓存加载</span>
                 <span className={styles.rowSubLabel}>
                   {status === 'loading' ? '...' : `${sessions.length} saved`}
                 </span>
               </div>
               {cacheExpanded && body === 'loading' && (
-                <div className={styles.statusMessage}>Loading cached runs...</div>
+                <div className={styles.statusMessage}>正在加载缓存运行…</div>
               )}
               {cacheExpanded && body === 'empty' && (
                 <div className={styles.statusMessage}>
-                  No cached runs yet. Completed runs appear here automatically.
+                  暂无缓存运行，完成后的运行会自动显示在这里。
                 </div>
               )}
               {cacheExpanded && body === 'error' && (
                 <div className={styles.errorMessage}>
-                  Server unreachable. Check that the paracosm server is running, then hit refresh.
+                  无法连接服务器，请确认 Paracosm 服务器正在运行后刷新。
                   <button
                     type="button"
                     onClick={() => refresh()}
                     className={styles.retryButton}
                   >
-                    Retry
+                    重试
                   </button>
                 </div>
               )}
               {cacheExpanded && body === 'unavailable' && (
                 <div className={styles.warningMessage}>
-                  Session store not initialized on the server. Cached runs won't appear until the server restarts with a writable data directory.
+                  服务器会话存储尚未初始化，需要使用可写数据目录重新启动服务器后才能显示缓存运行。
                 </div>
               )}
               {/*
@@ -210,7 +210,7 @@ export function LoadMenu(props: LoadMenuProps) {
             onClick={handleFile}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFile(); } }}
           >
-            <span>Load from file</span>
+            <span>从文件加载</span>
             <span className={styles.rowSubLabel}>.json</span>
           </div>
         </div>

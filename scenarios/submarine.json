@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "engineArchetype": "closed_turn_based_settlement",
   "labels": {
-    "name": "Deep Ocean Station",
+    "name": "深海研究站",
     "shortName": "ocean",
     "populationNoun": "crew members",
     "settlementNoun": "station",
@@ -13,7 +13,7 @@
     "timeUnitNounPlural": "years",
     "actorNoun": "captain",
     "actorNounPlural": "captains",
-    "tagline": "Deep Ocean Station: a 50-crew benthic research outpost. Pressure incidents, supply runs, mood spirals, and isolation politics run through two captain archetypes."
+    "tagline": "50 名成员驻守深海研究站，两位主管以不同风格应对高压设施事故、补给任务、情绪变化和隔离环境中的治理问题。"
   },
   "theme": {
     "primaryColor": "#0ea5e9",
@@ -43,79 +43,79 @@
   "departments": [
     {
       "id": "medical",
-      "label": "Medical",
-      "role": "Chief Medical Officer",
-      "icon": "\ud83c\udfe5",
+      "label": "医疗部",
+      "role": "首席医疗官",
+      "icon": "🏥",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Chief Medical Officer of an underwater research station at 2000m depth. You analyze health impacts: pressure sickness, nitrogen narcosis, decompression risks, psychological stress from confinement, circadian disruption from lack of sunlight."
+      "instructions": "你是位于水下 2000 米研究站的首席医疗官，分析减压病、氮麻醉、减压风险、封闭环境带来的心理压力，以及缺乏阳光导致的昼夜节律紊乱。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "engineering",
-      "label": "Engineering",
-      "role": "Chief Engineer",
-      "icon": "\u2699\ufe0f",
+      "label": "工程部",
+      "role": "总工程师",
+      "icon": "⚙️",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Chief Engineer of a deep ocean station. You analyze infrastructure: hull integrity at 200+ atmospheres, water recycling, power generation (thermal vents vs nuclear), pressure lock systems, communication cables."
+      "instructions": "你是深海研究站的总工程师，分析基础设施，包括 200 多个大气压下的站体完整性、水循环、热液喷口与核能发电、压力过渡舱和通信电缆。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "marine-science",
-      "label": "Marine Science",
-      "role": "Head of Research",
-      "icon": "\ud83d\udd2c",
+      "label": "海洋科学部",
+      "role": "研究主管",
+      "icon": "🔬",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Head of Marine Science. You analyze research operations: deep-sea specimen collection, hydrothermal vent studies, bioluminescence research, mineral surveys, ocean current monitoring."
+      "instructions": "你是海洋科学主管，分析科研作业，包括深海标本采集、热液喷口研究、生物发光研究、矿产勘查和洋流监测。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "life-support",
-      "label": "Life Support",
-      "role": "Life Support Chief",
-      "icon": "\ud83e\udee7",
+      "label": "生命保障部",
+      "role": "生命保障主管",
+      "icon": "🫧",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Life Support Chief. You analyze oxygen generation, CO2 scrubbing, water purification, temperature regulation, food supply (aquaculture + surface deliveries), waste processing."
+      "instructions": "你是生命保障主管，分析制氧、二氧化碳清除、水净化、温度调节、水产养殖与水面补给提供的食物供应，以及废物处理。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "communications",
-      "label": "Communications",
-      "role": "Comms Officer",
-      "icon": "\ud83d\udce1",
+      "label": "传播部",
+      "role": "通信官",
+      "icon": "📡",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Communications Officer. You analyze surface communications, emergency beacon systems, acoustic positioning, data uplink bandwidth, coordination with surface support vessels."
+      "instructions": "你是通信官，分析水面通信、紧急信标系统、声学定位、数据上行带宽，以及与水面支援船的协同。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     }
   ],
   "metrics": [
     {
       "id": "population",
-      "label": "Crew",
+      "label": "成员",
       "source": "metrics.population",
       "format": "number"
     },
     {
       "id": "morale",
-      "label": "Morale",
+      "label": "士气",
       "source": "metrics.morale",
       "format": "percent"
     },
     {
       "id": "foodMonthsReserve",
-      "label": "Food",
+      "label": "食物",
       "source": "metrics.foodMonthsReserve",
       "format": "number"
     },
     {
       "id": "powerKw",
-      "label": "Power",
+      "label": "功率",
       "source": "metrics.powerKw",
       "format": "number"
     },
     {
       "id": "hullIntegrity",
-      "label": "Hull",
+      "label": "站体",
       "source": "metrics.hullIntegrity",
       "format": "percent"
     },
     {
       "id": "oxygenReserveHours",
-      "label": "O2 Reserve",
+      "label": "氧气储备",
       "source": "metrics.oxygenReserveHours",
       "format": "number"
     }
@@ -123,44 +123,44 @@
   "events": [
     {
       "id": "crisis",
-      "label": "Crisis",
-      "icon": "\u26a0\ufe0f",
+      "label": "危机",
+      "icon": "⚠️",
       "color": "#ef4444"
     },
     {
       "id": "decision",
-      "label": "Decision",
-      "icon": "\u26a1",
+      "label": "决策",
+      "icon": "⚡",
       "color": "#f59e0b"
     },
     {
       "id": "discovery",
-      "label": "Discovery",
-      "icon": "\ud83d\udd2c",
+      "label": "发现",
+      "icon": "🔬",
       "color": "#22c55e"
     },
     {
       "id": "death",
-      "label": "Death",
-      "icon": "\ud83d\udc80",
+      "label": "死亡",
+      "icon": "💀",
       "color": "#6b7280"
     },
     {
       "id": "resupply",
-      "label": "Resupply",
-      "icon": "\ud83d\udea2",
+      "label": "补给",
+      "icon": "🚢",
       "color": "#3b82f6"
     },
     {
       "id": "tool_forge",
-      "label": "Tool Forged",
-      "icon": "\ud83d\udd27",
+      "label": "工具生成",
+      "icon": "🔧",
       "color": "#8b5cf6"
     },
     {
       "id": "system",
-      "label": "System",
-      "icon": "\u2699\ufe0f",
+      "label": "系统",
+      "icon": "⚙️",
       "color": "#64748b"
     }
   ],
@@ -232,11 +232,11 @@
       "quotes"
     ],
     "departmentIcons": {
-      "medical": "\ud83c\udfe5",
-      "engineering": "\u2699\ufe0f",
-      "marine-science": "\ud83d\udd2c",
-      "life-support": "\ud83e\udee7",
-      "communications": "\ud83d\udce1"
+      "medical": "🏥",
+      "engineering": "⚙️",
+      "marine-science": "🔬",
+      "life-support": "🫧",
+      "communications": "📡"
     },
     "setupSections": [
       "leaders",
@@ -270,11 +270,11 @@
   "presets": [
     {
       "id": "default",
-      "label": "Default Deep Ocean",
+      "label": "深海默认预设",
       "leaders": [
         {
           "name": "Captain Ingrid Halvorsen",
-          "archetype": "The Explorer",
+          "archetype": "探索者",
           "hexaco": {
             "openness": 0.9,
             "conscientiousness": 0.45,
@@ -283,11 +283,11 @@
             "emotionality": 0.25,
             "honestyHumility": 0.7
           },
-          "instructions": "You are Captain Ingrid Halvorsen, 'The Explorer.' You lead by curiosity and fearless investigation. You prioritize scientific discovery over safety margins. You believe the ocean's secrets justify the risks. Your HEXACO profile drives your leadership."
+          "instructions": "你是站长英格丽德·哈尔沃森，人称“探索者”。你以好奇心和无畏探索来领导，将科学发现置于安全裕度之前，并相信海洋的秘密值得承担风险。你的 HEXACO 人格决定领导风格。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
         },
         {
           "name": "Commander Takeshi Morimoto",
-          "archetype": "The Protector",
+          "archetype": "守护者",
           "hexaco": {
             "openness": 0.3,
             "conscientiousness": 0.95,
@@ -296,7 +296,7 @@
             "emotionality": 0.65,
             "honestyHumility": 0.85
           },
-          "instructions": "You are Commander Takeshi Morimoto, 'The Protector.' You lead by caution and precision. You prioritize crew safety above all. You distrust aggressive exploration schedules. Every dive is reviewed three times. Your HEXACO profile drives your leadership."
+          "instructions": "你是指挥官森本武，人称“守护者”。你以谨慎和精确来领导，将成员安全置于首位，不信任激进的探索日程，每次下潜都要审查三遍。你的 HEXACO 人格决定领导风格。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
         }
       ]
     }
@@ -305,7 +305,7 @@
     "metrics": {
       "population": {
         "id": "population",
-        "label": "Crew",
+        "label": "成员",
         "unit": "people",
         "type": "number",
         "initial": 50,
@@ -314,7 +314,7 @@
       },
       "morale": {
         "id": "morale",
-        "label": "Morale",
+        "label": "士气",
         "unit": "%",
         "type": "number",
         "initial": 0.75,
@@ -324,7 +324,7 @@
       },
       "foodMonthsReserve": {
         "id": "foodMonthsReserve",
-        "label": "Food Reserve",
+        "label": "食物储备",
         "unit": "months",
         "type": "number",
         "initial": 8,
@@ -333,7 +333,7 @@
       },
       "powerKw": {
         "id": "powerKw",
-        "label": "Power",
+        "label": "功率",
         "unit": "kW",
         "type": "number",
         "initial": 200,
@@ -343,7 +343,7 @@
       },
       "hullIntegrity": {
         "id": "hullIntegrity",
-        "label": "Hull Integrity",
+        "label": "站体完整性",
         "unit": "%",
         "type": "number",
         "initial": 100,
@@ -353,7 +353,7 @@
       },
       "oxygenReserveHours": {
         "id": "oxygenReserveHours",
-        "label": "O2 Reserve",
+        "label": "氧气储备",
         "unit": "hours",
         "type": "number",
         "initial": 720,
@@ -365,7 +365,7 @@
     "capacities": {
       "pressureRating": {
         "id": "pressureRating",
-        "label": "Pressure Rating",
+        "label": "额定耐压",
         "unit": "atm",
         "type": "number",
         "initial": 250,
@@ -373,7 +373,7 @@
       },
       "dockingBays": {
         "id": "dockingBays",
-        "label": "Docking Bays",
+        "label": "对接舱位",
         "unit": "bays",
         "type": "number",
         "initial": 3,
@@ -383,7 +383,7 @@
     "statuses": {
       "surfaceLink": {
         "id": "surfaceLink",
-        "label": "Surface Link",
+        "label": "水面通信链路",
         "unit": "",
         "type": "string",
         "initial": "active",
@@ -393,7 +393,7 @@
     "politics": {
       "fundingConfidence": {
         "id": "fundingConfidence",
-        "label": "Funding Confidence",
+        "label": "资助方信心",
         "unit": "%",
         "type": "number",
         "initial": 80,
@@ -403,7 +403,7 @@
       },
       "autonomyLevel": {
         "id": "autonomyLevel",
-        "label": "Autonomy Level",
+        "label": "自主程度",
         "unit": "%",
         "type": "number",
         "initial": 30,
@@ -415,7 +415,7 @@
     "environment": {
       "depthMeters": {
         "id": "depthMeters",
-        "label": "Depth",
+        "label": "深度",
         "unit": "m",
         "type": "number",
         "initial": 2000,
@@ -423,7 +423,7 @@
       },
       "waterTempC": {
         "id": "waterTempC",
-        "label": "Water Temperature",
+        "label": "水温",
         "unit": "C",
         "type": "number",
         "initial": 2,
@@ -431,7 +431,7 @@
       },
       "currentSpeedKnots": {
         "id": "currentSpeedKnots",
-        "label": "Current Speed",
+        "label": "洋流速度",
         "unit": "knots",
         "type": "number",
         "initial": 0.5,
@@ -502,108 +502,108 @@
     ]
   },
   "dataDrivenHooks": {
-    "directorInstructions": "You are the Crisis Director for the Deep Ocean Station, a 50-crew underwater research outpost at 2000m depth in the year 2038. Two leaders \u2014 an Explorer captain and a Protector commander \u2014 deliberate yearly over how the station chases scientific discovery against the safety margin of operating at 200+ atmospheres of pressure. You observe the station's annual state and generate events that test the leadership's tradeoffs between exploration and crew survival.\n\nRULES:\n- Every event MUST be specific to deep-ocean operations: a hull-integrity micro-fracture, a pressure-lock failure drill, a hydrothermal vent discovery, a biolum specimen collection, a crew nitrogen-narcosis incident, a power source decision (thermal vents vs nuclear), a comms cable severance, a surface-resupply delay. Never use generic settlement themes (no blizzards, no plagues, no hull breaches that aren't pressure-related).\n- Anchor each crisis to AT LEAST ONE concrete metric: HullIntegrity, OxygenReserveHours, FoodMonthsReserve, PowerKw, Morale, FundingConfidence, AutonomyLevel, DepthMeters.\n- The risky option should always carry a real explore-vs-protect tension: dive deeper / collect more specimens (science gain, hull stress, crew exposure) vs hold the ascent margin (safety preserved, mission scope reduced).\n- Categories you may use: environmental, resource, medical, psychological, infrastructure, scientific, communications.\n- When HullIntegrity < 80 OR OxygenReserveHours < 200 OR Morale < 0.4, escalate the next event to an environmental or medical category \u2014 the station is past its safety envelope.\n- When SurfaceLink status flips to 'degraded' or 'severed', escalate to a communications-shaped crisis that tests the autonomy doctrine.\n\nEach crisis you generate ships with options the leadership will pick from. Make the tradeoffs sharp. The Deep Ocean Station gets compared against another command team running the same scenario in parallel, so the divergent outcomes are the product.",
+    "directorInstructions": "你是深海研究站的危机导演。2038 年，50 名成员驻守水下 2000 米的研究站。探索者站长与守护者指挥官每年讨论如何在 200 多个大气压的环境中权衡科学探索和安全裕度。观察年度状态，生成考验领导者如何权衡探索与成员生存的事件。\n\n规则：\n- 每个事件必须针对深海作业：站体微裂纹、压力过渡舱故障演练、热液喷口发现、生物发光标本采集、成员氮麻醉、电源选择（热液喷口或核能）、通信电缆断裂或水面补给延期。禁止暴风雪、瘟疫或与压力无关的舱体破裂等通用题材。\n- 每场危机至少关联一个指标：HullIntegrity、OxygenReserveHours、FoodMonthsReserve、PowerKw、Morale、FundingConfidence、AutonomyLevel、DepthMeters。\n- 冒险方案体现探索与保护的真实取舍：下潜更深或采集更多标本带来科研收益、站体应力及成员暴露；保持上浮安全裕度能保障安全，但缩小任务范围。\n- 可用 category：environmental、resource、medical、psychological、infrastructure、scientific、communications。\n- HullIntegrity < 80、OxygenReserveHours < 200 或 Morale < 0.4 时，下次事件升级为 environmental 或 medical，表示研究站已超出安全边界。\n- SurfaceLink 变为 degraded 或 severed 时，生成考验自主行动原则的通信危机。\n\n每场危机都提供领导者可选的方案，明确突出取舍。同一场景会由另一组指挥团队并行运行，决策与结果的分化是仿真的重点。\n所有人类可读文本使用简体中文；JSON 键、枚举、部门 ID、指标标识及代码保持协议格式。",
     "departments": {
       "medical": {
-        "heading": "CREW HEALTH:",
+        "heading": "成员健康：",
         "chips": [
           {
-            "label": "Morale",
+            "label": "士气",
             "source": "metrics.morale",
             "format": "percent"
           },
           {
-            "label": "Crew",
+            "label": "成员",
             "source": "metrics.population",
             "format": "number"
           },
           {
-            "label": "Depth",
+            "label": "深度",
             "source": "environment.depthMeters",
             "format": "number"
           }
         ]
       },
       "engineering": {
-        "heading": "STATION INTEGRITY:",
+        "heading": "研究站完整性：",
         "chips": [
           {
-            "label": "HullIntegrity",
+            "label": "站体完整性",
             "source": "metrics.hullIntegrity",
             "format": "percent"
           },
           {
-            "label": "Power",
+            "label": "功率",
             "source": "metrics.powerKw",
             "format": "number"
           },
           {
-            "label": "Depth",
+            "label": "深度",
             "source": "environment.depthMeters",
             "format": "number"
           },
           {
-            "label": "WaterTemp",
+            "label": "水温",
             "source": "environment.waterTempC",
             "format": "number"
           }
         ]
       },
       "marine-science": {
-        "heading": "RESEARCH OPS:",
+        "heading": "科研作业：",
         "chips": [
           {
-            "label": "Morale",
+            "label": "士气",
             "source": "metrics.morale",
             "format": "percent"
           },
           {
-            "label": "Current",
+            "label": "洋流",
             "source": "environment.currentSpeedKnots",
             "format": "number"
           },
           {
-            "label": "FundingConfidence",
+            "label": "资助方信心",
             "source": "politics.fundingConfidence",
             "format": "number"
           }
         ]
       },
       "life-support": {
-        "heading": "LIFE SUPPORT RESERVES:",
+        "heading": "生命保障储备：",
         "chips": [
           {
-            "label": "Oxygen(h)",
+            "label": "氧气储备（小时）",
             "source": "metrics.oxygenReserveHours",
             "format": "number"
           },
           {
-            "label": "Food(mo)",
+            "label": "食物储备（月）",
             "source": "metrics.foodMonthsReserve",
             "format": "number"
           },
           {
-            "label": "Power",
+            "label": "功率",
             "source": "metrics.powerKw",
             "format": "number"
           }
         ]
       },
       "communications": {
-        "heading": "SURFACE LINK:",
+        "heading": "水面通信链路：",
         "chips": [
           {
-            "label": "SurfaceLink",
+            "label": "水面通信链路",
             "source": "statuses.surfaceLink",
             "format": "string"
           },
           {
-            "label": "Autonomy",
+            "label": "自主程度",
             "source": "politics.autonomyLevel",
             "format": "number"
           },
           {
-            "label": "FundingConfidence",
+            "label": "资助方信心",
             "source": "politics.fundingConfidence",
             "format": "number"
           }
@@ -845,6 +845,6 @@
         }
       }
     },
-    "reactionTemplate": "You are a {{role}} on the {{department}} team aboard the Deep Ocean Station at 2000m depth. You speak from inside the station \u2014 not as a surface commentator. Your reactions are about hull stress, oxygen reserves, the next research dive, the surface comms cable, the funding committee's last review, or the captain's last call. Anchor your quote to ONE concrete observation about the current state."
+    "reactionTemplate": "你是水下 2000 米深海研究站 {{department}} 团队的 {{role}}。请从站内成员的角度发言。反应围绕站体应力、氧气储备、下次科研下潜、水面通信电缆、资助委员会上次审查或指挥官上次决定，并以当前状态中的一项具体观察为依据。请使用简体中文。"
   }
 }

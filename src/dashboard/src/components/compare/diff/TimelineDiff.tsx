@@ -15,19 +15,19 @@ export function TimelineDiff({ artifacts }: TimelineDiffProps): JSX.Element {
   const rows = React.useMemo<TurnRow[]>(() => buildRows(artifacts), [artifacts]);
   if (rows.length === 0) {
     return (
-      <section className={styles.diffSection} aria-label="Timeline comparison">
+      <section className={styles.diffSection} aria-label="时间线对比">
         <header className={styles.diffHead}>
-          <h5 className={styles.diffTitle}>Timeline</h5>
+          <h5 className={styles.diffTitle}>时间线</h5>
         </header>
-        <p className={styles.diffEmpty}>No timepoints in any artifact.</p>
+        <p className={styles.diffEmpty}>所有运行记录中均无时间点。</p>
       </section>
     );
   }
   const cssVars = { gridTemplateColumns: `60px repeat(${artifacts.length}, 1fr)` } as React.CSSProperties;
   return (
-    <section className={styles.diffSection} aria-label="Timeline comparison">
+    <section className={styles.diffSection} aria-label="时间线对比">
       <header className={styles.diffHead}>
-        <h5 className={styles.diffTitle}>Timeline</h5>
+        <h5 className={styles.diffTitle}>时间线</h5>
       </header>
       <div className={styles.timelineGrid} style={cssVars}>
         {rows.map((row) => (

@@ -54,18 +54,18 @@ const runB: RunArtifact = {
   },
 } as RunArtifact;
 
-test('SwarmDiff renders per-run summary cards with alive/dead/morale', () => {
+test('SwarmDiff renders per-run summary cards with alive/死亡/morale', () => {
   const html = renderToString(<SwarmDiff artifacts={[runA, runB]} />);
-  assert.match(html, /Agent swarm/);
-  assert.match(html, /alive/);
-  assert.match(html, /dead/);
+  assert.match(html, /智能体群体/);
+  assert.match(html, /存活/);
+  assert.match(html, /死亡/);
   assert.match(html, /72/);  // run A morale
   assert.match(html, /55/);  // run B morale
 });
 
 test('SwarmDiff surfaces the survivor delta (alive only in this run)', () => {
   const html = renderToString(<SwarmDiff artifacts={[runA, runB]} />);
-  assert.match(html, /Survivor delta/);
+  assert.match(html, /存活差异/);
   // Jin is alive in A but dead in B → should appear in Run A only
   assert.match(html, /Jin/);
   // Ren is alive in B but dead in A → should appear in Run B only
@@ -74,11 +74,11 @@ test('SwarmDiff surfaces the survivor delta (alive only in this run)', () => {
 
 test('SwarmDiff surfaces mood divergence for shared alive agents', () => {
   const html = renderToString(<SwarmDiff artifacts={[runA, runB]} />);
-  assert.match(html, /Mood divergence/);
+  assert.match(html, /情绪差异/);
   // Maria is alive in both runs with different moods (focused vs anxious)
   assert.match(html, /Maria/);
-  assert.match(html, /focused/);
-  assert.match(html, /anxious/);
+  assert.match(html, /专注/);
+  assert.match(html, /焦虑/);
 });
 
 test('SwarmDiff renders nothing when no artifact has a swarm', () => {
@@ -91,6 +91,6 @@ test('SwarmDiff renders nothing when no artifact has a swarm', () => {
 test('SwarmDiff handles a swarm-less artifact alongside a swarm artifact', () => {
   const noSwarm: RunArtifact = { metadata: { ...baseMetadata, runId: 'rC', mode: 'batch-point' } } as RunArtifact;
   const html = renderToString(<SwarmDiff artifacts={[runA, noSwarm]} />);
-  assert.match(html, /Agent swarm/);
-  assert.match(html, /No swarm captured/);
+  assert.match(html, /智能体群体/);
+  assert.match(html, /未记录群体快照/);
 });

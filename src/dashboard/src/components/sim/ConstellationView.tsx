@@ -103,7 +103,7 @@ export function ConstellationView({ state, onActorClick }: ConstellationViewProp
   if (actorIds.length === 0) {
     return (
       <div className={styles.empty}>
-        Constellation will appear when actors are launched.
+        启动决策者后将显示关系星图。
       </div>
     );
   }

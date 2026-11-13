@@ -7,12 +7,12 @@ interface HexacoSliderProps {
 }
 
 function describeValue(short: string, val: number): string {
-  if (short === 'O') return val > 0.7 ? 'creative' : val < 0.3 ? 'conventional' : '';
-  if (short === 'C') return val > 0.7 ? 'disciplined' : val < 0.3 ? 'flexible' : '';
-  if (short === 'E') return val > 0.7 ? 'charismatic' : val < 0.3 ? 'reserved' : '';
+  if (short === 'O') return val > 0.7 ? "富有创意" : val < 0.3 ? '偏好传统' : '';
+  if (short === 'C') return val > 0.7 ? "自律" : val < 0.3 ? 'flexible' : '';
+  if (short === 'E') return val > 0.7 ? "有感染力" : val < 0.3 ? 'reserved' : '';
   if (short === 'A') return val > 0.7 ? 'cooperative' : val < 0.3 ? 'competitive' : '';
   if (short === 'Em') return val > 0.7 ? 'empathetic' : val < 0.3 ? 'calm' : '';
-  if (short === 'HH') return val > 0.7 ? 'sincere' : val < 0.3 ? 'strategic' : '';
+  if (short === 'HH') return val > 0.7 ? "真诚" : val < 0.3 ? 'strategic' : '';
   return '';
 }
 

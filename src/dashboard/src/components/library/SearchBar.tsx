@@ -17,8 +17,8 @@ export function SearchBar(props: SearchBarProps): JSX.Element {
         type="text"
         value={value}
         onChange={e => onChange(e.target.value)}
-        placeholder="search runs by scenario, leader, archetype…"
-        aria-label="Search runs"
+        placeholder="按场景、决策者或人物类型搜索运行…"
+        aria-label="搜索运行"
         className={styles.input}
       />
       <kbd className={styles.kbd}>⌘K</kbd>

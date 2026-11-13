@@ -1,4 +1,5 @@
 import type { LlmProvider } from '../engine/types.js';
+import { configuredModel } from '../engine/provider/model-config.js';
 
 export interface CompileCliOptions {
   scenarioPath?: string;
@@ -13,6 +14,7 @@ export interface CompileCliOptions {
 }
 
 export function parseCompileCliOptions(argv: readonly string[]): CompileCliOptions {
+  let explicitModel = false;
   const options: CompileCliOptions = {
     provider: 'anthropic',
     model: 'claude-sonnet-4-6',
@@ -35,6 +37,7 @@ export function parseCompileCliOptions(argv: readonly string[]): CompileCliOptio
         break;
       case '--model':
         options.model = argv[++index] ?? options.model;
+        explicitModel = true;
         break;
       case '--no-cache':
         options.cache = false;
@@ -61,5 +64,9 @@ export function parseCompileCliOptions(argv: readonly string[]): CompileCliOptio
     }
   }
 
+  if (!explicitModel) {
+    options.model = configuredModel(options.provider)
+      ?? (options.provider === 'openai' ? 'gpt-5.4-mini' : 'claude-sonnet-4-6');
+  }
   return options;
 }

@@ -71,7 +71,7 @@ export function ReportSideNav(props: ReportSideNavProps) {
   if (desktop) {
     return (
       <nav
-        aria-label="Report sections"
+        aria-label="报告章节"
         style={{
           position: 'sticky',
           top: 12,
@@ -105,7 +105,7 @@ export function ReportSideNav(props: ReportSideNavProps) {
 
   return (
     <nav
-      aria-label="Report sections"
+      aria-label="报告章节"
       style={{
         // Non-sticky: on narrow viewports the parent `.reports-layout`
         // flips to column-stacking and positions this nav ABOVE the

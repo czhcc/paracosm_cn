@@ -61,8 +61,8 @@ test('TabBar: every tab has one accessible name while visible labels stay presen
     <TabBar active="sim" onTabChange={() => {}} scenario={baseScenario} />,
   );
   const attrs = extractTabAttrs(html, 'quickstart');
-  assert.equal(attrs['aria-label'], 'QUICKSTART');
-  assert.ok(html.includes('>QUICKSTART<'), 'visible label still rendered for CSS desktop layout');
+  assert.equal(attrs['aria-label'], '快速开始');
+  assert.ok(html.includes('>快速开始<'), 'visible label still rendered for CSS desktop layout');
 });
 
 test('TabBar: respects scenario policy gating (chat tab hidden when characterChat is off)', () => {

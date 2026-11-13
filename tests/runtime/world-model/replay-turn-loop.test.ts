@@ -49,7 +49,7 @@ const stored = (artifact: RunArtifact) => JSON.parse(JSON.stringify(artifact)) a
 
 test('a Mars run the turn loop saved, with its decisions applied, replays to matches true', async () => {
   const { artifact, log } = await stubbedRun();
-  assert.deepEqual(log.decisions, ['Landfall', 'Legacy Assessment'], 'the stub model gave both decisions their recorded replies');
+  assert.deepEqual(log.decisions, ['首次着陆', '殖民地发展评估'], 'the stub model gave both decisions their recorded replies');
   const ext = extensionsOf(artifact);
   assert.deepEqual(
     ext.paracosmInternal?.commanderDecisions?.map(d => [d.turn, d.decision.selectedOptionId]),

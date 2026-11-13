@@ -26,47 +26,47 @@
   font-family: var(--mono);
   font-size: var(--font-2xl);
   font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 @mixin panel-title {
   font-family: var(--mono);
   font-size: var(--font-xl);
   font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 @mixin card-title {
   font-family: var(--mono);
   font-size: var(--font-md);
   font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 @mixin section-label {
   font-family: var(--mono);
   font-size: var(--font-xs);
   font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 @mixin field-label {
   font-family: var(--mono);
   font-size: var(--font-xs);
   font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 @mixin button-label {
-  font-family: var(--mono);
-  font-size: var(--font-xs);
+  font-family: var(--sans);
+  font-size: var(--font-sm);
   font-weight: 600;
-  letter-spacing: 0.5px;
+  letter-spacing: normal;
   // No text-transform — the CTA's JSX text decides its own casing.
 }
 
@@ -74,29 +74,29 @@
   font-family: var(--sans);
   font-size: var(--font-md);
   font-weight: 400;
-  line-height: 1.55;
+  line-height: 1.7;
 }
 
 @mixin body-strong {
   font-family: var(--sans);
   font-size: var(--font-md);
   font-weight: 600;
-  line-height: 1.5;
+  line-height: 1.7;
 }
 
 @mixin caption {
   font-family: var(--mono);
   font-size: var(--font-2xs);
   font-weight: 500;
-  letter-spacing: 0.4px;
+  letter-spacing: normal;
 }
 
 @mixin micro {
   font-family: var(--mono);
   font-size: var(--font-3xs);
   font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 @mixin metric-value {

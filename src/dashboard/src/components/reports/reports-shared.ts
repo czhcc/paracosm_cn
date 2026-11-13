@@ -54,12 +54,12 @@ export interface MetricSeries {
 }
 
 const METRIC_DEFS: Array<{ id: MetricSeries['id']; label: string; unit?: string }> = [
-  { id: 'population',             label: 'Population' },
-  { id: 'morale',                 label: 'Morale' },
-  { id: 'foodMonthsReserve',      label: 'Food',    unit: 'mo' },
-  { id: 'powerKw',                label: 'Power',   unit: 'kW' },
-  { id: 'infrastructureModules',  label: 'Modules' },
-  { id: 'scienceOutput',          label: 'Science' },
+  { id: 'population',             label: "人口" },
+  { id: 'morale',                 label: "士气" },
+  { id: 'foodMonthsReserve',      label: "食物",    unit: '月' },
+  { id: 'powerKw',                label: "功率",   unit: 'kW' },
+  { id: 'infrastructureModules',  label: "模块" },
+  { id: 'scienceOutput',          label: "科研" },
 ];
 
 /** Walk events for one side, pulling (turn, value) pairs for one metric. */

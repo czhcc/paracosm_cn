@@ -1,3 +1,4 @@
+import { displayLabel, departmentLabel, roleLabel } from '../../template-localization';
 import { useState, useRef, useEffect, useMemo, type CSSProperties } from 'react';
 import { useScenarioContext } from '../../App';
 import type { GameState } from '../../hooks/useGameState';
@@ -63,7 +64,7 @@ function EventContext({ memory, events, scenario }: { memory: AgentMemoryInfo; e
     const sideState = events.actors[actorName];
     if (!sideState) continue;
     for (const evt of sideState.events) {
-      if (evt.type === 'turn_start' && evt.data.title && evt.data.title !== 'Director generating...') {
+      if (evt.type === 'turn_start' && evt.data.title && evt.data.title !== "事件导演正在生成…") {
         const turn = evt.data.turn as number;
         if (!eventTimeline.some(e => e.turn === turn)) {
           eventTimeline.push({
@@ -92,7 +93,7 @@ function EventContext({ memory, events, scenario }: { memory: AgentMemoryInfo; e
             className={styles.eventGroupLabel}
             style={{ '--group-color': 'var(--rust)' } as CSSProperties}
           >
-            {eventNoun.toUpperCase()} EXPERIENCED
+            {eventNoun.toUpperCase()} 经历
           </div>
           {eventTimeline.map(e => (
             <div key={e.turn} className={styles.eventRow}>
@@ -109,7 +110,7 @@ function EventContext({ memory, events, scenario }: { memory: AgentMemoryInfo; e
             className={styles.eventGroupLabel}
             style={{ '--group-color': 'var(--amber)' } as CSSProperties}
           >
-            RECENT MEMORIES
+            近期记忆
           </div>
           {memory.recentMemories.slice(0, 3).map((m, i) => (
             <div
@@ -128,7 +129,7 @@ function EventContext({ memory, events, scenario }: { memory: AgentMemoryInfo; e
             className={styles.eventGroupLabel}
             style={{ '--group-color': 'var(--teal)' } as CSSProperties}
           >
-            RELATIONSHIPS
+            关系
           </div>
           <div className={styles.relationshipsRow}>
             {memory.relationships.map((r, i) => (
@@ -349,10 +350,10 @@ export function ChatPanel({ state, onChatUsage }: ChatPanelProps) {
         // specific event history, not a virtual assistant.
         text:
           `${c.role} in ${c.department}, age ${c.age || '?'}. ` +
-          `I lived through this simulation — ask me about specific turns, the commander's decisions, ` +
-          `crises I witnessed, people I worked with, or how my department handled what came up. ` +
-          `Try: "what did you think of the commander's choice in turn 1?", ` +
-          `"who do you trust on the team?", or "what was the worst moment for you?"`,
+          "我经历了这次仿真，可以聊聊具体回合、决策者的选择、 " +
+          "我目睹的危机、共事的成员，以及部门如何应对事件。 " +
+          "试着问：“你如何看待决策者在第 1 回合的选择？”、 " +
+          "“你最信任团队中的谁？”或“你最艰难的时刻是什么？”",
       } : { role: 'agent', text: 'Connected.' };
       const next = new Map(prev);
       next.set(thread, [greeting]);
@@ -424,25 +425,25 @@ export function ChatPanel({ state, onChatUsage }: ChatPanelProps) {
           });
         }
       } else {
-        setMessagesFor(thread, prev => [...prev, { role: 'agent', text: data.error || 'No response' }]);
+        setMessagesFor(thread, prev => [...prev, { role: 'agent', text: data.error || '暂无回复' }]);
       }
     } catch (err) {
-      setMessagesFor(thread, prev => [...prev, { role: 'agent', text: `Chat failed: ${err}` }]);
+      setMessagesFor(thread, prev => [...prev, { role: 'agent', text: `聊天失败：${err}` }]);
     }
     setSending(false);
   };
 
   return (
-    <div className={`chat-layout ${styles.layout}`} role="region" aria-label="Agent chat">
+    <div className={`chat-layout ${styles.layout}`} role="region" aria-label="角色聊天">
       {/* Sidebar */}
       <div className={`chat-sidebar ${styles.sidebar}`}>
         <h3 className={styles.sidebarHeading}>
-          {agents.length ? `${agents.length} Agents` : 'Agent Chat'}
+          {agents.length ? `${agents.length} 位成员` : "角色聊天"}
         </h3>
         <p className={styles.sidebarLead}>
           {agents.length
-            ? `Talk to any ${scenario.labels.populationNoun.replace(/s$/, '')} from the simulation. Each agent has persistent memory, personality, and relationships shaped by the crises they experienced.`
-            : `Chat becomes available after the first turn completes. Start a simulation and come back once agents have reacted to the first crisis. Each agent has persistent memory, personality, and relationships shaped by the crises they experience.`
+            ? `与仿真中的任意成员交流。每个人都拥有持续记忆、独特人格，以及经历危机后形成的关系。`
+            : "首个回合完成后即可聊天。启动仿真，待成员对首个事件作出反应后再来交流。每位成员都有持续积累的记忆、人格和关系。"
           }
         </p>
 
@@ -454,17 +455,17 @@ export function ChatPanel({ state, onChatUsage }: ChatPanelProps) {
         {isMultiActor && agentsByActor.size > 0 && (
           <div className={styles.actorFilter}>
             <label className={styles.actorFilterLabel} htmlFor="chat-actor-filter">
-              Lead actor
+              主要决策者
             </label>
             <select
               id="chat-actor-filter"
               className={styles.actorFilterSelect}
               value={filterActorId ?? ''}
               onChange={(e) => setFilterActorId(e.target.value || null)}
-              aria-label="Filter chat agents by lead actor"
+              aria-label="按所属决策者筛选聊天成员"
             >
               <option value="all">
-                All leaders ({(() => {
+                全部决策者（{(() => {
                   const seen = new Set<string>();
                   for (const list of agentsByActor.values()) for (const a of list) seen.add(a.name);
                   return seen.size;
@@ -492,21 +493,21 @@ export function ChatPanel({ state, onChatUsage }: ChatPanelProps) {
         {departments.length > 1 && (
           <div className={styles.actorFilter}>
             <label className={styles.actorFilterLabel} htmlFor="chat-department-filter">
-              Department
+              部门
             </label>
             <select
               id="chat-department-filter"
               className={styles.actorFilterSelect}
               value={filterDepartment ?? ''}
               onChange={(e) => setFilterDepartment(e.target.value || null)}
-              aria-label="Filter chat agents by department"
+              aria-label="按部门筛选聊天成员"
             >
-              <option value="">All departments ({actorScopedAgents.length})</option>
+              <option value="">全部部门（{actorScopedAgents.length}）</option>
               {departments.map((dept) => {
                 const count = actorScopedAgents.filter(a => (a.department || '').trim() === dept).length;
                 return (
                   <option key={dept} value={dept}>
-                    {dept} ({count})
+                    {departmentLabel(dept)}（{count}）
                   </option>
                 );
               })}
@@ -520,12 +521,12 @@ export function ChatPanel({ state, onChatUsage }: ChatPanelProps) {
             className={[styles.agentBtn, selectedId === c.name ? styles.selected : ''].filter(Boolean).join(' ')}
           >
             <span className={styles.agentName}>{c.name}</span>
-            <div className={styles.agentMeta}>{c.role} {c.department}</div>
+            <div className={styles.agentMeta}>{roleLabel(c.role)} · {departmentLabel(c.department)}</div>
             <div
               className={styles.agentMood}
               style={{ '--mood-color': moodColors[c.mood] || 'var(--text-3)' } as CSSProperties}
             >
-              {c.mood.toUpperCase()}
+              {displayLabel(c.mood)}
             </div>
           </button>
         ))}
@@ -536,7 +537,7 @@ export function ChatPanel({ state, onChatUsage }: ChatPanelProps) {
         {/* Memory bar */}
         {selected?.memory && (selected.memory.beliefs?.length > 0 || selected.memory.stances?.length > 0) && (
           <div className={styles.memoryBar}>
-            <span className={styles.memoryLabel}>MEMORY </span>
+            <span className={styles.memoryLabel}>记忆 </span>
             {selected.memory.beliefs?.slice(0, 2).map((b, i) => <span key={i} className={styles.memoryBelief}>{b}</span>)}
             {selected.memory.stances?.map((s, i) => (
               <span
@@ -544,7 +545,7 @@ export function ChatPanel({ state, onChatUsage }: ChatPanelProps) {
                 className={styles.memoryStance}
                 style={{ '--stance-color': s.value > 0 ? 'var(--green)' : 'var(--rust)' } as CSSProperties}
               >
-                {s.topic}: {s.value > 0.5 ? 'confident' : s.value > 0 ? 'cautious' : 'wary'}
+                {s.topic}: {s.value > 0.5 ? '自信' : s.value > 0 ? '谨慎' : '警惕'}
               </span>
             ))}
           </div>
@@ -572,7 +573,8 @@ export function ChatPanel({ state, onChatUsage }: ChatPanelProps) {
                 className={styles.healthSignal}
                 style={{ '--signal-color': selected.psychScore < 0.4 ? 'var(--rust)' : 'var(--text-2)' } as CSSProperties}
               >
-                psych {(selected.psychScore * 100).toFixed(0)}%
+
+                心理 {(selected.psychScore * 100).toFixed(0)}%
               </span>
             )}
             {typeof selected.boneDensity === 'number' && selected.boneDensity > 0 && (
@@ -580,7 +582,8 @@ export function ChatPanel({ state, onChatUsage }: ChatPanelProps) {
                 className={styles.healthSignal}
                 style={{ '--signal-color': selected.boneDensity < 70 ? 'var(--rust)' : 'var(--text-3)' } as CSSProperties}
               >
-                bone {selected.boneDensity.toFixed(0)}%
+
+                骨骼 {selected.boneDensity.toFixed(0)}%
               </span>
             )}
             {typeof selected.radiation === 'number' && selected.radiation > 0 && (
@@ -588,7 +591,8 @@ export function ChatPanel({ state, onChatUsage }: ChatPanelProps) {
                 className={styles.healthSignal}
                 style={{ '--signal-color': selected.radiation > 2000 ? 'var(--rust)' : 'var(--text-3)' } as CSSProperties}
               >
-                rad {selected.radiation.toFixed(0)}mSv
+
+                辐射 {selected.radiation.toFixed(0)}mSv
               </span>
             )}
           </div>
@@ -604,17 +608,17 @@ export function ChatPanel({ state, onChatUsage }: ChatPanelProps) {
           role="log"
           aria-live="polite"
           aria-relevant="additions"
-          aria-label={selected?.name ? `Messages with ${selected.name}` : 'Chat messages'}
+          aria-label={selected?.name ? `与 ${selected.name} 的聊天消息` : "聊天消息"}
         >
           {!selectedId && (
             <div className={styles.emptyState}>
               <div className={styles.emptyTitle}>
-                {agents.length ? `Select an agent to start chatting.` : 'No agents available yet.'}
+                {agents.length ? `选择一位成员开始聊天。` : "暂无可聊天的成员。"}
               </div>
               <div className={styles.emptyCopy}>
                 {agents.length
-                  ? `Each agent is a simulated ${scenario.labels.populationNoun.replace(/s$/, '')} with a unique HEXACO personality, persistent memory of events they survived, evolving stances on topics, and relationships with other agents. Their responses reflect their actual simulation experience.`
-                  : `Run a simulation from the Settings tab. Once the first turn completes, agents become available for conversation. The chat system uses each agent's personality profile, memory, and event history to generate authentic in-character responses.`
+                  ? `每位成员都来自仿真，拥有独特的 HEXACO 人格、事件记忆、不断变化的立场与人际关系，回答会反映其实际仿真经历。`
+                  : "从“设置”启动仿真，首个回合完成后即可选择成员聊天。回复依据该成员的人格、记忆和事件经历生成。"
                 }
               </div>
             </div>
@@ -638,12 +642,12 @@ export function ChatPanel({ state, onChatUsage }: ChatPanelProps) {
 
           {/* Typing indicator while waiting on agent response */}
           {sending && selectedId && (
-            <div className={[styles.bubbleWrap, styles.fromAgent].join(' ')} aria-live="polite" aria-label={`${selected?.name || 'Agent'} is typing`}>
+            <div className={[styles.bubbleWrap, styles.fromAgent].join(' ')} aria-live="polite" aria-label={`${selected?.name || "成员"}正在输入`}>
               <div className={styles.bubbleName}>
                 {selected?.name || selectedId}
               </div>
               <div className={styles.typingBubble}>
-                <span className={styles.typingLabel}>typing</span>
+                <span className={styles.typingLabel}>正在输入</span>
                 <span className={styles.dot} aria-hidden="true" style={{ '--dot-delay': '0ms' } as CSSProperties}>.</span>
                 <span className={styles.dot} aria-hidden="true" style={{ '--dot-delay': '160ms' } as CSSProperties}>.</span>
                 <span className={styles.dot} aria-hidden="true" style={{ '--dot-delay': '320ms' } as CSSProperties}>.</span>
@@ -659,8 +663,8 @@ export function ChatPanel({ state, onChatUsage }: ChatPanelProps) {
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && send()}
             disabled={!selectedId || sending}
-            aria-label={selectedId ? `Message ${selected?.name || 'agent'}` : 'Select an agent first'}
-            placeholder={selectedId ? `Ask ${selected?.name || 'agent'}...` : `Select a ${scenario.labels.populationNoun.replace(/s$/, '')} first`}
+            aria-label={selectedId ? `给${selected?.name || '成员'}发消息` : "请先选择一位成员"}
+            placeholder={selectedId ? `向${selected?.name || '成员'}提问…` : `请先选择一位成员`}
             className={styles.inputField}
           />
           <button
@@ -668,7 +672,7 @@ export function ChatPanel({ state, onChatUsage }: ChatPanelProps) {
             disabled={!selectedId || sending || !input.trim()}
             className={styles.sendBtn}
           >
-            Send
+            发送
           </button>
         </div>
       </div>

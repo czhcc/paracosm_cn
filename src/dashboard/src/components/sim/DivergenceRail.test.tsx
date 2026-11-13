@@ -39,8 +39,8 @@ test('DivergenceRail: renders one pill per past turn with classification-driven 
     evt(2, 'event_start', { title: 'T2B' }), evt(2, 'outcome', { outcome: 'conservative_failure' }),
   ];
   const html = renderToString(<DivergenceRail state={mkState(a, b)} />);
-  assert.match(html, /Jump to turn 1 — Same event, same outcome/);
-  assert.match(html, /Jump to turn 2 — Different events/);
+  assert.match(html, /跳转到回合 1 — 相同事件、相同结果/);
+  assert.match(html, /跳转到回合 2 — 不同事件/);
   assert.match(html, /T<!-- -->1/);
   assert.match(html, /T<!-- -->2/);
 });
@@ -54,5 +54,5 @@ test('DivergenceRail: pending classification renders dashed pill with running la
   const a = [evt(1, 'event_start', { title: 'T1' })];
   const b = [evt(1, 'event_start', { title: 'T1' })];
   const html = renderToString(<DivergenceRail state={mkState(a, b)} />);
-  assert.match(html, /Jump to turn 1 — Turn is still running/);
+  assert.match(html, /跳转到回合 1 — 此回合仍在运行/);
 });

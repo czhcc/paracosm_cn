@@ -52,14 +52,14 @@ export function ProviderErrorBanner({
 
   // Per-kind heading. Kept short so the banner fits one line on mobile.
   const heading = providerError.kind === 'quota'
-    ? `${providerLabel(providerError.provider)} credits exhausted`
+    ? `${providerLabel(providerError.provider)} 额度已用尽`
     : providerError.kind === 'auth'
-      ? `${providerLabel(providerError.provider)} API key invalid`
+      ? `${providerLabel(providerError.provider)} API 密钥无效`
       : providerError.kind === 'rate_limit'
-        ? `${providerLabel(providerError.provider)} rate-limited`
+        ? `${providerLabel(providerError.provider)} 请求频率受限`
         : providerError.kind === 'network'
-          ? `Network error contacting ${providerLabel(providerError.provider)}`
-          : 'Provider error';
+          ? `网络连接失败，服务商： ${providerLabel(providerError.provider)}`
+          : "模型服务错误";
 
   const bannerVars = {
     '--banner-bg': colors.bg,
@@ -77,7 +77,7 @@ export function ProviderErrorBanner({
         <div className={styles.message}>
           {providerError.message}
           {providerError.leader ? (
-            <span className={styles.messageActor}> (hit by {providerError.leader})</span>
+            <span className={styles.messageActor}>  （影响调用： {providerError.leader})</span>
           ) : null}
         </div>
       </div>
@@ -88,12 +88,12 @@ export function ProviderErrorBanner({
           rel="noreferrer noopener"
           className={styles.actionLink}
         >
-          {providerError.kind === 'quota' ? 'Add credits →' : 'Fix key →'}
+          {providerError.kind === 'quota' ? "充值 →" : "修正密钥 →"}
         </a>
       ) : null}
       {onDismiss ? (
-        <button onClick={onDismiss} aria-label="Dismiss banner" className={styles.dismissBtn}>
-          Dismiss
+        <button onClick={onDismiss} aria-label="关闭横幅" className={styles.dismissBtn}>
+          关闭
         </button>
       ) : null}
     </div>
@@ -105,5 +105,5 @@ function providerLabel(provider?: string): string {
   if (provider === 'anthropic') return 'Anthropic';
   if (provider === 'openrouter') return 'OpenRouter';
   if (provider === 'gemini') return 'Gemini';
-  return 'Provider';
+  return "模型服务商";
 }

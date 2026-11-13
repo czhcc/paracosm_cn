@@ -25,6 +25,7 @@
 
 import type { ScenarioPackage, ScenarioHooks, LlmProvider } from '../types.js';
 import type { CompileOptions, GenerateTextFn } from './types.js';
+import { configuredModel } from '../provider/model-config.js';
 import { resolveProviderWithFallback } from '../provider/resolver.js';
 import {
   apiKeyForProvider,
@@ -189,7 +190,7 @@ export async function compileScenario(
   // When fallback kicked in, the caller's model (if any) was chosen for
   // the requested provider and will not work on the fallback. Force the
   // fallback provider's default model in that case and log the swap.
-  const fallbackDefaultModel = provider === 'openai' ? 'gpt-5.4-mini' : 'claude-sonnet-4-6';
+  const fallbackDefaultModel = configuredModel(provider) ?? (provider === 'openai' ? 'gpt-5.4-mini' : 'claude-sonnet-4-6');
   const model = resolved.fellBack
     ? fallbackDefaultModel
     : (requestedModel ?? fallbackDefaultModel);

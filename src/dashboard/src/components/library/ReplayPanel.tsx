@@ -25,7 +25,7 @@ export function ReplayPanel(props: ReplayPanelProps): JSX.Element {
         disabled={!artifact || result.kind === 'inflight'}
         className={styles.replayBtn}
       >
-        {result.kind === 'inflight' ? 'Replaying…' : 'Replay'}
+        {result.kind === 'inflight' ? '回放中…' : "回放"}
       </button>
       <ResultStrip result={result} />
     </div>
@@ -43,9 +43,9 @@ function ResultStrip({ result }: { result: ReplayResult }): JSX.Element | null {
     case 'inflight':
       return null;
     case 'match':
-      return <p role="status" className={[styles.result, styles.match].join(' ')}>✓ Kernel deterministic</p>;
+      return <p role="status" className={[styles.result, styles.match].join(' ')}>✓ 内核结果可复现</p>;
     case 'diverged':
-      return <p role="status" className={[styles.result, styles.diverged].join(' ')}>⚠ Diverged at {result.divergence}</p>;
+      return <p role="status" className={[styles.result, styles.diverged].join(' ')}>⚠ 分叉于 {result.divergence}</p>;
     case 'error':
       return <p role="status" className={[styles.result, styles.errResult].join(' ')}>⚠ {result.error}</p>;
   }

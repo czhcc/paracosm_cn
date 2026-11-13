@@ -111,19 +111,19 @@ test('Mars and Lunar keep the values they declare', () => {
 test('a department\'s state line is the scenario\'s metrics, labelled, with their units', () => {
   const lab = departmentPromptFor(atlasLab, 1);
   assert.doesNotMatch(lab, /\b(Food|Water|Power|Modules|Life support|Pop)\b/);
-  assert.match(lab, /AlignmentBench 0\.84 score/);
-  assert.match(lab, /Release Readiness 65%/);
-  assert.match(lab, /Monthly Burn 12000000 USD\/mo/);
+  assert.match(lab, /对齐评测 0\.84 score/);
+  assert.match(lab, /发布准备度 65%/);
+  assert.match(lab, /每月资金消耗 12000000 USD\/mo/);
   assert.match(lab, /Morale 85%/);
 
   const colony = departmentPromptFor(mars, 2035);
-  assert.match(colony, /Food Reserve 18 months/);
-  assert.match(colony, /Water [\d.]+ L\/day/);
-  assert.match(colony, /Power [\d.]+ kW/);
-  assert.match(colony, /Morale \d+%/);
+  assert.match(colony, /食物储备 18 months/);
+  assert.match(colony, /水 [\d.]+ L\/day/);
+  assert.match(colony, /功率 [\d.]+ kW/);
+  assert.match(colony, /士气 \d+%/);
 
   // A percent the scenario counts from 0 to 100 stays as it is.
-  assert.match(departmentPromptFor(submarine, 1), /Hull Integrity 100%/);
+  assert.match(departmentPromptFor(submarine, 1), /站体完整性 100%/);
 });
 
 test('a scenario that declares no world shows its people and their morale, not Mars values', () => {
@@ -150,8 +150,8 @@ test('the commander\'s state line is the scenario\'s', () => {
   });
   const lab = line(atlasLab, 1);
   assert.doesNotMatch(lab, /Food|Water/);
-  assert.match(lab, /State: .*AlignmentBench 0\.84 score/);
-  assert.match(line(mars, 2035), /State: .*Food Reserve 18 months/);
+  assert.match(lab, /State: .*对齐评测 0\.84 score/);
+  assert.match(line(mars, 2035), /State: .*食物储备 18 months/);
 });
 
 test('an event\'s departments reach the scenario\'s, by id, label or short form', () => {
@@ -174,7 +174,7 @@ test('an event\'s departments reach the scenario\'s, by id, label or short form'
   // A milestone's own departments, which the turn loop used to replace
   // with a list written for Mars ("medical", "engineering" on the Moon).
   const arrival = (lunar as unknown as { dataDrivenHooks: { milestones: Array<{ event: { title: string; relevantDepartments: string[] } }> } })
-    .dataDrivenHooks.milestones.find(m => m.event.title === 'Lunar Arrival')!;
+    .dataDrivenHooks.milestones.find(m => m.event.title === '抵达月球')!;
   assert.deepEqual(
     resolveEventDepartments(arrival.event.relevantDepartments, lunar.departments, new Set(lunar.departments.map(d => d.id))),
     ['engineering', 'mining'],
@@ -252,9 +252,9 @@ test('a custom scenario\'s key with a quote or a backslash still gives a report 
 });
 
 test('the event summaries a viewer reads name the scenario\'s leader', () => {
-  assert.equal(buildEventSummary('decision_pending', {}, atlasLab.labels), 'release director deciding');
-  assert.match(buildEventSummary('decision_made', { decision: 'Hold the release' }, atlasLab.labels), /^release director decided: Hold the release/);
-  assert.equal(buildEventSummary('decision_pending', {}, mars.labels), 'commander deciding');
+  assert.equal(buildEventSummary('decision_pending', {}, atlasLab.labels), '发布总监正在决策');
+  assert.match(buildEventSummary('decision_made', { decision: 'Hold the release' }, atlasLab.labels), /^发布总监已决定： Hold the release/);
+  assert.equal(buildEventSummary('decision_pending', {}, mars.labels), '指挥官正在决策');
 });
 
 test('a character\'s chat speaks of the scenario\'s leader and time', () => {
@@ -365,4 +365,13 @@ test('the director reads every 0-to-1 fraction a scenario declares as a percent,
   }
   assert.ok(fractions >= 10 && others >= 10, `${fractions} fractions and ${others} other numbers read`);
   assert.match(directorPromptFor(mars, 2035), /^- independencePressure: 5%$/m);
+});
+
+
+test('new run event summaries localize fixed copy and preserve the model report', () => {
+  const data = { department: 'science', summary: 'Model-written prose stays unchanged.' };
+  assert.equal(buildEventSummary('specialist_done', data, mars.labels), '科研部报告：Model-written prose stays unchanged.');
+  assert.equal(data.department, 'science');
+  assert.equal(data.summary, 'Model-written prose stays unchanged.');
+  assert.equal(buildEventSummary('event_start', { title: '危机', category: 'resource' }), '事件：危机（资源）');
 });

@@ -1,3 +1,4 @@
+import { displayLabel, departmentLabel, roleLabel } from '../../template-localization';
 import * as React from 'react';
 import { useEffect, useState, type CSSProperties } from 'react';
 import type { DecisionBarCheck, ProcessedEvent } from '../../hooks/useGameState';
@@ -54,9 +55,9 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
       if (total <= 1) return null;
       return (
         <div className={[styles.eventStartRow, idx > 0 ? styles.notFirst : ''].filter(Boolean).join(' ')}>
-          <span className={styles.eventNumber}>EVENT {idx + 1}/{total}</span>
+          <span className={styles.eventNumber}>事件 {idx + 1}/{total}</span>
           <span className={styles.eventStartTitle}>{title}</span>
-          {category && <span className={styles.eventCategoryPill}>{category}</span>}
+          {category && <span className={styles.eventCategoryPill}>{displayLabel(category)}</span>}
         </div>
       );
     }
@@ -68,10 +69,10 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
       return (
         <Tooltip content={
           <div>
-            <b className={styles.promotionTooltipTitle} style={sideStyle}>Promotion: {role}</b>
+            <b className={styles.promotionTooltipTitle} style={sideStyle}>晋升： {role}</b>
             {name && (
               <div className={styles.promotionTooltipRow}>
-                <span className={styles.promotionTooltipKey}>Agent:</span>{' '}
+                <span className={styles.promotionTooltipKey}>成员：</span>{' '}
                 <span className={styles.promotionTooltipValue}>{name}</span>
               </div>
             )}
@@ -80,7 +81,7 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
         }>
           <div className={styles.promotionRow}>
             <span className={styles.promotionArrow}>&rarr;</span>
-            <span className={styles.promotionRole} style={sideStyle}>{role}</span>
+            <span className={styles.promotionRole} style={sideStyle}>{roleLabel(role)}</span>
             <span className={styles.promotionReason}>{reason}</span>
           </div>
         </Tooltip>
@@ -140,13 +141,13 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
                   now framed as "RETRYING" so the SIM panel doesn't
                   look like the run is broken. */}
               <span className={styles.forgeBadge}>
-                {approved ? '✦ FORGED TOOL' : '↻ FORGE RETRY'}
+                {approved ? '✦ 已生成工具' : '↻ 工具生成重试'}
               </span>
-              <span className={styles.forgeDept}>{dept}</span>
+              <span className={styles.forgeDept}>{displayLabel(dept)}</span>
               <span className={styles.forgeDescription}>{description}</span>
-              <span className={styles.forgeName}>{name} ({mode})</span>
+              <span className={styles.forgeName}>{name}（{mode === 'sandbox' ? '沙箱' : mode}）</span>
               <span className={approved ? styles.forgeVerdictPass : styles.forgeVerdictFail}>
-                {approved ? `PASS ${confidence.toFixed(2)}` : 'RETRY'}
+                {approved ? `通过 ${confidence.toFixed(2)}` : '需重试'}
               </span>
             </span>
           </summary>
@@ -159,19 +160,19 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
           <button
             type="button"
             onClick={() => setInspectingTool(name)}
-            aria-label={`Inspect forged tool ${name}`}
+            aria-label={`查看已生成工具 ${name}`}
             className={styles.forgeInspectAbs}
           >
-            INSPECT
+            查看详情
           </button>
           <div className={styles.forgeBody}>
             {(inputFields.length > 0 || outputFields.length > 0) && (
               <div className={styles.forgeFieldsRow}>
                 {inputFields.length > 0 && (
-                  <span><span className={styles.fieldsLabelIn}>in:</span> {inputFields.join(', ')}</span>
+                  <span><span className={styles.fieldsLabelIn}>输入：</span> {inputFields.join(', ')}</span>
                 )}
                 {outputFields.length > 0 && (
-                  <span><span className={styles.fieldsLabelOut}>out:</span> {outputFields.join(', ')}</span>
+                  <span><span className={styles.fieldsLabelOut}>输出：</span> {outputFields.join(', ')}</span>
                 )}
               </div>
             )}
@@ -241,17 +242,17 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
           <details className={styles.specDetails} style={cardStyle}>
             <summary className={styles.specSummaryRow}>
               <span className={styles.specHeaderDept}>
-                {scenario.ui.departmentIcons[dept] || ''} {dept}
+                {scenario.ui.departmentIcons[dept] || ''} {displayLabel(dept)}
               </span>
               {allTools.length > 0 && (
                 <span className={styles.specToolCount}>
-                  +{allTools.length} tool{allTools.length === 1 ? '' : 's'}
-                  {tools.length < allTools.length && ` (${tools.length} reused)`}
+                  +{allTools.length} 个工具
+                  {tools.length < allTools.length && `（复用 ${tools.length} 个）`}
                 </span>
               )}
               {severity && (
                 <span className={styles.severityBadge} style={sevStyle}>
-                  {severity.toUpperCase()} RISK
+                  {severity.toUpperCase()} 风险
                 </span>
               )}
               <CitationPills
@@ -265,17 +266,17 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
                 <div className={styles.specSummary}>{summary}</div>
               ) : (risks.length === 0 && recs.length === 0) && (citeCount > 0 || allTools.length > 0) ? (
                 <div className={styles.specSummaryEmpty}>
-                  Department analysis complete &mdash; no narrative summary returned, but
-                  {citeCount > 0 && ` ${citeCount} source${citeCount === 1 ? '' : 's'} surveyed`}
-                  {citeCount > 0 && allTools.length > 0 && ' and '}
-                  {allTools.length > 0 && ` ${allTools.length} tool${allTools.length === 1 ? '' : 's'} forged`}
+                  部门分析已完成，未返回文字摘要，但已记录
+                  {citeCount > 0 && ` 已查阅 ${citeCount} 个来源`}
+                  {citeCount > 0 && allTools.length > 0 && '，'}
+                  {allTools.length > 0 && ` 已生成 ${allTools.length} 个工具`}
                   .
                 </div>
               ) : null}
 
               {risks.length > 0 && (
                 <div className={styles.specRisks}>
-                  <div className={styles.specRisksLabel}>RISKS</div>
+                  <div className={styles.specRisksLabel}>风险</div>
                   {risks.slice(0, 3).map((r: any, i: number) => (
                     <div key={i} className={styles.specRiskRow}>
                       <span
@@ -294,7 +295,7 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
 
               {recs.length > 0 && (
                 <div className={styles.specRecs}>
-                  <div className={styles.specRecsLabel}>RECOMMENDATIONS</div>
+                  <div className={styles.specRecsLabel}>建议</div>
                   {recs.slice(0, 3).map((rec, i) => (
                     <div key={i} className={styles.specRecRow}>{rec}</div>
                   ))}
@@ -347,20 +348,20 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
                   <div className={styles.toolSummaryMain}>
                     <div className={styles.toolSummaryHead}>
                       {isNew ? (
-                        <span className={styles.toolNewBadge}>FORGED TOOL</span>
+                        <span className={styles.toolNewBadge}>生成工具</span>
                       ) : (
-                        <span className={styles.toolReusedBadge}>REUSED</span>
+                        <span className={styles.toolReusedBadge}>已复用</span>
                       )}
                       {!isNew && t.firstForgedTurn != null && (
                         <span className={styles.toolFirstForged}>
-                          first forged T{t.firstForgedTurn}
+                          首次生成于回合{t.firstForgedTurn}
                           {t.firstForgedDepartment && t.firstForgedDepartment !== t.department
-                            ? ` · ${t.firstForgedDepartment}`
+                            ? ` · ${departmentLabel(String(t.firstForgedDepartment))}`
                             : ''}
                         </span>
                       )}
                       {hasFullSchema && (
-                        <span className={styles.toolSchemaBadge}>SCHEMA</span>
+                        <span className={styles.toolSchemaBadge}>结构</span>
                       )}
                     </div>
                     <span className={styles.toolDescription}>
@@ -387,19 +388,19 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
                   aria-label={`Inspect tool ${t.name || ''}`}
                   className={styles.toolInspectBtn}
                 >
-                  INSPECT
+                  查看详情
                 </button>
                 <div className={styles.toolBody}>
                   {t.crisis && (
                     <div className={styles.toolMetaRow}>
-                      <span className={styles.toolMetaLabel}>CRISIS: </span>
+                      <span className={styles.toolMetaLabel}>危机： </span>
                       {String(t.crisis)}
                     </div>
                   )}
                   {t.department && (
                     <div className={styles.toolMetaRow}>
-                      <span className={styles.toolMetaLabel}>DEPT: </span>
-                      {String(t.department)}
+                      <span className={styles.toolMetaLabel}>部门： </span>
+                      {departmentLabel(String(t.department))}
                     </div>
                   )}
 
@@ -407,16 +408,16 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
                       available (pulled from EmergentToolRegistry on first
                       forge), otherwise fall back to derived field names. */}
                   {(inputSchema || (Array.isArray(t.inputFields) && t.inputFields.length > 0)) && (
-                    <SchemaBlock label="INPUT" color="var(--teal)" schema={inputSchema} fields={t.inputFields} />
+                    <SchemaBlock label="输入" color="var(--teal)" schema={inputSchema} fields={t.inputFields} />
                   )}
                   {(outputSchema || (Array.isArray(t.outputFields) && t.outputFields.length > 0)) && (
-                    <SchemaBlock label="OUTPUT" color="var(--green)" schema={outputSchema} fields={t.outputFields} />
+                    <SchemaBlock label="输出" color="var(--green)" schema={outputSchema} fields={t.outputFields} />
                   )}
 
                   {t.output && (
                     <details>
                       <summary className={styles.toolRawSummary} style={{ '--side-color': sideColor } as CSSProperties}>
-                        Raw Output
+                        原始输出
                       </summary>
                       <pre className={styles.toolRawPre}>
                         {typeof t.output === 'object' ? JSON.stringify(t.output, null, 2) : String(t.output)}
@@ -424,7 +425,7 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
                     </details>
                   )}
                   {!t.output && !inputSchema && !outputSchema && (!t.inputFields || t.inputFields.length === 0) && (
-                    <div className={styles.toolEmpty}>Tool forged but no output captured. The tool will be available for subsequent turns.</div>
+                    <div className={styles.toolEmpty}>工具已生成，但未记录输出。后续回合可以使用此工具。</div>
                   )}
                 </div>
               </details>
@@ -468,9 +469,9 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
           {/* Header: DECISION #N  tools · citations  BADGE */}
           <div className={styles.outcomeHead}>
             <span>
-              <span className={styles.outcomeLabel}>DECISION #{turnNum}</span>
+              <span className={styles.outcomeLabel}>决策 #{turnNum}</span>
               <span className={styles.outcomeMeta}>
-                {toolCount} tools &middot; {citeCount} citations
+                {toolCount} 个工具 · {citeCount} 条引用
               </span>
             </span>
             <Badge outcome={outcome} />
@@ -503,7 +504,7 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
           {(rationale || reasoning || policies.length > 0) && (
             <details>
               <summary className={styles.outcomeReasoningSummary}>
-                Full reasoning &amp; policies
+                完整理由与政策
               </summary>
               <div className={styles.outcomeReasoningBody}>
                 {reasoning && (
@@ -524,7 +525,7 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
       if (!entries.length) return null;
       return (
         <div className={styles.driftRow}>
-          <span className={styles.driftLabel}>DRIFT </span>
+          <span className={styles.driftLabel}>人格变化 </span>
           {entries.slice(0, 3).map((c: any, i: number) => (
             <span key={i}>
               <span className={styles.driftName} style={sideStyle}>{c.name?.split(' ')[0]}</span>
@@ -550,7 +551,7 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
       return (
         <details className={styles.reactionsDetails}>
           <summary className={styles.reactionsSummary}>
-            <span className={styles.reactionsLabel} style={sideStyle}>{total} VOICES</span>
+            <span className={styles.reactionsLabel} style={sideStyle}>{total} 成员心声</span>
             <div className={styles.reactionsBar}>
               {segments.map(m => (
                 <div
@@ -579,26 +580,26 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
           </div>
           <details>
             <summary className={styles.reactionsQuotesSummary} style={sideStyle}>
-              quotes ({reactions.length})
+              条发言（{reactions.length})
             </summary>
             <div className={styles.reactionsQuotesList}>
               {reactions.slice(0, 4).map((r, i) => (
                 <Tooltip key={i} dot content={
                   <div>
                     <b className={styles.reactionTooltipName} style={sideStyle}>{r.name}</b>
-                    <div className={styles.reactionTooltipMeta}>{r.role} in {r.department} {r.age ? `· Age ${r.age}` : ''}</div>
+                    <div className={styles.reactionTooltipMeta}>{roleLabel(String(r.role || ''))} · {departmentLabel(String(r.department || ''))} {r.age ? `· ${r.age} 岁` : ''}</div>
                     <div className={styles.reactionTooltipHexaco}>O:{r.hexaco?.O} C:{r.hexaco?.C} E:{r.hexaco?.E} A:{r.hexaco?.A} Em:{r.hexaco?.Em} HH:{r.hexaco?.HH}</div>
-                    <div className={styles.reactionTooltipHealth}>Bone: {r.boneDensity}% · Radiation: {r.radiation}mSv · Psych: {r.psychScore}</div>
+                    <div className={styles.reactionTooltipHealth}>骨密度： {r.boneDensity}% · 辐射： {r.radiation}mSv · 心理： {r.psychScore}</div>
                     <div className={styles.reactionTooltipQuote}>&ldquo;{r.quote}&rdquo;</div>
                     <div
                       className={styles.reactionTooltipMoodLine}
                       style={{ '--mood-color': moodColors[r.mood] || 'var(--text-3)' } as CSSProperties}
                     >
-                      {String(r.mood || '').toUpperCase()} · intensity {r.intensity?.toFixed?.(2) || '?'}
+                      {String(r.mood || '').toUpperCase()} · 强度 {r.intensity?.toFixed?.(2) || '?'}
                     </div>
                     {r.memory?.beliefs?.length > 0 && (
                       <div className={styles.reactionTooltipBeliefs}>
-                        Beliefs: {r.memory.beliefs.slice(0, 2).join('; ')}
+                        信念： {r.memory.beliefs.slice(0, 2).join('; ')}
                       </div>
                     )}
                   </div>
@@ -631,7 +632,7 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
       return (
         <details className={styles.bulletinDetails}>
           <summary className={styles.bulletinSummary}>
-            <span className={styles.bulletinSummaryLabel}>{posts.length} POSTS</span>
+            <span className={styles.bulletinSummaryLabel}>{posts.length} 动态</span>
             <span className={styles.bulletinSummaryNames}>
               {posts.slice(0, 2).map(p => String(p.name ?? '').split(' ')[0]).filter(Boolean).join(' · ')}
               {posts.length > 2 ? ` +${posts.length - 2}` : ''}
@@ -642,13 +643,13 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
               <Tooltip key={i} dot content={
                 <div>
                   <b className={styles.bulletinTooltipName} style={sideStyle}>{p.name}</b>{' '}
-                  <span className={styles.bulletinTooltipRole}>{p.role} {p.department}</span>
+                  <span className={styles.bulletinTooltipRole}>{roleLabel(String(p.role || ''))} · {departmentLabel(String(p.department || ''))}</span>
                   <div className={styles.bulletinTooltipBody}>{p.post}</div>
                   <div
                     className={styles.bulletinTooltipMood}
                     style={{ '--mood-color': moodColors[p.mood] || 'var(--text-3)' } as CSSProperties}
                   >
-                    {String(p.mood || '').toUpperCase()} · {p.likes || 0} likes · {p.replies || 0} replies
+                    {String(p.mood || '').toUpperCase()} · {p.likes || 0} 次赞 · {p.replies || 0} 条回复
                   </div>
                 </div>
               }>
@@ -688,15 +689,15 @@ export function EventCard({ event, actorIndex }: EventCardProps) {
           style={sideStyle}
         >
           <summary className={styles.fallbackSummary}>
-            <span className={styles.fallbackTitle}>⚠ {salvaged ? 'SCHEMA SALVAGE' : 'SCHEMA FALLBACK'} — {schemaName}</span>
-            <span className={styles.fallbackSite}>site: {site || 'n/a'}</span>
+            <span className={styles.fallbackTitle}>⚠ {salvaged ? '结构校验修复' : '结构校验回退'} — {schemaName}</span>
+            <span className={styles.fallbackSite}>来源： {site || 'n/a'}</span>
             {salvaged && (
-              <span className={styles.fallbackSite}>kept without: {dropped.length > 0 ? dropped.join(', ') : 'n/a'}</span>
+              <span className={styles.fallbackSite}>保留但缺少： {dropped.length > 0 ? dropped.join(', ') : 'n/a'}</span>
             )}
           </summary>
           {preview && (
             <details className={styles.fallbackPreviewWrap}>
-              <summary className={styles.fallbackPreviewSummary}>Raw output preview</summary>
+              <summary className={styles.fallbackPreviewSummary}>原始输出预览</summary>
               <pre className={styles.fallbackPreviewPre}>{preview}</pre>
             </details>
           )}
@@ -717,11 +718,11 @@ import type { ToolEntry } from '../../hooks/useToolRegistry';
  * bar the fact the reply named for it, or that it named none.
  */
 export function describeBarCheck(c: DecisionBarCheck): string {
-  const stands = c.clearsBar ? 'clears it' : 'is under it';
-  const choice = c.choseBold ? 'the bold option was taken' : 'the bold option was refused';
-  if (!c.departs) return `Bar ${c.bar}: the bold option's chance ${c.boldChance} ${stands}, so ${choice}`;
-  const why = c.departureFact ? `, for: ${c.departureFact}` : ', with no fact named for it';
-  return `Bar ${c.bar}: the bold option's chance ${c.boldChance} ${stands}, yet ${choice}${why}`;
+  const stands = c.clearsBar ? '达到阈值' : '低于阈值';
+  const choice = c.choseBold ? '选择冒险方案' : '放弃冒险方案';
+  if (!c.departs) return `决策阈值 ${c.bar}：冒险方案成功率 ${c.boldChance}，${stands}，因此${choice}`;
+  const why = c.departureFact ? `，依据：${c.departureFact}` : '，未说明事实依据';
+  return `决策阈值 ${c.bar}：冒险方案成功率 ${c.boldChance}，${stands}，但${choice}${why}`;
 }
 
 /**
@@ -750,13 +751,13 @@ function ToolDetailModal({ entry, fallbackName, onClose }: {
       <div onClick={e => e.stopPropagation()} className={styles.modalDialog}>
         <div className={styles.modalHeader}>
           <div className={styles.modalHeaderLeft}>
-            <div className={styles.modalKicker}>FORGED TOOL [{entry?.n ?? '?'}]</div>
+            <div className={styles.modalKicker}>生成工具 [{entry?.n ?? '?'}]</div>
             <div className={styles.modalTitle}>{entry?.name || fallbackName}</div>
             {entry?.description && entry.description !== entry.name && (
               <div className={styles.modalDescription}>{entry.description}</div>
             )}
           </div>
-          <button onClick={onClose} aria-label="Close" className={styles.modalCloseBtn}>×</button>
+          <button onClick={onClose} aria-label="关闭" className={styles.modalCloseBtn}>×</button>
         </div>
 
         <div className={styles.modalScroll}>
@@ -766,25 +767,25 @@ function ToolDetailModal({ entry, fallbackName, onClose }: {
                 <Pill label={`${entry.mode}`} color="var(--text-3)" />
                 <Pill label={entry.approved ? `PASS ${entry.confidence.toFixed(2)}` : 'RETRY'} color={entry.approved ? 'var(--green)' : 'var(--amber)'} />
                 <Pill label={`first forged T${entry.firstForgedTurn} · ${entry.firstForgedDepartment}`} color="var(--amber)" />
-                {entry.reuseCount > 0 && <Pill label={`reused ${entry.reuseCount}×`} color="var(--green)" />}
-                {entry.departments.size > 0 && <Pill label={`used by ${[...entry.departments].join(', ')}`} color="var(--teal)" />}
+                {entry.reuseCount > 0 && <Pill label={`已复用 ${entry.reuseCount} 次`} color="var(--green)" />}
+                {entry.departments.size > 0 && <Pill label={`使用部门：${[...entry.departments].map(departmentLabel).join('、')}`} color="var(--teal)" />}
               </div>
 
               {entry.inputSchema && (
-                <ModalSection title="INPUT SCHEMA">
+                <ModalSection title="输入结构">
                   <pre className={styles.codePre}>{JSON.stringify(entry.inputSchema, null, 2)}</pre>
                 </ModalSection>
               )}
               {entry.outputSchema && (
-                <ModalSection title="OUTPUT SCHEMA">
+                <ModalSection title="输出结构">
                   <pre className={styles.codePre}>{JSON.stringify(entry.outputSchema, null, 2)}</pre>
                 </ModalSection>
               )}
               {!entry.inputSchema && !entry.outputSchema && (entry.inputFields.length > 0 || entry.outputFields.length > 0) && (
-                <ModalSection title="FIELDS (DERIVED)">
+                <ModalSection title="字段（推导）">
                   <div className={styles.fieldsBlock}>
-                    {entry.inputFields.length > 0 && <div><span className={styles.fieldsLabelIn}>in:</span> {entry.inputFields.join(', ')}</div>}
-                    {entry.outputFields.length > 0 && <div><span className={styles.fieldsLabelOut}>out:</span> {entry.outputFields.join(', ')}</div>}
+                    {entry.inputFields.length > 0 && <div><span className={styles.fieldsLabelIn}>输入：</span> {entry.inputFields.join(', ')}</div>}
+                    {entry.outputFields.length > 0 && <div><span className={styles.fieldsLabelOut}>输出：</span> {entry.outputFields.join(', ')}</div>}
                   </div>
                 </ModalSection>
               )}
@@ -807,17 +808,17 @@ function ToolDetailModal({ entry, fallbackName, onClose }: {
                           <div className={styles.usageHeader}>
                             <span className={styles.usageTurn}>T{h.turn}</span>
                             <span className={styles.usageTime}>{h.time}</span>
-                            <span className={styles.usageDept}>{h.department}</span>
+                            <span className={styles.usageDept}>{departmentLabel(h.department)}</span>
                             <span className={styles.usageEvent}>· {h.eventTitle}</span>
                             <span className={styles.usageStatus}>
                               <span
                                 className={styles.usageStatusBadge}
                                 style={{ '--status-color': accent } as CSSProperties}
                               >
-                                {h.rejected ? 'JUDGE REJECTED' : h.isReforge ? 'RE-FORGE' : i === 0 ? 'FORGE' : 'REUSE'}
+                                {h.rejected ? 'JUDGE REJECTED' : h.isReforge ? 'RE-FORGE' : i === 0 ? 'FORGE' : "复用"}
                               </span>
                               {typeof h.confidence === 'number' && (
-                                <span className={styles.usageConf}>conf {h.confidence.toFixed(2)}</span>
+                                <span className={styles.usageConf}>置信度 {h.confidence.toFixed(2)}</span>
                               )}
                             </span>
                           </div>
@@ -834,15 +835,14 @@ function ToolDetailModal({ entry, fallbackName, onClose }: {
               )}
 
               {entry.sampleOutput && (
-                <ModalSection title="LATEST OUTPUT">
+                <ModalSection title="最新输出">
                   <pre className={styles.codePre}>{entry.sampleOutput}</pre>
                 </ModalSection>
               )}
             </>
           ) : (
             <div className={styles.modalEmpty}>
-              Tool entry not yet in the registry — the specialist_done summary
-              for this forge hasn't arrived yet. Try again in a moment.
+              工具尚未进入注册表，部门完成摘要还未到达，请稍后重试。
             </div>
           )}
         </div>
@@ -876,7 +876,7 @@ function ModalSection({ title, children }: { title: string; children: React.Reac
  * derived from the tool's last invocation.
  */
 function SchemaBlock({ label, color, schema, fields }: {
-  label: 'INPUT' | 'OUTPUT';
+  label: '输入' | '输出';
   color: string;
   schema?: unknown;
   fields?: string[];
@@ -895,7 +895,7 @@ function SchemaBlock({ label, color, schema, fields }: {
           className={styles.schemaFieldsLabel}
           style={{ '--field-color': color } as CSSProperties}
         >
-          {label} FIELDS:{' '}
+          {label} 字段：{' '}
         </span>
         <span className={styles.schemaFieldsList}>{fields.join(', ')}</span>
       </div>
@@ -909,7 +909,7 @@ function SchemaBlock({ label, color, schema, fields }: {
         className={styles.schemaTitle}
         style={{ '--field-color': color } as CSSProperties}
       >
-        {label} SCHEMA
+        {label} 结构
       </div>
       <table className={styles.schemaTable}>
         <tbody>

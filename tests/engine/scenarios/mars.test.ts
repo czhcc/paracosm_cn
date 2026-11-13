@@ -10,7 +10,7 @@ test('marsScenario satisfies ScenarioPackage interface', () => {
 });
 
 test('marsScenario has correct labels', () => {
-  assert.equal(marsScenario.labels.name, 'Mars Genesis');
+  assert.equal(marsScenario.labels.name, '火星创世纪');
   assert.equal(marsScenario.labels.populationNoun, 'colonists');
   assert.equal(marsScenario.labels.settlementNoun, 'colony');
 });
@@ -44,7 +44,7 @@ test('marsScenario hooks include progressionHook', () => {
 test('marsScenario hooks include directorInstructions', () => {
   assert.ok(marsScenario.hooks.directorInstructions);
   const instructions = marsScenario.hooks.directorInstructions!();
-  assert.ok(instructions.includes('Mars colony'));
+  assert.ok(instructions.includes('火星殖民地'));
 });
 
 test('marsScenario hooks include departmentPromptHook', () => {

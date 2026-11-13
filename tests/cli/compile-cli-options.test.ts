@@ -34,3 +34,15 @@ test('parseCompileCliOptions defaults to the compiler runtime defaults', () => {
   assert.equal(options.cacheDir, '.paracosm/cache');
   assert.equal(options.webSearch, true);
 });
+
+test('OpenAI compiler uses its configured custom model unless --model overrides it', () => {
+  const previous = process.env.OPENAI_MODEL;
+  process.env.OPENAI_MODEL = 'qwen3.8-flash-next';
+  try {
+    assert.equal(parseCompileCliOptions(['--provider', 'openai']).model, 'qwen3.8-flash-next');
+    assert.equal(parseCompileCliOptions(['--model', 'other-model', '--provider', 'openai']).model, 'other-model');
+  } finally {
+    if (previous === undefined) delete process.env.OPENAI_MODEL;
+    else process.env.OPENAI_MODEL = previous;
+  }
+});

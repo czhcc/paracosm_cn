@@ -127,7 +127,7 @@ export async function extractPdfText(
     // the code to a friendlier user-facing message instead of showing
     // "PDF extraction failed: ".
     if (text.trim().length === 0) {
-      const e = new Error('PDF contains no extractable text. It may be a scanned image without OCR.');
+      const e = new Error("PDF 中没有可提取文字，可能是尚未进行文字识别的扫描件。");
       (e as Error & { code?: string }).code = 'PDF_NO_TEXT';
       throw e;
     }

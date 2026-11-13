@@ -8,7 +8,7 @@
 }
 
 .tab {
-  min-height: 36px;
+  min-height: 44px;
   flex: 1 0 0;
   display: flex;
   align-items: center;
@@ -22,9 +22,9 @@
   color: var(--text-3);
   cursor: pointer;
   font-family: var(--sans);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: normal;
   text-transform: uppercase;
   transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
 
@@ -75,7 +75,7 @@
     flex: 0 0 auto;
     gap: 2px;
     padding: 4px 0;
-    font-size: 10px;
+    font-size: 14px;
     letter-spacing: 0;
   }
 

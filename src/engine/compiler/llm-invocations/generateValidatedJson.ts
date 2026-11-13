@@ -1,3 +1,4 @@
+import { chinesePrompt } from '../../../llm/chinese.js';
 /**
  * JSON-producing compile hook wrapper. Parses + Zod-validates the
  * LLM's text output using the injected {@link GenerateTextFn} so
@@ -89,7 +90,7 @@ export async function generateValidatedJson<T extends ZodType>(
       : buildRetryPrompt(opts.prompt, lastRawText, lastReason);
 
     const text = await opts.generateText({
-      system: [{ text: opts.systemCacheable, cacheBreakpoint: true }],
+      system: [{ text: chinesePrompt(opts.systemCacheable), cacheBreakpoint: true }],
       prompt,
       maxTokens: opts.maxTokens,
     });

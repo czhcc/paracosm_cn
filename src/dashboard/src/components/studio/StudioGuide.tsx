@@ -71,26 +71,26 @@ function openSettings(event: React.MouseEvent<HTMLAnchorElement>) {
 
 export function StudioGuide(): JSX.Element {
   return (
-    <section className={styles.guide} aria-label="How to author a RunArtifact JSON">
+    <section className={styles.guide} aria-label="如何创建运行记录 JSON">
       <div className={styles.guideHead}>
-        <h3 className={styles.guideTitle}>How to get a RunArtifact JSON</h3>
+        <h3 className={styles.guideTitle}>如何获取运行记录 JSON</h3>
         <p className={styles.guideSub}>
-          Studio takes a deterministic Paracosm <code>RunArtifact</code> — the JSON that a single sim run produces — and lets you inspect, promote to the Library, branch, or compare. Four steps to author one.
+          工作室接收 Paracosm 的确定性 <code>RunArtifact</code> 运行记录（单次仿真生成的 JSON），支持查看、加入资料库、创建分支和对比。按以下四步即可生成。
         </p>
       </div>
 
       <ol className={styles.guideSteps}>
         <li>
-          <strong>Configure a scenario in Settings.</strong> Pick a built-in (Frontier AI Lab, Submarine, Corporate Quarterly, T2D Protocol) or load your own. Set turns, seed, population, time-per-turn.
+          <strong>在“设置”中配置场景。</strong> 选择内置场景或加载自己的场景，设置回合数、随机种子、人口和每回合时间。
         </li>
         <li>
-          <strong>Run the sim.</strong> Switch to the Sim tab, hit Run. The runtime emits events deterministically, the actor LLM produces dialogue and decisions, and the judge attaches a verdict at the end.
+          <strong>运行仿真。</strong> 切换到“仿真”并点击“运行”。内核推进事件，模型生成对话和决策，结束后生成评判。
         </li>
         <li>
-          <strong>Download the artifact.</strong> Sim output panel has a Save button — that JSON is the RunArtifact. You can also produce one from the CLI: <code>paracosm run scenarios/frontier-ai-lab.json --turns 20 --out run.json</code>.
+          <strong>下载运行记录。</strong> 使用仿真输出面板的“保存”按钮下载 JSON 运行记录，也可以通过命令行生成： <code>paracosm run scenarios/frontier-ai-lab.json --turns 20 --out run.json</code>.
         </li>
         <li>
-          <strong>Drop it in the zone below.</strong> Single artifact or a bundle (array of artifacts, e.g. for branch comparisons). Max 10&nbsp;MB. A bundle over the server&rsquo;s request limit (5&nbsp;MiB unless <code>MAX_REQUEST_BODY_BYTES</code> sets another) is promoted in parts of whole runs, snapshots included, into one Library bundle; a run that alone passes the limit is refused.
+          <strong>拖入下方区域。</strong> 支持单次运行记录或记录数组（如用于分支对比），最大 10&nbsp;MB。超过服务器请求上限的记录包，会按完整运行记录（包含快照）分批导入，合并为资料库中的一个记录包；单次运行记录如果超过上限则拒绝导入。请求上限默认为 5&nbsp;MiB，可通过 <code>MAX_REQUEST_BODY_BYTES</code> 调整。
         </li>
       </ol>
 
@@ -100,7 +100,7 @@ export function StudioGuide(): JSX.Element {
           onClick={openSettings}
           className={styles.guideCta}
         >
-          Open Settings →
+          打开设置 →
         </a>
         <a
           href="https://github.com/framerslab/paracosm/blob/master/docs/COOKBOOK.md"
@@ -108,7 +108,7 @@ export function StudioGuide(): JSX.Element {
           rel="noopener noreferrer"
           className={styles.guideCtaSecondary}
         >
-          Read the cookbook
+          阅读使用指南
         </a>
         <a
           href="https://github.com/framerslab/paracosm/tree/master/scenarios"
@@ -116,17 +116,17 @@ export function StudioGuide(): JSX.Element {
           rel="noopener noreferrer"
           className={styles.guideCtaSecondary}
         >
-          Browse example scenarios
+          浏览示例场景
         </a>
       </div>
 
       <details className={styles.guideExample}>
-        <summary>Show an example RunArtifact</summary>
+        <summary>查看运行记录示例</summary>
         <pre className={styles.guideExampleCode}>
           <code>{EXAMPLE_ARTIFACT}</code>
         </pre>
         <p className={styles.guideExampleNote}>
-          Real artifacts include the full event log, the per-turn snapshot of every actor, KPIs, and the judge verdict. The shape matches the <code>RunArtifact</code> Zod schema in <code>schema/index.ts</code>; bundles are a JSON array of artifacts.
+          完整记录包括事件日志、每位决策者的逐回合快照、关键指标和评判结果。结构符合 <code>RunArtifact</code> Zod 结构，定义位于 <code>schema/index.ts</code>；运行组为运行记录的 JSON 数组。
         </p>
       </details>
     </section>

@@ -26,7 +26,7 @@ test('SimLayoutToggle: at actorCount=3 BOTH options stay enabled (N-actor parity
   assert.ok(!sideBtn![0].includes('disabled'), 'side-by-side enabled at N=3 too');
   // The disabled-state explanatory title is gone; the new title points
   // at the horizontal-scroll behaviour instead.
-  assert.match(sideBtn![0], /title="[^"]*horizontal scroll/);
+  assert.match(sideBtn![0], /title="[^"]*横向滚动/);
 });
 
 test('SimLayoutToggle: active button gets aria-pressed=true', () => {

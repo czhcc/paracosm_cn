@@ -59,7 +59,7 @@ export function computeTurnHighlight(
   b: HighlightInput | null,
   turn: number,
 ): string {
-  if (!a || !b) return 'Awaiting first turn snapshot.';
+  if (!a || !b) return "等待首个回合快照。";
   // `??` instead of `||` so a legitimate year of 0 (synthetic test
   // fixtures, year-zero scenarios) isn't silently overridden by the
   // other side's year.
@@ -70,8 +70,7 @@ export function computeTurnHighlight(
     const heavier = a.deathsThisTurn > b.deathsThisTurn ? 'A' : 'B';
     const heavyCount = Math.max(a.deathsThisTurn, b.deathsThisTurn);
     const lightCount = Math.min(a.deathsThisTurn, b.deathsThisTurn);
-    const noun = heavyCount === 1 ? 'colonist' : 'colonists';
-    return `Turn ${turn}, year ${year}: Leader ${heavier} lost ${heavyCount} ${noun}; the other lost ${lightCount}.`;
+    return `第 ${turn} 回合，仿真时间 ${year}：决策者 ${heavier} 一侧有 ${heavyCount} 位居民死亡，另一侧有 ${lightCount} 位。`;
   }
 
   // 2. Morale collapse
@@ -80,23 +79,23 @@ export function computeTurnHighlight(
     const lower = a.morale < b.morale ? 'A' : 'B';
     const lowerVal = a.morale < b.morale ? a.morale : b.morale;
     const higherVal = a.morale < b.morale ? b.morale : a.morale;
-    return `Turn ${turn}, year ${year}: Leader ${lower}'s morale collapsed to ${pct(lowerVal)}; the other held ${pct(higherVal)}.`;
+    return `第 ${turn} 回合，仿真时间 ${year}：决策者 ${lower} 的士气降至 ${pct(lowerVal)}，另一侧保持在 ${pct(higherVal)}。`;
   }
 
   // 3. Event-category divergence
   const aCats = a.eventCategories.join('|');
   const bCats = b.eventCategories.join('|');
   if (aCats && bCats && aCats !== bCats) {
-    return `Turn ${turn}, year ${year}: the leaders faced different events — A: ${a.eventCategories.join(', ')}; B: ${b.eventCategories.join(', ')}.`;
+    return `第 ${turn} 回合，仿真时间 ${year}：两位决策者面对不同事件 — A： ${a.eventCategories.join(', ')}; B: ${b.eventCategories.join(', ')}.`;
   }
 
   // 4. Identical first event
   if (turn === 1 && aCats && aCats === bCats) {
-    return `Turn 1, year ${year}: identical first event (${a.eventCategories.join(', ')}). Both colonies start from the same state.`;
+    return `第 1 回合，仿真时间 ${year}：首个事件相同（${a.eventCategories.join(', ')}）。两侧从相同状态开始。`;
   }
 
   // 5. Fallback
-  return `Turn ${turn}, year ${year}: A and B tracked closely. See sub-tabs for details.`;
+  return `第 ${turn} 回合，仿真时间 ${year}：两侧变化接近，详见各子页面。`;
 }
 
 function pct(v: number): string {

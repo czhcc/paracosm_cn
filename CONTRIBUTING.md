@@ -28,6 +28,8 @@ To run one test file: `node --import tsx --import ./scripts/test-css-stub.mjs --
 
 To run a simulation or the dashboard, copy `.env.example` to `.env` and set at least one model provider key (`OPENAI_API_KEY` or `ANTHROPIC_API_KEY`); the search keys there are optional. Build the dashboard with `npm run dashboard:build`, then `npm run dashboard` serves it at http://localhost:3456 (`PORT` changes the port).
 
+For an OpenAI-compatible local model or gateway, set `OPENAI_BASE_URL` to its API root (including `/v1` when required), `OPENAI_API_KEY` to its key, and `OPENAI_MODEL` to the model ID. Select OpenAI in the dashboard. `OPENAI_MODEL` supplies the default for every simulation role, scenario compilation, actor generation, and character chat; explicit model choices override it. The Settings model fields accept custom IDs as well as the suggested models. `ANTHROPIC_MODEL` provides the equivalent default for Anthropic. Restart the backend after editing `.env`. Custom model cost estimates use fallback pricing and may differ from your provider's actual charges.
+
 | Command | What it does |
 |---|---|
 | `npm run build` | Compiles the package into `dist/` with `tsconfig.build.json`. |

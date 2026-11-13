@@ -67,9 +67,9 @@ export function LoadPreviewModal({
 
   const isMismatch = metadata.scenarioMatch?.state === 'mismatch';
   const confirmLabel = isMismatch
-    ? 'Load anyway'
+    ? "仍然加载"
     : showOverwriteWarning
-      ? 'Replace current simulation'
+      ? "替换当前仿真"
       : 'Load';
   const confirmClassName = [
     styles.button,
@@ -91,11 +91,11 @@ export function LoadPreviewModal({
         className={styles.dialog}
       >
         <div className={styles.header}>
-          <h2 id="load-preview-title" className={styles.title}>Load simulation</h2>
+          <h2 id="load-preview-title" className={styles.title}>加载仿真</h2>
           <button
             type="button"
             onClick={onCancel}
-            aria-label="Close load preview"
+            aria-label="关闭加载预览"
             className={styles.closeButton}
           >
             ×
@@ -113,23 +113,23 @@ export function LoadPreviewModal({
         )}
 
         <div className={styles.metaTable}>
-          <div className={styles.metaLabel}>Scenario</div>
+          <div className={styles.metaLabel}>场景</div>
           <div className={styles.metaValue}>{metadata.scenarioName}</div>
 
-          <div className={styles.metaLabel}>Actors</div>
+          <div className={styles.metaLabel}>决策者</div>
           <div className={styles.metaValue}>
             {(metadata.actorNames ?? []).length > 0
               ? (metadata.actorNames ?? []).join(' · ')
               : '—'}
           </div>
 
-          <div className={styles.metaLabel}>Turns</div>
+          <div className={styles.metaLabel}>回合数</div>
           <div className={styles.metaValue}>{metadata.turnCount ?? '—'}</div>
 
-          <div className={styles.metaLabel}>Events</div>
+          <div className={styles.metaLabel}>事件</div>
           <div className={styles.metaValue}>{metadata.eventCount}</div>
 
-          <div className={styles.metaLabel}>Schema</div>
+          <div className={styles.metaLabel}>结构版本</div>
           <div className={styles.metaValue}>
             <span
               className={[
@@ -141,7 +141,7 @@ export function LoadPreviewModal({
             </span>
           </div>
 
-          <div className={styles.metaLabel}>Verdict</div>
+          <div className={styles.metaLabel}>评判</div>
           <div className={styles.metaValue}>{metadata.hasVerdict ? 'yes' : 'no'}</div>
         </div>
 
@@ -149,10 +149,7 @@ export function LoadPreviewModal({
           <div role="alert" className={styles.warning}>
             <span aria-hidden="true" className={styles.warningIcon}>⚠</span>
             <span>
-              This file was saved under <strong>{metadata.scenarioMatch.fileScenarioName}</strong>.
-              Your dashboard's active scenario is <strong>{metadata.scenarioMatch.currentScenarioName}</strong>.
-              Labels, colors, and department names will not match. Switch
-              scenario in Settings before loading for a clean render.
+              此文件保存时使用的场景是 <strong>{metadata.scenarioMatch.fileScenarioName}</strong>。当前控制台场景是 <strong>{metadata.scenarioMatch.currentScenarioName}</strong>，标签、颜色和部门名称可能不匹配。建议先在设置中切换场景。
             </span>
           </div>
         )}
@@ -161,7 +158,7 @@ export function LoadPreviewModal({
           <div role="alert" className={styles.warning}>
             <span aria-hidden="true" className={styles.warningIcon}>⚠</span>
             <span>
-              This will replace the {currentEventCount}-event run you're viewing.
+              此操作将替换当前查看的 {currentEventCount}个事件的运行。
             </span>
           </div>
         )}
@@ -173,7 +170,7 @@ export function LoadPreviewModal({
             className={styles.button}
             autoFocus={showOverwriteWarning || isMismatch}
           >
-            Cancel
+            取消
           </button>
           <button
             type="button"

@@ -5,6 +5,7 @@ import { compileRefusal } from './compileRefusal';
 import { SETTINGS_LABEL_STYLE } from './shared/settingsStyles';
 import styles from './ScenarioEditor.module.scss';
 import { ADMIN_TOKEN_WHERE, adminTokenHeader, clearAdminToken, readAdminToken } from '../../admin-token';
+import { localizeTemplate } from '../../template-localization';
 
 interface AdminConfig {
   adminWrite: boolean;
@@ -24,10 +25,10 @@ const EXAMPLE_SCENARIO = {
   theme: { primaryColor: '#6366f1', accentColor: '#818cf8' },
   setup: { defaultTurns: 8, defaultSeed: 100, defaultStartTime: 2040, defaultPopulation: 50, configurableSections: ['actors', 'departments', 'models'] },
   departments: [
-    { id: 'operations', label: 'Operations', role: 'Operations Lead', icon: '', defaultModel: 'gpt-5.4-mini', instructions: 'You analyze operations.' },
-    { id: 'research', label: 'Research', role: 'Head of Research', icon: '', defaultModel: 'gpt-5.4-mini', instructions: 'You analyze research.' },
+    { id: 'operations', label: 'Operations', role: "运营主管", icon: '', defaultModel: 'gpt-5.4-mini', instructions: "你负责分析运营情况。" },
+    { id: 'research', label: 'Research', role: "研究主管", icon: '', defaultModel: 'gpt-5.4-mini', instructions: "你负责分析科研情况。" },
   ],
-  metrics: [{ id: 'population', label: 'Population', source: 'metrics.population', format: 'number' }],
+  metrics: [{ id: 'population', label: "人口", source: 'metrics.population', format: 'number' }],
   effects: { environmental: { morale: 0.08 }, resource: { morale: 0.05 } },
   ui: { headerMetrics: [{ id: 'population', format: 'number' }], tooltipFields: [], reportSections: ['crisis'], departmentIcons: {}, setupSections: ['actors'] },
   policies: { toolForging: { enabled: true }, liveSearch: { enabled: false, mode: 'off' }, bulletin: { enabled: true }, characterChat: { enabled: true }, sandbox: { timeoutMs: 10000, memoryMB: 128 } },
@@ -90,7 +91,7 @@ export function ScenarioEditor({ onAdminWrite }: ScenarioEditorProps) {
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data?.id) {
-          setJsonText(JSON.stringify(data, null, 2));
+          setJsonText(JSON.stringify(localizeTemplate(data), null, 2));
         }
       })
       .catch(() => {});
@@ -114,8 +115,8 @@ export function ScenarioEditor({ onAdminWrite }: ScenarioEditorProps) {
     try {
       const res = await fetch('/scenario');
       const data = await res.json();
-      setJsonText(JSON.stringify(data, null, 2));
-      setResult({ success: true, message: `Loaded active scenario: ${data.labels?.name || data.id}` });
+      setJsonText(JSON.stringify(localizeTemplate(data), null, 2));
+      setResult({ success: true, message: `已加载当前场景： ${data.labels?.name || data.id}` });
     } catch (err) { setResult({ success: false, message: `Failed to load: ${err}` }); }
   }, []);
 
@@ -146,7 +147,7 @@ export function ScenarioEditor({ onAdminWrite }: ScenarioEditorProps) {
       a.href = url; a.download = `${name}.json`; a.click();
       URL.revokeObjectURL(url);
       setResult({ success: true, message: `Exported ${name}.json` });
-    } catch { setResult({ success: false, message: 'Fix JSON errors before exporting' }); }
+    } catch { setResult({ success: false, message: "请修复 JSON 错误后导出" }); }
   };
 
   const storeInMemory = useCallback(async () => {
@@ -169,7 +170,7 @@ export function ScenarioEditor({ onAdminWrite }: ScenarioEditorProps) {
         });
         setAdminConfig(prev => ({ ...prev, memoryScenarios: [...new Set([...prev.memoryScenarios, data.id])] }));
       } else {
-        setResult({ success: false, message: data.error || 'Store failed' });
+        setResult({ success: false, message: data.error || "保存失败" });
       }
     } catch (err) { setResult({ success: false, message: String(err) }); }
     setStoring(false);
@@ -192,17 +193,17 @@ export function ScenarioEditor({ onAdminWrite }: ScenarioEditorProps) {
         setResult({
           success: true,
           message: data.switchable
-            ? `Saved "${data.id}" to disk at scenarios/${data.id}.json and loaded it into the live scenario catalog.`
-            : `Saved "${data.id}" draft JSON to disk at scenarios/${data.id}.json. Compile it to make it runnable after restart.`,
+            ? `已将“${data.id}”保存到 scenarios/${data.id}.json，并加载到当前场景目录。`
+            : `已将“${data.id}”的 JSON 草稿保存到 scenarios/${data.id}.json。请编译后再运行，重启后仍需使用编译版本。`,
         });
       } else if (res.status === 401) {
         // No token, or one the server refused: a refused token is dropped,
         // as the other admin calls drop it, and the message says where it goes.
         // A token entered since this request went out is not the refused one.
         clearAdminToken(sent);
-        setResult({ success: false, message: `Disk write refused: the admin token is missing or wrong. ${ADMIN_TOKEN_WHERE}` });
+        setResult({ success: false, message: `磁盘写入被拒绝：缺少管理员令牌或令牌错误。${ADMIN_TOKEN_WHERE}` });
       } else {
-        setResult({ success: false, message: data.error || `Disk write refused (HTTP ${res.status})` });
+        setResult({ success: false, message: data.error || `磁盘写入被拒绝（HTTP ${res.status}）` });
       }
     } catch (err) { setResult({ success: false, message: String(err) }); }
   }, [jsonText, parseError, adminConfig.adminWrite]);
@@ -211,7 +212,7 @@ export function ScenarioEditor({ onAdminWrite }: ScenarioEditorProps) {
     if (!jsonText.trim() || parseError) return;
     let parsed: Record<string, unknown>;
     try { parsed = JSON.parse(jsonText); }
-    catch { setResult({ success: false, message: 'Fix JSON errors before compiling' }); return; }
+    catch { setResult({ success: false, message: "请修复 JSON 错误后编译" }); return; }
 
     setCompiling(true);
     setProgress([]);
@@ -283,7 +284,7 @@ export function ScenarioEditor({ onAdminWrite }: ScenarioEditorProps) {
                   switchError = String(err);
                 }
                 if (switchError) {
-                  setResult({ success: false, message: `Compiled ${data.id}, but switching to it failed: ${switchError}` });
+                  setResult({ success: false, message: `Compiled ${data.id}，但切换失败： ${switchError}` });
                   continue;
                 }
                 // Reload onto the compiled scenario, as the other switches
@@ -293,7 +294,7 @@ export function ScenarioEditor({ onAdminWrite }: ScenarioEditorProps) {
                 try {
                   window.sessionStorage.setItem(COMPILE_RESULT_KEY, JSON.stringify({
                     success: true,
-                    message: `Compiled: ${data.id} (${data.departments} departments, ${data.hooks} hooks). Configure actors below and launch.`,
+                    message: `Compiled: ${data.id} (${data.departments} departments, ${data.hooks} 个钩子）。请在下方配置决策者后启动。`,
                   }));
                 } catch {
                   // Private mode: the reload comes up without the message.
@@ -319,17 +320,17 @@ export function ScenarioEditor({ onAdminWrite }: ScenarioEditorProps) {
       {/* Header */}
       <div className={styles.header}>
         <div>
-          <h3 className={styles.title}>Scenario Editor</h3>
+          <h3 className={styles.title}>场景编辑器</h3>
           <p className={styles.lead}>
-            Write or import a scenario JSON draft. Add seed text or a URL to ground it, then compile or export.
-            {!adminConfig.adminWrite && ' Disk saves are disabled on this instance.'}
+            编写或导入场景 JSON 草稿，补充背景资料或网页链接后编译或导出。
+            {!adminConfig.adminWrite && ' 此实例未启用磁盘保存。'}
           </p>
         </div>
         <div className={styles.btnRow}>
-          <button onClick={loadActiveScenario} className={[styles.btn, styles.amber].join(' ')} aria-label="Load active scenario JSON">Load Active</button>
-          <button onClick={loadExample} className={styles.btn} aria-label="Load example scenario">Template</button>
-          <button onClick={importFile} className={styles.btn} aria-label="Import JSON file">Import</button>
-          <button onClick={exportFile} className={styles.btn} disabled={!jsonText.trim() || !!parseError} aria-label="Export as JSON file">Export</button>
+          <button onClick={loadActiveScenario} className={[styles.btn, styles.amber].join(' ')} aria-label="加载当前场景 JSON">加载当前场景</button>
+          <button onClick={loadExample} className={styles.btn} aria-label="加载示例场景">示例模板</button>
+          <button onClick={importFile} className={styles.btn} aria-label="导入 JSON 文件">导入</button>
+          <button onClick={exportFile} className={styles.btn} disabled={!jsonText.trim() || !!parseError} aria-label="导出 JSON 文件">导出</button>
           <input ref={fileInputRef} type="file" accept=".json,application/json" onChange={handleFileImport} className={styles.fileInput} />
         </div>
       </div>
@@ -342,7 +343,7 @@ export function ScenarioEditor({ onAdminWrite }: ScenarioEditorProps) {
           onChange={e => setJsonText(e.target.value)}
           placeholder='{\n  "id": "my-scenario",\n  "labels": { "name": "My World" },\n  "departments": [...]\n}'
           spellCheck={false}
-          aria-label="Scenario JSON editor"
+          aria-label="场景 JSON 编辑器"
           className={styles.editor}
         />
         {/* Status bar */}
@@ -350,32 +351,32 @@ export function ScenarioEditor({ onAdminWrite }: ScenarioEditorProps) {
           className={styles.statusBar}
           style={{ '--status-color': parseError ? 'var(--rust)' : 'var(--text-3)' } as CSSProperties}
         >
-          <span>{parseError || (jsonText.trim() ? 'Valid JSON' : 'Empty')}</span>
-          <span>{lineCount} lines, {(byteSize / 1024).toFixed(1)}KB</span>
+          <span>{parseError || (jsonText.trim() ? 'Valid JSON' : "空白")}</span>
+          <span>{lineCount} 行， {(byteSize / 1024).toFixed(1)}KB</span>
         </div>
       </div>
 
       {/* Seed enrichment */}
       <details className={styles.seedDetails}>
         <summary className={styles.seedSummary}>
-          Seed Enrichment (optional)
+          补充背景资料（可选）
         </summary>
         <div className={styles.seedBody}>
           <div>
-            <label style={SETTINGS_LABEL_STYLE}>Seed Text</label>
+            <label style={SETTINGS_LABEL_STYLE}>背景资料</label>
             <textarea
               value={seedText}
               onChange={e => setSeedText(e.target.value)}
-              placeholder="Paste a prompt, notes, a brief, or source text to turn into research facts and category mapping."
+              placeholder="粘贴提示词、笔记、背景描述或原始材料，以提取研究事实和类别映射。"
               className={styles.textarea}
             />
           </div>
           <div>
-            <label style={SETTINGS_LABEL_STYLE}>Seed URL (fetched via Firecrawl)</label>
+            <label style={SETTINGS_LABEL_STYLE}>资料链接（通过 Firecrawl 获取）</label>
             <input value={seedUrl} onChange={e => setSeedUrl(e.target.value)} placeholder="https://example.com/article" className={styles.input} />
           </div>
           <div>
-            <label style={SETTINGS_LABEL_STYLE}>Max Web Searches</label>
+            <label style={SETTINGS_LABEL_STYLE}>最多网络搜索次数</label>
             <input
               value={maxSearches}
               onChange={e => setMaxSearches(e.target.value)}
@@ -385,29 +386,29 @@ export function ScenarioEditor({ onAdminWrite }: ScenarioEditorProps) {
             />
           </div>
           <div>
-            <label style={SETTINGS_LABEL_STYLE}>Compile Provider Override</label>
+            <label style={SETTINGS_LABEL_STYLE}>指定编译模型服务商</label>
             <input
               value={compileProvider}
               onChange={e => setCompileProvider(e.target.value)}
-              placeholder="anthropic or openai (optional)"
+              placeholder="anthropic 或 openai（可选）"
               className={styles.input}
             />
           </div>
           <div>
-            <label style={SETTINGS_LABEL_STYLE}>Compile Model Override</label>
+            <label style={SETTINGS_LABEL_STYLE}>指定编译模型</label>
             <input
               value={compileModel}
               onChange={e => setCompileModel(e.target.value)}
-              placeholder="gpt-5.4-mini, claude-sonnet-4-6, etc. (optional)"
+              placeholder="例如 gpt-5.4-mini、claude-sonnet-4-6（可选）"
               className={styles.input}
             />
           </div>
           <label className={styles.checkboxLabel}>
             <input type="checkbox" checked={webSearch} onChange={e => setWebSearch(e.target.checked)} />
-            Web search enrichment (requires Serper/Tavily/Firecrawl API keys)
+            补充网络研究（需要 Serper、Tavily 或 Firecrawl 密钥）
           </label>
           <p className={styles.fineprint}>
-            If both seed text and a seed URL are provided, the URL takes precedence and the compiler ingests the fetched page.
+            同时填写背景文字和网页链接时，优先使用网页内容进行编译。
           </p>
         </div>
       </details>
@@ -444,32 +445,32 @@ export function ScenarioEditor({ onAdminWrite }: ScenarioEditorProps) {
           onClick={storeInMemory}
           disabled={!jsonText.trim() || !!parseError || storing}
           className={styles.actionBtn}
-          aria-label="Store scenario in memory"
+          aria-label="将场景暂存到内存"
         >
-          {storing ? 'Storing...' : 'Store in Memory'}
+          {storing ? 'Storing...' : "暂存到内存"}
         </button>
         <button
           onClick={compile}
           disabled={!jsonText.trim() || !!parseError || compiling}
           className={[styles.actionBtn, styles.primary].join(' ')}
-          aria-label="Compile scenario"
+          aria-label="编译场景"
         >
-          {compiling ? 'Compiling...' : 'Compile Scenario'}
+          {compiling ? 'Compiling...' : "编译场景"}
         </button>
         {adminConfig.adminWrite && (
           <button
             onClick={saveToDisk}
             disabled={!jsonText.trim() || !!parseError}
             className={[styles.actionBtn, styles.amber].join(' ')}
-            aria-label="Save scenario to disk"
+            aria-label="将场景保存到磁盘"
           >
-            Save to Disk
+            保存到磁盘
           </button>
         )}
         <span className={styles.spacer} />
         {adminConfig.memoryScenarios.length > 0 && (
           <span className={styles.memCount}>
-            {adminConfig.memoryScenarios.length} in memory
+            {adminConfig.memoryScenarios.length} 已暂存内存
           </span>
         )}
       </div>

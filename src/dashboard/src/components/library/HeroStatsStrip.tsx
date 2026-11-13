@@ -37,7 +37,7 @@ export function HeroStatsStrip(props: HeroStatsStripProps): JSX.Element {
   if (error || !stats) {
     return (
       <div className={styles.strip}>
-        <div className={styles.error}>Stats unavailable: {error ?? 'unknown'}</div>
+        <div className={styles.error}>统计暂不可用： {error ?? 'unknown'}</div>
       </div>
     );
   }
@@ -54,12 +54,12 @@ export function HeroStatsStrip(props: HeroStatsStripProps): JSX.Element {
 
   return (
     <div className={styles.strip}>
-      <Stat label="Runs" value={String(stats.totalRuns)} />
-      <Stat label="Spent" value={fmtCurrency(stats.totalCostUSD)} />
+      <Stat label="运行次数" value={String(stats.totalRuns)} />
+      <Stat label="已花费" value={fmtCurrency(stats.totalCostUSD)} />
       <Stat label="Avg / run" value={fmtCurrency(stats.totalCostUSD / Math.max(stats.totalRuns, 1))} />
-      <Stat label="Total time" value={fmtDuration(stats.totalDurationMs)} />
+      <Stat label="总用时" value={fmtDuration(stats.totalDurationMs)} />
       <Stat
-        label="Replay match"
+        label="回放一致性"
         value={replayPct === null ? 'n/a' : `${replayPct}%`}
         valueClassName={replayValueClass}
       />

@@ -72,7 +72,7 @@ export function useLaunchState({
       setLaunching(false);
       const hasSignal = eventsCount > 0 || isRunning || isComplete;
       if (!hasSignal) {
-        toast('error', 'Launch Stalled', 'No events received within 30 seconds. The simulation may still complete in the background.');
+        toast('error', "启动停滞", "30 秒内未收到事件，仿真可能仍在后台运行。");
       }
     }, 30_000);
     return () => clearTimeout(timer);

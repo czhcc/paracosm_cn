@@ -41,13 +41,13 @@ export function VizControls({
         borderTop: '1px solid var(--border)',
       }}
     >
-      <button type="button" onClick={onStepBack} disabled={currentTurn <= 0} aria-label="Previous turn" style={buttonStyle}>
+      <button type="button" onClick={onStepBack} disabled={currentTurn <= 0} aria-label="前一回合" style={buttonStyle}>
         {'<<'}
       </button>
-      <button type="button" onClick={onPlayPause} disabled={maxTurn <= 1} aria-label={playing ? 'Pause' : 'Play'} style={buttonStyle}>
+      <button type="button" onClick={onPlayPause} disabled={maxTurn <= 1} aria-label={playing ? '暂停' : '播放'} style={buttonStyle}>
         {playing ? '\u25A0' : '\u25B6'}
       </button>
-      <button type="button" onClick={onStepForward} disabled={currentTurn >= maxTurn - 1} aria-label="Next turn" style={buttonStyle}>
+      <button type="button" onClick={onStepForward} disabled={currentTurn >= maxTurn - 1} aria-label="后一回合" style={buttonStyle}>
         {'>>'}
       </button>
       <input
@@ -57,13 +57,13 @@ export function VizControls({
         value={currentTurn}
         onChange={e => onTurnChange(Number(e.target.value))}
         style={{ flex: 1 }}
-        aria-label="Scrub timeline"
+        aria-label="拖动时间线"
       />
       <span style={{ fontFamily: 'var(--mono)', fontSize: 'var(--font-2xs)', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>
         T{currentTurn + 1}/{maxTurn} {time ? `\u00b7 ${time}` : ''}
       </span>
       <select
-        aria-label="Playback speed"
+        aria-label="播放速度"
         value={speed}
         onChange={e => onSpeedChange(Number(e.target.value))}
         style={{ fontFamily: 'var(--mono)', fontSize: 'var(--font-2xs)', background: 'var(--bg-card)', color: 'var(--text-2)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 6px' }}

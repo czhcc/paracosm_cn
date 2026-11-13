@@ -64,7 +64,7 @@ const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
 function defaultWait(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
-      reject(new DOMException('Aborted', 'AbortError'));
+      reject(new DOMException("已中止", 'AbortError'));
       return;
     }
     const timer = setTimeout(() => {
@@ -73,7 +73,7 @@ function defaultWait(ms: number, signal?: AbortSignal): Promise<void> {
     }, ms);
     const onAbort = () => {
       clearTimeout(timer);
-      reject(new DOMException('Aborted', 'AbortError'));
+      reject(new DOMException("已中止", 'AbortError'));
     };
     signal?.addEventListener('abort', onAbort, { once: true });
   });
@@ -85,13 +85,13 @@ async function readJobResponse(res: Response): Promise<JobResponse> {
   try {
     parsed = text ? JSON.parse(text) : null;
   } catch {
-    throw new Error(`Compile returned non-JSON HTTP ${res.status} response`);
+    throw new Error(`编译返回了非 JSON 响应，HTTP ${res.status} response`);
   }
   if (!res.ok && (!parsed || typeof parsed !== 'object')) {
     throw new Error(`Compile failed: HTTP ${res.status}`);
   }
   if (!parsed || typeof parsed !== 'object') {
-    throw new Error('Compile returned empty body');
+    throw new Error("编译返回内容为空");
   }
   return parsed as JobResponse;
 }
@@ -122,7 +122,7 @@ export async function compileScenarioWithPolling(
     return { scenario: start.scenario, scenarioId: start.scenario.id, jobId: start.jobId };
   }
   if (start.status === 'error') {
-    throw new Error(start.error ?? 'Compile failed');
+    throw new Error(start.error ?? "编译失败");
   }
 
   // Poll until done, error, or timeout. Each poll is sub-second so
@@ -139,21 +139,21 @@ export async function compileScenarioWithPolling(
       // 404 means the job vanished from the server's TTL cache. Treat
       // it as terminal; without server-side state the user must retry.
       if (statusRes.status === 404) {
-        throw new Error('Compile job expired or not found. Please retry.');
+        throw new Error("编译任务已过期或不存在，请重试。");
       }
       const body = await statusRes.json().catch(() => ({} as { error?: string }));
-      throw new Error(body.error ?? `Compile status check failed: HTTP ${statusRes.status}`);
+      throw new Error(body.error ?? `检查编译状态失败：HTTP ${statusRes.status}`);
     }
     const job = await readJobResponse(statusRes);
     if (job.status === 'done' && job.scenario) {
       return { scenario: job.scenario, scenarioId: job.scenario.id, jobId: job.jobId };
     }
     if (job.status === 'error') {
-      throw new Error(job.error ?? 'Compile failed');
+      throw new Error(job.error ?? "编译失败");
     }
   }
 
   throw new Error(
-    `Compile is taking longer than ${Math.round(timeoutMs / 1000)}s. The server may still be working — please retry in a minute.`,
+    `编译耗时已超过 ${Math.round(timeoutMs / 1000)}秒。服务器可能仍在处理，请稍后重试。`,
   );
 }

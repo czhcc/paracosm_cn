@@ -10,22 +10,22 @@
  * @module viz/viz-tooltips
  */
 export const VIZ_TOOLTIPS = {
-  'tab.living': "Who's alive this turn — agents on the scenario grid.",
-  'tab.mood': 'Aggregate mood mix per leader: hopeful / neutral / anxious / negative.',
-  'tab.forge': 'Computational tools the agents forged in the V8 sandbox this turn.',
-  'tab.ecology': 'Resource and environment metrics: power, food, water, radiation.',
-  'tab.divergence': 'Per-metric A-vs-B deltas across all turns.',
-  'badge.forge': 'Forge attempts on this turn — click FORGE for details.',
-  'badge.divergence': 'Metrics diverged this turn — click DIVERGENCE for the rail.',
-  'stat.morale': 'Aggregate morale across all alive agents (0–100%).',
-  'stat.moodMix': 'Distribution of agents across the four mood tiers, weighted by morale.',
-  'stat.alive': 'Living agents in this colony at the current turn.',
-  'stat.age': 'Age distribution of living agents (4 bins: <20 / 20–40 / 40–60 / 60+).',
-  'stat.paired': 'Alive agents currently in a partnership pair.',
-  'stat.earth': "Agents born on Earth (vs Native — born after the colony's first birth event).",
-  'stat.native': 'Agents born in the colony itself (Marsborn / Lunarborn / scenario-specific).',
-  'stat.depts': 'Agent count by department. Hover a wedge for the dept name.',
-  'chip.rising': 'Aggregate morale trending up vs the previous turn.',
+  'tab.living': "此回合仍然存活、显示在场景网格中的成员。",
+  'tab.mood': "各决策者的综合情绪分布：充满希望／平静／焦虑／消极。",
+  'tab.forge': "成员本回合在 V8 沙箱中动态创建的计算工具。",
+  'tab.ecology': "资源与环境指标：功率、食物、水和辐射。",
+  'tab.divergence': "各回合中两侧各项指标的差值。",
+  'badge.forge': "本回合的工具创建尝试，点击工具创建查看详情。",
+  'badge.divergence': "本回合出现指标分歧，点击分歧查看对比。",
+  'stat.morale': "全部存活成员的综合士气（0～100%）。",
+  'stat.moodMix': "按士气加权的四档情绪分布。",
+  'stat.alive': "当前回合此侧的存活成员。",
+  'stat.age': "存活成员年龄分布（低于 20 岁／20～40 岁／40～60 岁／60 岁以上）。",
+  'stat.paired': "已建立伴侣关系的存活成员。",
+  'stat.earth': "在地球出生的成员，与场景内出生的成员区分。",
+  'stat.native': "在场景所在地出生的成员（如火星或月球出生）。",
+  'stat.depts': "按部门统计人数，悬停扇区查看部门名称。",
+  'chip.rising': "综合士气较上一回合上升。",
 } as const;
 
 export type VizTooltipKey = keyof typeof VIZ_TOOLTIPS;

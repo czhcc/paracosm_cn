@@ -22,23 +22,23 @@ export interface DigitalTwinProgressProps {
 }
 
 const EVENT_LABELS: Record<string, string> = {
-  run_started: 'Run started',
-  turn_started: 'Turn started',
-  event_start: 'Crisis event',
-  specialist_start: 'Specialist analyzing',
-  specialist_done: 'Specialist done',
-  forge_attempt: 'Forge attempt',
-  forge_approved: 'Tool forged',
-  forge_rejected: 'Forge rejected',
-  decision_pending: 'Decision pending',
-  decision_made: 'Decision made',
+  run_started: "运行已启动",
+  turn_started: "回合已开始",
+  event_start: "危机事件",
+  specialist_start: "专家正在分析",
+  specialist_done: "专家分析完成",
+  forge_attempt: "尝试生成工具",
+  forge_approved: "工具已生成",
+  forge_rejected: "工具被拒绝",
+  decision_pending: "等待决策",
+  decision_made: "已作出决策",
   outcome: 'Outcome',
   bulletin: 'Bulletin',
-  turn_done: 'Turn complete',
-  agent_reactions: 'Agent reactions',
+  turn_done: "回合完成",
+  agent_reactions: "成员反应",
   promotion: 'Promotion',
   systems_snapshot: 'Snapshot',
-  complete: 'Complete',
+  complete: "已完成",
 };
 
 function formatNumber(value: number): string {
@@ -112,17 +112,17 @@ export function DigitalTwinProgress({ state, subject, intervention }: DigitalTwi
       <div className={styles.headerRow}>
         <h2 className={styles.title}>
           <span className={styles.spinner} aria-hidden="true" />
-          Digital Twin · Running
+          数字孪生 · 运行中
         </h2>
         <span className={styles.timer}>
-          {elapsedSec}s elapsed · streaming live · {maxTurns} {maxTurns === 1 ? 'turn' : 'turns'} × LLM decisions
+          {elapsedSec}秒已用时 · 实时接收 · {maxTurns} {maxTurns === 1 ? 'turn' : 'turns'} 次模型决策
         </span>
       </div>
 
       <div className={styles.cardsRow}>
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <span className={styles.cardLabel}>Subject</span>
+            <span className={styles.cardLabel}>对象</span>
             <span className={styles.cardId}>{subject.id}</span>
           </div>
           <div className={styles.cardName}>{subject.name}</div>
@@ -140,7 +140,7 @@ export function DigitalTwinProgress({ state, subject, intervention }: DigitalTwi
 
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <span className={styles.cardLabel}>Intervention</span>
+            <span className={styles.cardLabel}>干预措施</span>
             <span className={styles.cardId}>{intervention.id}</span>
           </div>
           <div className={styles.cardName}>{intervention.name}</div>
@@ -148,7 +148,7 @@ export function DigitalTwinProgress({ state, subject, intervention }: DigitalTwi
           {intervention.duration && (
             <div className={styles.kvList}>
               <div className={styles.kv}>
-                <span>Duration</span>
+                <span>持续时间</span>
                 <span>{intervention.duration.value} {intervention.duration.unit}</span>
               </div>
             </div>
@@ -158,38 +158,38 @@ export function DigitalTwinProgress({ state, subject, intervention }: DigitalTwi
 
       <div className={styles.statsBar}>
         <div className={styles.stat}>
-          <span className={styles.statLabel}>Turn</span>
+          <span className={styles.statLabel}>回合</span>
           <span className={styles.statValue}>{turn} / {maxTurns}</span>
           <div className={styles.progressBar}>
             <div className={styles.progressFill} style={{ width: `${progressPct}%` }} />
           </div>
         </div>
         <div className={styles.stat}>
-          <span className={styles.statLabel}>LLM Calls</span>
+          <span className={styles.statLabel}>模型调用</span>
           <span className={styles.statValue}>{llmCalls}</span>
         </div>
         <div className={styles.stat}>
-          <span className={styles.statLabel}>Cost</span>
+          <span className={styles.statLabel}>费用</span>
           <span className={styles.statValue}>${cost.toFixed(4)}</span>
         </div>
         <div className={styles.stat}>
-          <span className={styles.statLabel}>Tools forged</span>
+          <span className={styles.statLabel}>生成工具</span>
           <span className={styles.statValue}>{tools}</span>
         </div>
         <div className={styles.stat}>
-          <span className={styles.statLabel}>Citations</span>
+          <span className={styles.statLabel}>引用</span>
           <span className={styles.statValue}>{citations}</span>
         </div>
       </div>
 
       <div className={styles.eventLog}>
         <div className={styles.eventLogHeader}>
-          <span className={styles.eventLogTitle}>Live event log · streaming from /events</span>
-          <span className={styles.timer}>{events.length} events</span>
+          <span className={styles.eventLogTitle}>实时事件日志</span>
+          <span className={styles.timer}>{events.length} 个事件</span>
         </div>
         <div ref={scrollRef} onScroll={onScroll} className={styles.eventLogScroll}>
           {events.length === 0 ? (
-            <div className={styles.eventEmpty}>Waiting for the first server event…</div>
+            <div className={styles.eventEmpty}>等待服务器的首个事件…</div>
           ) : (
             events.map((event) => (
               <div key={event.id} className={styles.eventRow}>

@@ -306,72 +306,74 @@ export function buildEventSummary(type: SimEventType, data: Record<string, unkno
     return str.length > n ? str.slice(0, n - 1) + '…' : str;
   };
   const d = data;
+  const names: Record<string, string> = { commander: '指挥官', 'release director': '发布总监', CEO: '首席执行官', 'council lead': '理事会负责人', captain: '船长', 'lead clinician': '临床负责人', leader: '决策者', medical: '医疗部', engineering: '工程部', agriculture: '农业部', science: '科研部', administration: '行政部', psychology: '心理部', governance: '治理部', operations: '运营部', finance: '财务部', sales: '销售部', people: '人力资源部', mining: '采矿部', 'life-support': '生命保障部', 'alignment-research': '对齐研究部', 'capability-research': '能力研究部', 'deployment-engineering': '部署工程部', communications: '传播部', resource: '资源', technological: '技术', psychological: '心理', political: '政治', social: '社会', infrastructure: '基础设施', environmental: '环境', success: '成功', partial: '部分成功', failure: '失败' };
+  const label = (v: unknown, fallback: string): string => typeof v === 'string' && v ? names[v] ?? v : fallback;
   switch (type) {
     case 'turn_start': {
       const title = trunc(d.title, 60);
-      return title ? `turn starting: ${title}` : 'turn starting';
+      return title ? `回合开始： ${title}` : '回合开始';
     }
     case 'event_start': {
       const title = trunc(d.title, 60);
-      const cat = d.category ? ` (${d.category})` : '';
-      return `event: ${title}${cat}`;
+      const cat = d.category ? `（${label(d.category, '事件')}）` : '';
+      return `事件：${title}${cat}`;
     }
     case 'specialist_start':
-      return `${d.department ?? 'department'} analyzing`;
+      return `${label(d.department, '部门')}正在分析`;
     case 'specialist_done': {
       const s = trunc(d.summary, 80);
-      return `${d.department ?? 'department'} report: ${s}`;
+      return `${label(d.department, '部门')}报告：${s}`;
     }
     case 'forge_attempt': {
-      const verb = d.approved === true ? 'forged' : 'rejected';
-      return `${d.department ?? 'department'} ${verb} ${d.name ?? 'tool'}`;
+      const verb = d.approved === true ? '已生成' : '已拒绝';
+      return `${label(d.department, '部门')} ${verb} ${d.name ?? '工具'}`;
     }
     case 'decision_pending':
-      return `${scenarioWords(labels).actor} deciding`;
+      return `${label(scenarioWords(labels).actor, '决策者')}正在决策`;
     case 'decision_made':
-      return `${scenarioWords(labels).actor} decided: ${trunc(d.decision, 80)}`;
+      return `${label(scenarioWords(labels).actor, '决策者')}已决定： ${trunc(d.decision, 80)}`;
     case 'outcome': {
-      const cat = d.category ? ` (${d.category})` : '';
-      return `outcome: ${d.outcome ?? 'unknown'}${cat}`;
+      const cat = d.category ? `（${label(d.category, '事件')}）` : '';
+      return `结果：${label(d.outcome, '未知')}${cat}`;
     }
     case 'personality_drift':
-      return 'hexaco drift';
+      return 'HEXACO 人格变化';
     case 'agent_reactions': {
       const n = Array.isArray(d.reactions) ? d.reactions.length : 0;
-      return `${n} agent reaction${n === 1 ? '' : 's'}`;
+      return `${n} 位成员作出反应`;
     }
     case 'bulletin': {
       const n = Array.isArray(d.posts) ? d.posts.length : 0;
-      return `bulletin: ${n} post${n === 1 ? '' : 's'}`;
+      return `公告栏：${n} 条动态`;
     }
     case 'turn_done': {
       const metrics = d.metrics as { population?: number; morale?: number } | undefined;
       const pop = metrics?.population;
       const mor = metrics?.morale;
       if (pop != null && mor != null) {
-        return `turn complete — pop ${pop}, morale ${Math.round(Number(mor) * 100)}%`;
+        return `回合完成：人口 ${pop}，士气 ${Math.round(Number(mor) * 100)}%`;
       }
-      if (d.error) return `turn complete (error: ${trunc(d.error, 60)})`;
-      return 'turn complete';
+      if (d.error) return `回合完成（错误：${trunc(d.error, 60)}）`;
+      return '回合完成';
     }
     case 'promotion':
-      return `promoted: ${d.role ?? 'role'} (${d.department ?? 'dept'})`;
+      return `晋升： ${d.role ?? '岗位'} （${label(d.department, '部门')}）`;
     case 'systems_snapshot': {
       const pop = d.population;
       const mor = d.morale != null ? Math.round(Number(d.morale) * 100) : null;
       return pop != null && mor != null
-        ? `snapshot: pop ${pop}, morale ${mor}%`
-        : 'snapshot';
+        ? `状态快照：人口 ${pop}，士气 ${mor}%`
+        : '状态快照';
     }
     case 'provider_error':
-      return `provider error (${d.kind ?? 'unknown'}): ${trunc(d.message, 80)}`;
+      return `模型服务错误（${d.kind ?? '未知'}）： ${trunc(d.message, 80)}`;
     case 'validation_fallback': {
-      if (d.salvaged !== true) return `schema fallback: ${d.schemaName ?? 'unknown'}`;
+      if (d.salvaged !== true) return `结构校验回退： ${d.schemaName ?? 'unknown'}`;
       const dropped: unknown[] = Array.isArray(d.droppedKeys) ? d.droppedKeys : [];
-      return `schema salvage: ${d.schemaName ?? 'unknown'} kept without ${dropped.length > 0 ? dropped.map(k => oneLine(String(k))).join(', ') : 'unheld keys'}`;
+      return `结构校验修复： ${d.schemaName ?? 'unknown'}，已移除：${dropped.length > 0 ? dropped.map(k => oneLine(String(k))).join(', ') : '未定义字段'}`;
     }
     case 'sim_aborted':
-      return `aborted: ${d.reason ?? 'unknown'}`;
+      return `已中止： ${d.reason ?? '未知原因'}`;
     default: {
       // Exhaustiveness guard: if a new SimEventType is added above without
       // a case here, TypeScript will flag `type` as not assignable to
@@ -1121,7 +1123,7 @@ async function runWithResearch(research: ResearchMemory, leader: ActorConfig, ke
         // The state lines read the units the scenario declares: full morale is "100%".
         world: sc.world,
       };
-      emit('turn_start', { turn, time, title: 'Director generating...', crisis: '', births: 0, deaths: 0, metrics: preState.metrics });
+      emit('turn_start', { turn, time, title: '事件导演正在生成…', crisis: '', births: 0, deaths: 0, metrics: preState.metrics });
       // Abort gate: if the client already left during the gap between
       // the kernel advance and the director call, skip the director's
       // flagship LLM call. The inner event loop then has nothing to

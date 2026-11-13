@@ -25,7 +25,7 @@ function extractTurns(sideState: ActorSideState, isComplete: boolean): TurnEntry
   const turns: TurnEntry[] = [];
   const s = sideState;
   for (const evt of s.events) {
-    if (evt.type === 'turn_start' && evt.data.title && evt.data.title !== 'Director generating...') {
+    if (evt.type === 'turn_start' && evt.data.title && evt.data.title !== "事件导演正在生成…") {
       turns.push({
         turn: evt.data.turn as number,
         time: evt.data.time as number,
@@ -63,7 +63,7 @@ function outcomeLabel(outcome?: string): { label: string; color: string } {
   if (!outcome) return { label: '', color: 'var(--text-3)' };
   const isSuccess = outcome.includes('success');
   const isRisky = outcome.includes('risky');
-  const label = isRisky ? (isSuccess ? 'RISKY WIN' : 'RISKY LOSS') : (isSuccess ? 'SAFE WIN' : 'SAFE LOSS');
+  const label = isRisky ? (isSuccess ? '冒险成功' : '冒险失败') : (isSuccess ? '保守成功' : '保守失败');
   const color = isSuccess ? 'var(--green)' : 'var(--rust)';
   return { label, color };
 }
@@ -97,16 +97,16 @@ function TurnTooltipContent({ t, sideColor }: { t: TurnEntry; sideColor: string 
   return (
     <div>
       <div className={styles.tooltipHeader}>
-        <b className={styles.tooltipTurn} style={sideStyle}>Turn {t.turn}</b>
+        <b className={styles.tooltipTurn} style={sideStyle}>回合 {t.turn}</b>
         <span className={styles.tooltipTime}>Y{t.time}</span>
         {t.category && <span className={styles.tooltipCategory}>{t.category}</span>}
-        {t.emergent && <span className={styles.tooltipEmergent}>EMERGENT</span>}
+        {t.emergent && <span className={styles.tooltipEmergent}>涌现事件</span>}
       </div>
       <div className={styles.tooltipTitle}>{t.title}</div>
       {t.summary && <div className={styles.tooltipSummary}>{t.summary}</div>}
       {t.decision && (
         <div className={styles.tooltipDecision}>
-          <span className={styles.tooltipDecisionLabel} style={sideStyle}>Decision: </span>
+          <span className={styles.tooltipDecisionLabel} style={sideStyle}>决策： </span>
           {t.decision}
         </div>
       )}
@@ -151,7 +151,7 @@ function SideTimeline({ turns, actorIndex }: { turns: TurnEntry[]; actorIndex: n
               </span>
               <span className={styles.entryTitle}>{t.title}</span>
               {t.category && <span className={styles.entryCategory}>{t.category}</span>}
-              {t.emergent && <span className={styles.entryEmergent}>EMERGENT</span>}
+              {t.emergent && <span className={styles.entryEmergent}>涌现事件</span>}
               {outcomeBadge(t.outcome)}
             </div>
             {t.summary && <div className={styles.entrySummary}>{t.summary}</div>}
@@ -196,7 +196,7 @@ export function Timeline({ state }: TimelineProps) {
   if (columns.every((c) => c.turns.length === 0)) return null;
 
   return (
-    <div className={`timeline-row ${styles.timelineRow}`} role="region" aria-label="Turn timeline">
+    <div className={`timeline-row ${styles.timelineRow}`} role="region" aria-label="回合时间线">
       {columns.map((c) => {
         const sideColor = getActorColorVar(c.idx);
         return (

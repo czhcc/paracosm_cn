@@ -1,3 +1,4 @@
+import { chinesePrompt } from '../../../llm/chinese.js';
 /**
  * Prose-producing compile hook wrapper. Used by the director
  * instructions generator, which returns a system-prompt string rather
@@ -53,7 +54,7 @@ export async function generateValidatedProse(
       : buildRetryPrompt(opts.prompt, lastRawText, lastReason);
 
     const text = await opts.generateText({
-      system: [{ text: opts.systemCacheable, cacheBreakpoint: true }],
+      system: [{ text: chinesePrompt(opts.systemCacheable), cacheBreakpoint: true }],
       prompt,
       maxTokens: opts.maxTokens,
     });

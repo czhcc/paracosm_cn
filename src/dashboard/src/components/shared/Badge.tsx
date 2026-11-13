@@ -3,10 +3,10 @@ interface BadgeProps {
 }
 
 const OUTCOME_STYLES: Record<string, { bg: string; color: string; border: string; label: string }> = {
-  risky_success:        { bg: 'rgba(232,180,74,.12)', color: 'var(--vis)',   border: 'var(--amber-dim)', label: 'RISKY WIN' },
-  risky_failure:        { bg: 'rgba(224,101,48,.12)', color: 'var(--rust)',  border: 'var(--rust-dim)',  label: 'RISKY LOSS' },
-  conservative_success: { bg: 'rgba(106,173,72,.12)', color: 'var(--green)', border: 'rgba(106,173,72,.25)', label: 'SAFE WIN' },
-  conservative_failure: { bg: 'rgba(224,101,48,.08)', color: 'var(--rust)',  border: 'var(--rust-dim)',  label: 'SAFE LOSS' },
+  risky_success:        { bg: 'rgba(232,180,74,.12)', color: 'var(--vis)',   border: 'var(--amber-dim)', label: "冒险成功" },
+  risky_failure:        { bg: 'rgba(224,101,48,.12)', color: 'var(--rust)',  border: 'var(--rust-dim)',  label: "冒险失败" },
+  conservative_success: { bg: 'rgba(106,173,72,.12)', color: 'var(--green)', border: 'rgba(106,173,72,.25)', label: "保守成功" },
+  conservative_failure: { bg: 'rgba(224,101,48,.08)', color: 'var(--rust)',  border: 'var(--rust-dim)',  label: "保守失败" },
 };
 
 export function Badge({ outcome }: BadgeProps) {

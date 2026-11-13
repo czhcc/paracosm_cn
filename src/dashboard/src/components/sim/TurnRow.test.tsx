@@ -27,34 +27,34 @@ const diffEventEntry: TurnDiffEntry = {
 
 const noEvents: ProcessedEvent[] = [];
 
-test('TurnRow: same → no row tint, single shared title, ✓ SAME badge', () => {
+test('TurnRow: same → no row tint, single shared title, ✓ 相同 badge', () => {
   const html = renderToString(<TurnRow entry={sameEntry} eventsA={noEvents} eventsB={noEvents} />);
   assert.match(html, /id="turn-row-1"/);
   // React SSR inserts <!-- --> between adjacent text+variable expressions
   // (e.g. `T{entry.turn}`), so the rendered HTML is `T<!-- -->1`.
   // Match the headerTurn span content directly instead of the bare `T1`.
   assert.match(html, /class="headerTurn">T<!-- -->1/);
-  assert.match(html, /✓ SAME/);
+  assert.match(html, /✓ 相同/);
   assert.match(html, /Hurricane/);
   assert.ok(!html.includes('differentOutcome'));
   assert.ok(!html.includes('differentEvent'));
 });
 
-test('TurnRow: different-event → split per-side titles, ⚠ DIFFERENT EVENT badge', () => {
+test('TurnRow: different-event → split per-side titles, ⚠ 事件不同 badge', () => {
   const html = renderToString(<TurnRow entry={diffEventEntry} eventsA={noEvents} eventsB={noEvents} />);
   assert.match(html, /id="turn-row-4"/);
-  assert.match(html, /⚠ DIFFERENT EVENT/);
+  assert.match(html, /⚠ 事件不同/);
   assert.match(html, /Levee Overtopping/);
   assert.match(html, /Phase-2 Demand Spike/);
 });
 
 test('TurnRow: empty cell renders the placeholder text', () => {
   const html = renderToString(<TurnRow entry={sameEntry} eventsA={noEvents} eventsB={noEvents} />);
-  const matches = html.match(/\(no events yet\)/g) ?? [];
+  const matches = html.match(/（暂无事件）/g) ?? [];
   assert.equal(matches.length, 2);
 });
 
-test('TurnRow: empty cell on a one-sided row reads "Catching up to turn N…" not "(no events yet)"', () => {
+test('TurnRow: empty cell on a one-sided row reads "正在同步回合 N…" not "(no events yet)"', () => {
   // Reproduces the production sync-bug-that-isn't, take two: Side B has
   // zero events for T6 because Side A reached T6 first in parallel.
   // The DiffBadge already shows "··· waiting" on the row header;
@@ -77,8 +77,8 @@ test('TurnRow: empty cell on a one-sided row reads "Catching up to turn N…" no
     { id: 'e-1', type: 'specialist_start', turn: 6, time: 0, data: { department: 'engineering' } },
   ];
   const html = renderToString(<TurnRow entry={oneSidedEntry} eventsA={sideAEvents} eventsB={noEvents} />);
-  assert.match(html, /Catching up to turn (?:<!-- -->)?6/);
-  assert.ok(!html.match(/<div [^>]*cellEmpty[^>]*>\(no events yet\)/), 'should not show "(no events yet)" for one-sided rows');
+  assert.match(html, /正在同步回合 (?:<!-- -->)?6/);
+  assert.ok(!html.match(/<div [^>]*cellEmpty[^>]*>（暂无事件）/), 'should not show "(no events yet)" for one-sided rows');
 });
 
 test('TurnRow: cell with only specialist_start + decision_pending shows in-flight summary, not blank', () => {
@@ -94,10 +94,18 @@ test('TurnRow: cell with only specialist_start + decision_pending shows in-fligh
   ];
   const html = renderToString(<TurnRow entry={sameEntry} eventsA={pendingEvents} eventsB={noEvents} />);
   // Side A: in-flight summary visible.
-  assert.match(html, /engineering, medical analyzing/);
-  assert.match(html, /awaiting decision/);
+  assert.match(html, /工程部、医疗部正在分析/);
+  assert.match(html, /等待决策/);
   // Side B: still empty placeholder (control: only Side A is mid-flight).
-  assert.match(html, /\(no events yet\)/);
+  assert.match(html, /（暂无事件）/);
   // Spinner element renders.
   assert.match(html, /spinner/);
+});
+
+
+test('TurnRow: director generation displays Chinese while waiting for the first event', () => {
+  const events: ProcessedEvent[] = [{ id: 'pending', type: 'turn_start', turn: 1, time: 0, data: { title: 'Director generating...' } }];
+  const html = renderToString(<TurnRow entry={sameEntry} eventsA={events} eventsB={noEvents} />);
+  assert.match(html, /事件导演正在生成…/);
+  assert.doesNotMatch(html, /Director generating|Working on this turn/);
 });

@@ -38,13 +38,13 @@ interface FooterProps {
 
 function abortReasonLabel(raw: string): string {
   switch (raw) {
-    case 'client_disconnected': return 'browser tab closed before the sim finished';
-    case 'quota_exhausted': return 'provider credits exhausted';
-    case 'user_aborted': return 'cancelled by the user';
-    case 'provider_error': return 'provider returned an unrecoverable error';
-    case 'another_run_started': return 'you started another run';
-    case 'server_restarted': return 'the server restarted before the run finished';
-    case 'unknown': return 'reason not recorded by the server';
+    case 'client_disconnected': return "仿真结束前浏览器标签页被关闭";
+    case 'quota_exhausted': return "模型服务额度已耗尽";
+    case 'user_aborted': return "用户取消了运行";
+    case 'provider_error': return "模型服务返回无法恢复的错误";
+    case 'another_run_started': return "已启动另一次运行";
+    case 'server_restarted': return "运行结束前服务器重启";
+    case 'unknown': return "服务器未记录原因";
     default: return raw;
   }
 }
@@ -60,45 +60,45 @@ function StatusChip({ s }: { s: NonNullable<FooterProps['simStatus']> }) {
     ? 'var(--text-3)'
     : 'var(--text-3)';
   const text = s.isAborted
-    ? 'Interrupted'
+    ? "已中断"
     : s.isComplete
-    ? 'Complete'
+    ? "已完成"
     : s.isRunning
-    ? 'Running'
+    ? "运行中"
     : s.connectionStatus === 'connected'
-    ? 'Idle'
+    ? "待机"
     : s.connectionStatus === 'error'
-    ? 'Reconnecting'
-    : 'Connecting';
+    ? "重新连接中"
+    : "连接中";
   const glyph = s.isRunning && !s.isComplete && !s.isAborted ? '●' : '○';
   const title = s.isAborted
     ? (() => {
         if (s.providerError) {
-          return `Run interrupted: ${s.providerError.message}. Click Clear to reset.`;
+          return `运行中断：${s.providerError.message}。点击“清空”可重置。`;
         }
         const r = s.abortReason;
-        if (!r) return 'Run was interrupted before finishing all turns. Click Clear to reset.';
+        if (!r) return "运行未完成全部回合就已中断，点击“清空”可重置。";
         const where = typeof r.completedTurns === 'number'
           ? ` after ${r.completedTurns} turn${r.completedTurns === 1 ? '' : 's'}`
           : '';
-        return `Run interrupted: ${abortReasonLabel(r.reason)}${where}. Click Clear to reset.`;
+        return `Run interrupted: ${abortReasonLabel(r.reason)}${where}。点击清空可重置。`;
       })()
     : s.isComplete
-    ? 'Run finished all turns. Verdict is broadcast in Reports.'
+    ? "所有回合已完成，请到“报告”查看评判结果。"
     : s.isRunning
-    ? 'Simulation in progress.'
+    ? "仿真正在运行。"
     : s.connectionStatus === 'connected'
-    ? 'Connected to the simulation server. Press RUN to start.'
+    ? "已连接仿真服务器，点击“运行”开始。"
     : s.connectionStatus === 'error'
-    ? 'Reconnecting to the simulation server.'
-    : 'Connecting to the simulation server.';
+    ? "正在重新连接仿真服务器。"
+    : "正在连接仿真服务器。";
   return (
     <span
       className={styles.statusChip}
       style={{ '--status-color': color } as CSSProperties}
       role="status"
       aria-live="polite"
-      aria-label={`Simulation status: ${text}. ${title}`}
+      aria-label={`仿真状态：${text}。${title}`}
       title={title}
     >
       {glyph} {text}
@@ -116,13 +116,13 @@ function buildCostTooltip(
   breakdown: FooterProps['costBreakdown'],
 ): string {
   const lines: string[] = [
-    `Total: ${formatUsdShort(cost.totalCostUSD)} · ${cost.totalTokens.toLocaleString()} tokens · ${cost.llmCalls} calls`,
+    `合计：${formatUsdShort(cost.totalCostUSD)} · ${cost.totalTokens.toLocaleString()} 个词元 · ${cost.llmCalls} 次调用`,
   ];
   if (breakdown) {
     const sim = breakdown.simUSD ?? 0;
     const chat = breakdown.chatUSD ?? 0;
-    if (sim > 0) lines.push(`• Simulation: ${formatUsdShort(sim)}${breakdown.simCalls != null ? ` (${breakdown.simCalls} calls)` : ''}`);
-    if (chat > 0) lines.push(`• Chat: ${formatUsdShort(chat)}${breakdown.chatCalls != null ? ` (${breakdown.chatCalls} calls)` : ''}`);
+    if (sim > 0) lines.push(`• 仿真： ${formatUsdShort(sim)}${breakdown.simCalls != null ? ` (${breakdown.simCalls} 次调用)` : ''}`);
+    if (chat > 0) lines.push(`• 聊天： ${formatUsdShort(chat)}${breakdown.chatCalls != null ? ` (${breakdown.chatCalls} 次调用)` : ''}`);
   }
   return lines.join('\n');
 }
@@ -133,12 +133,12 @@ export function Footer({ cost, costBreakdown, simStatus }: FooterProps) {
   return (
     <footer className={cls} role="contentinfo">
       {!isPhone && (
-        <nav aria-label="Footer links" className={styles.nav}>
+        <nav aria-label="页脚链接" className={styles.nav}>
           <a href="https://agentos.sh/en" target="_blank" rel="noopener" className={styles.navLink}>agentos.sh</a>
           <a href="https://github.com/framerslab/paracosm" target="_blank" rel="noopener" className={styles.navLink}>github</a>
           <a href="https://www.npmjs.com/package/paracosm" target="_blank" rel="noopener" className={styles.navLink}>npm</a>
-          <a href="/docs" className={styles.navLink}>docs</a>
-          <a href="https://agentos.sh/blog" target="_blank" rel="noopener" className={styles.navLink}>blog</a>
+          <a href="/docs" className={styles.navLink}>文档</a>
+          <a href="https://agentos.sh/blog" target="_blank" rel="noopener" className={styles.navLink}>博客</a>
         </nav>
       )}
 
@@ -150,11 +150,11 @@ export function Footer({ cost, costBreakdown, simStatus }: FooterProps) {
             ${cost.totalCostUSD < 0.01 ? cost.totalCostUSD.toFixed(4) : cost.totalCostUSD.toFixed(2)}
           </span>
           <span className={styles.costMuted}>
-            {(cost.totalTokens / 1000).toFixed(0)}k tokens
+            {(cost.totalTokens / 1000).toFixed(0)}千词元
           </span>
           {cost.llmCalls > 0 && (
             <span className={styles.costMuted}>
-              {cost.llmCalls} calls
+              {cost.llmCalls} 次调用
             </span>
           )}
         </span>

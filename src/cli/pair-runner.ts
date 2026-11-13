@@ -196,9 +196,9 @@ function resolveVerdictModel(
   provider: 'openai' | 'anthropic',
   economics: ResolvedEconomicsProfile,
 ): string | null {
+  if (economics.verdict.mode === 'skip') return null;
+  if (economics.verdict.model) return economics.verdict.model;
   switch (economics.verdict.mode) {
-    case 'skip':
-      return null;
     case 'cheap':
       return provider === 'anthropic'
         ? 'claude-haiku-4-5-20251001'

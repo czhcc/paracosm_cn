@@ -19,7 +19,7 @@ interface MoodChartProps {
 export function MoodChart({ points, onJumpToTurn, width = 380, height = 120 }: MoodChartProps) {
   if (points.length === 0) {
     return (
-      <div style={{ fontSize: 'var(--font-2xs)', color: 'var(--text-3)' }}>No mood history yet.</div>
+      <div style={{ fontSize: 'var(--font-2xs)', color: 'var(--text-3)' }}>暂无情绪历史。</div>
     );
   }
 
@@ -40,7 +40,7 @@ export function MoodChart({ points, onJumpToTurn, width = 380, height = 120 }: M
       width={width}
       height={height}
       role="img"
-      aria-label="Mood trajectory over turns"
+      aria-label="逐回合情绪变化"
       style={{ overflow: 'visible' }}
     >
       {[0.25, 0.5, 0.75].map(v => (

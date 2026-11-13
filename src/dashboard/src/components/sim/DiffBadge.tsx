@@ -9,19 +9,19 @@ interface DiffBadgeProps {
 }
 
 const TEXT: Record<TurnDiffClass, string> = {
-  'same': '✓ SAME',
-  'different-outcome': '⚠ DIFFERENT OUTCOME',
-  'different-event': '⚠ DIFFERENT EVENT',
-  'pending': '… running',
-  'one-sided': '· · · waiting',
+  'same': "✓ 相同",
+  'different-outcome': "⚠ 结果不同",
+  'different-event': "⚠ 事件不同",
+  'pending': "… 运行中",
+  'one-sided': "· · · 等待中",
 };
 
 const ARIA: Record<TurnDiffClass, string> = {
-  'same': 'Same event, same outcome',
-  'different-outcome': 'Same event, different outcome',
-  'different-event': 'Different events',
-  'pending': 'Turn is still running',
-  'one-sided': 'Only one leader has reached this turn',
+  'same': "相同事件、相同结果",
+  'different-outcome': "相同事件、不同结果",
+  'different-event': "不同事件",
+  'pending': "此回合仍在运行",
+  'one-sided': "仅一位决策者已到达此回合",
 };
 
 const CLASS_NAME: Record<TurnDiffClass, string> = {

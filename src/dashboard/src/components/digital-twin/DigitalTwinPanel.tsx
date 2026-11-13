@@ -41,30 +41,30 @@ export interface DigitalTwinPanelProps {
 const METRIC_LABELS: Record<string, string> = {
   // t2d-glp1-protocol metrics (the patient digital-twin scenario)
   hba1c: 'HbA1c',
-  fastingGlucose: 'Fasting Glucose',
+  fastingGlucose: "空腹血糖",
   weight: 'Weight (lb)',
   bmi: 'BMI',
-  exerciseAdherence: 'Exercise Adherence',
+  exerciseAdherence: "运动执行程度",
   sleepHours: 'Sleep (hrs/night)',
-  qualityOfLife: 'Quality of Life',
-  mortalityRisk: '10-yr Mortality Risk',
-  cardioFitness: 'Cardio Fitness',
-  sideEffectBurden: 'Side-effect Load',
+  qualityOfLife: "生活质量",
+  mortalityRisk: "十年死亡风险",
+  cardioFitness: "心肺适能",
+  sideEffectBurden: "不良反应负担",
   patientMotivation: 'Motivation',
-  familySupport: 'Family Support',
+  familySupport: "家庭支持",
   // legacy / cross-scenario metrics (kept so non-medical scenarios
   // still get readable labels)
   population: 'Population',
   morale: 'Morale',
   alignmentBench: 'AlignmentBench',
-  specGamingRate: 'Spec Gaming Rate',
-  capabilityIndex: 'Capability Index',
-  releaseReadiness: 'Release Readiness',
-  redTeamCoverage: 'Red-team Coverage',
+  specGamingRate: "规则投机率",
+  capabilityIndex: "能力指数",
+  releaseReadiness: "发布准备度",
+  redTeamCoverage: "红队测试覆盖率",
   runwayMonths: 'Runway',
   burnRate: 'Burn',
-  marketShare: 'Market Share',
-  revenueArr: 'Revenue ARR',
+  marketShare: "市场份额",
+  revenueArr: "年度经常性收入",
 };
 
 // Three signals that move under a 12-week GLP-1 + lifestyle protocol:
@@ -141,23 +141,23 @@ function formatProfileValue(value: unknown): string {
 }
 
 const EVENT_LABELS: Record<string, string> = {
-  run_started: 'Run started',
-  turn_started: 'Turn started',
-  event_start: 'Crisis event',
-  specialist_start: 'Specialist analyzing',
-  specialist_done: 'Specialist done',
-  forge_attempt: 'Forge attempt',
-  forge_approved: 'Tool forged',
-  forge_rejected: 'Forge rejected',
-  decision_pending: 'Decision pending',
-  decision_made: 'Decision made',
+  run_started: "运行已启动",
+  turn_started: "回合已开始",
+  event_start: "危机事件",
+  specialist_start: "专家正在分析",
+  specialist_done: "专家分析完成",
+  forge_attempt: "尝试生成工具",
+  forge_approved: "工具已生成",
+  forge_rejected: "工具被拒绝",
+  decision_pending: "等待决策",
+  decision_made: "已作出决策",
   outcome: 'Outcome',
   bulletin: 'Bulletin',
-  turn_done: 'Turn complete',
-  agent_reactions: 'Agent reactions',
+  turn_done: "回合完成",
+  agent_reactions: "成员反应",
   promotion: 'Promotion',
   systems_snapshot: 'Snapshot',
-  complete: 'Complete',
+  complete: "已完成",
 };
 
 function eventBody(event: { type: string; data: Record<string, unknown> }): string {
@@ -228,22 +228,22 @@ export function DigitalTwinPanel({ artifact, state, onDismiss }: DigitalTwinPane
     <div className={styles.root}>
       <div className={styles.headerRow}>
         <div>
-          <h2 className={styles.title}>Digital Twin · Intervention Result</h2>
+          <h2 className={styles.title}>数字孪生 · 干预结果</h2>
           <span className={styles.subTitle}>
-            {metadata?.scenario?.name ?? 'scenario'} · seed {metadata?.seed ?? '?'} · {trajectory?.timepoints?.length ?? 0} turns
+            {metadata?.scenario?.name ?? 'scenario'} · 随机种子 {metadata?.seed ?? '?'} · {trajectory?.timepoints?.length ?? 0} 回合
           </span>
         </div>
         <div className={styles.runMeta}>
-          {metadata?.runId && <span>run: {metadata.runId.slice(0, 28)}</span>}
+          {metadata?.runId && <span>运行： {metadata.runId.slice(0, 28)}</span>}
           {cost?.totalUSD != null && <span>${cost.totalUSD.toFixed(3)}</span>}
-          {cost?.llmCalls != null && <span>{cost.llmCalls} LLM calls</span>}
+          {cost?.llmCalls != null && <span>{cost.llmCalls} 模型调用</span>}
         </div>
       </div>
 
       <div className={styles.cardsRow}>
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <span className={styles.cardLabel}>Subject</span>
+            <span className={styles.cardLabel}>对象</span>
             <span className={styles.cardId}>{subject?.id}</span>
           </div>
           <div className={styles.cardName}>{subject?.name}</div>
@@ -274,7 +274,7 @@ export function DigitalTwinPanel({ artifact, state, onDismiss }: DigitalTwinPane
 
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <span className={styles.cardLabel}>Intervention</span>
+            <span className={styles.cardLabel}>干预措施</span>
             <span className={styles.cardId}>{intervention?.id}</span>
           </div>
           <div className={styles.cardName}>{intervention?.name}</div>
@@ -284,13 +284,13 @@ export function DigitalTwinPanel({ artifact, state, onDismiss }: DigitalTwinPane
           <div className={styles.kvList}>
             {intervention?.duration && (
               <div className={styles.kv}>
-                <span>Duration</span>
+                <span>持续时间</span>
                 <span>{intervention.duration.value} {intervention.duration.unit}</span>
               </div>
             )}
             {intervention?.adherenceProfile && (
               <div className={styles.kv}>
-                <span>Adherence</span>
+                <span>执行程度</span>
                 <span>{(intervention.adherenceProfile.expected * 100).toFixed(0)}%</span>
               </div>
             )}
@@ -300,7 +300,7 @@ export function DigitalTwinPanel({ artifact, state, onDismiss }: DigitalTwinPane
 
       {metricKeys.length > 0 && (
         <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Final state · delta vs initial</h3>
+          <h3 className={styles.sectionTitle}>最终状态 · 相对初始值变化</h3>
           <div className={styles.metricsGrid}>
             {metricKeys.map(key => {
               const initial = initialMetrics[key];
@@ -327,7 +327,7 @@ export function DigitalTwinPanel({ artifact, state, onDismiss }: DigitalTwinPane
 
       {chartData && chartData.series.length > 0 && (
         <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Trajectory</h3>
+          <h3 className={styles.sectionTitle}>演变过程</h3>
           <div className={styles.chartWrap}>
             <svg className={styles.chart} viewBox="0 0 600 200" preserveAspectRatio="none">
               {chartData.series.map(series => {
@@ -381,7 +381,7 @@ export function DigitalTwinPanel({ artifact, state, onDismiss }: DigitalTwinPane
 
       {fingerprintTop.length > 0 && (
         <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Fingerprint</h3>
+          <h3 className={styles.sectionTitle}>运行特征</h3>
           <div className={styles.fingerprintList}>
             {fingerprintTop.map(([key, value]) => (
               <span key={key} className={styles.fingerprintChip}>
@@ -397,7 +397,7 @@ export function DigitalTwinPanel({ artifact, state, onDismiss }: DigitalTwinPane
       {onDismiss && (
         <div className={styles.dismissBar}>
           <button onClick={onDismiss} className={styles.dismissButton}>
-            Clear · run another
+            清空并重新运行
           </button>
         </div>
       )}
@@ -453,13 +453,13 @@ function DigitalTwinPlayback({ state }: { state?: GameState }) {
 
   return (
     <div className={styles.section}>
-      <h3 className={styles.sectionTitle}>Playback · {position} / {totalEvents} events</h3>
+      <h3 className={styles.sectionTitle}>回放 · {position} / {totalEvents} 个事件</h3>
       <div className={styles.playbackControls}>
         <button onClick={() => setPlaying(!playing)} className={styles.playbackPlayBtn}>
-          {playing ? 'Pause' : (position >= totalEvents ? 'Replay' : 'Play')}
+          {playing ? 'Pause' : (position >= totalEvents ? "回放" : 'Play')}
         </button>
         <button onClick={() => { setPosition(0); setPlaying(false); }} className={styles.playbackResetBtn}>
-          Reset
+          重置
         </button>
         <input
           type="range"
@@ -473,7 +473,7 @@ function DigitalTwinPlayback({ state }: { state?: GameState }) {
       <div className={styles.playbackList}>
         {visibleEvents.length === 0 ? (
           <div className={styles.playbackHint}>
-            Drag the slider or press Play to step through the run.
+            拖动滑块或点击播放，逐步查看运行过程。
           </div>
         ) : (
           visibleEvents.map((event) => (

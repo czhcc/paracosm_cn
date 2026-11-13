@@ -23,13 +23,13 @@ export interface SeedUrlValidationError {
  */
 export function validateSeedUrl(raw: string): SeedUrlValidation | SeedUrlValidationError {
   const trimmed = raw.trim();
-  if (!trimmed) return { ok: false, error: 'URL is empty.' };
-  if (trimmed.length > 2048) return { ok: false, error: 'URL exceeds 2048 characters.' };
+  if (!trimmed) return { ok: false, error: "网址不能为空。" };
+  if (trimmed.length > 2048) return { ok: false, error: "网址长度超过 2048 个字符。" };
   let url: URL;
   try {
     url = new URL(trimmed);
   } catch {
-    return { ok: false, error: 'Not a valid URL.' };
+    return { ok: false, error: "网址无效。" };
   }
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
     return { ok: false, error: `Unsupported scheme ${url.protocol}. Use http or https.` };

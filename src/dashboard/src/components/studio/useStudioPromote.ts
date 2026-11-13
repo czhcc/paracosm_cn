@@ -169,9 +169,9 @@ export async function importBundle(
     }
     return {
       ok: false,
-      error: `Imported ${runIds.length} of ${runs.length} runs into ${bundleId}: ${runIds.join(', ')}. `
-        + `Not imported: ${notImported.join(', ')}. ${sentence(reason)} `
-        + 'Promote again to add the rest to the same bundle.',
+      error: `已将 ${runs.length} 次运行中的 ${runIds.length} 次导入记录包 ${bundleId}：${runIds.join(', ')}。`
+        + `未导入：${notImported.join(', ')}。${sentence(reason)} `
+        + '请再次导入，将剩余运行添加到同一个记录包。',
       bundleId,
       imported: [...runIds],
       notImported,
@@ -183,11 +183,9 @@ export async function importBundle(
     const overLimit = rest.filter(run => partBytes([run]) > limit);
     if (overLimit.length > 0 && limitStated) {
       const named = overLimit.map(run => `${run.runId} (${mib(run.bytes)})`).join(', ');
-      const one = overLimit.length === 1;
       return failed(
-        `The server takes at most ${mib(limit)} in one request (MAX_REQUEST_BODY_BYTES), `
-        + `and ${one ? 'this run passes' : 'these runs pass'} that on ${one ? 'its' : 'their'} own: ${named}.`
-        + (runIds.length === 0 && options.addToBundle === undefined ? ' Nothing was imported.' : ''),
+        `服务器单次请求最多接收 ${mib(limit)}（MAX_REQUEST_BODY_BYTES），以下运行记录单独就超过此上限：${named}。`
+        + (runIds.length === 0 && options.addToBundle === undefined ? '未导入任何记录。' : ''),
       );
     }
     const part = overLimit.length > 0 ? rest : nextPart(rest, limit);
@@ -231,7 +229,7 @@ export async function importBundle(
       alreadyExisted.push(...(body.insertedSoFar?.alreadyExisted ?? inserted.map(() => false)));
       next += inserted.length;
     }
-    return failed(body.error ?? `Promote failed: HTTP ${res.status}`);
+    return failed(body.error ?? `导入失败：HTTP ${res.status}`);
   }
   return { ok: true, bundleId, runIds, alreadyExisted };
 }
@@ -256,7 +254,7 @@ export function useStudioPromote(): UseStudioPromote {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({} as { error?: string }));
-        setError(body.error ?? `Promote failed: HTTP ${res.status}`);
+        setError(body.error ?? `导入失败：HTTP ${res.status}`);
         return null;
       }
       const body = (await res.json()) as { runId: string; alreadyExisted: boolean };

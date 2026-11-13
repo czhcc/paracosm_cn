@@ -39,6 +39,8 @@ const MARKS: Record<string, string[]> = {
   'corporate-quarterly': [],
   'dual-superintelligence-council': [],
   't2d-glp1-protocol': [],
+  'city-talent-policy': [],
+  'public-opinion-response': [],
 };
 
 /** Every scenario file in scenarios/: all but the knowledge bundles. */

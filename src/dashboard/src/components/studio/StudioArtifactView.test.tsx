@@ -18,8 +18,8 @@ test('StudioArtifactView: turn-loop artifact renders the per-turn list', () => {
   // ReportViewAdapter renders "Turn N" headers per timepoint. React's
   // SSR splits adjacent text nodes with HTML comments, so the literal
   // string contains "Turn <!-- -->1" — match across the comment.
-  assert.match(html, /Turn (<!-- -->)?1/);
-  assert.match(html, /Turn (<!-- -->)?3/);
+  assert.match(html, /回合 (<!-- -->)?1/);
+  assert.match(html, /回合 (<!-- -->)?3/);
   // Metric values from the fixture appear inside the metrics <pre>.
   // Quotes in the SSR'd JSON.stringify output are HTML-escaped to &quot;.
   assert.match(html, /morale/);
@@ -29,7 +29,7 @@ test('StudioArtifactView: turn-loop artifact renders the per-turn list', () => {
 test('StudioArtifactView: batch-trajectory artifact renders the BatchArtifactView path', () => {
   const html = renderToString(<StudioArtifactView artifact={batchArtifact} onPromote={() => {}} onCompare={() => {}} />);
   // BatchArtifactView's distinctive output: "Batch trajectory (N timepoints)".
-  assert.match(html, /Batch trajectory/i);
+  assert.match(html, /批量轨迹/i);
   // Time-unit label from the fixture should appear (singular Q1/Q2 columns).
   assert.match(html, /Q1/);
 });

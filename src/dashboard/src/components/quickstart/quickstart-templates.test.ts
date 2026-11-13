@@ -28,8 +28,8 @@ test('quickstart templates: seeds stay under the 50000-char schema ceiling', () 
 
 test('quickstart templates: every label looks like a "What if …?" question (matches landing chips)', () => {
   for (const t of QUICKSTART_TEMPLATES) {
-    assert.match(t.label, /^What if /, `template ${t.id} label "${t.label}" should start with "What if "`);
-    assert.match(t.label, /\?$/, `template ${t.id} label "${t.label}" should end with a question mark`);
+    assert.match(t.label, /^如果/, `template ${t.id} label "${t.label}" should start with "What if "`);
+    assert.match(t.label, /？$/, `template ${t.id} label "${t.label}" should end with a question mark`);
   }
 });
 

@@ -1,3 +1,4 @@
+import { departmentLabel, displayLabel, roleLabel } from '../../template-localization';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { GameState, LeaderInfo } from '../../hooks/useGameState.js';
 import styles from './SwarmViz.module.scss';
@@ -443,7 +444,7 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
           side,
           turn: current.turn,
           kind: 'food-low',
-          message: `Food reserve fell below 3mo (${current.foodReserve.toFixed(1)}mo remaining)`,
+          message: `食物储备已低于 3 个月（${current.foodReserve.toFixed(1)}mo remaining)`,
         });
       }
     };
@@ -565,7 +566,7 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
     try {
       rec = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 4_000_000 });
     } catch {
-      console.warn('MediaRecorder unavailable — timelapse skipped');
+      console.warn("录制功能不可用，已跳过延时录制");
       return;
     }
     recChunksRef.current = [];
@@ -755,7 +756,7 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
     const tokens = searchQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
     if (tokens.length === 0) return [];
     const cellMatches = (c: CellSnapshot): boolean => {
-      const hay = `${c.name} ${c.department} ${c.role} ${c.mood}`.toLowerCase();
+      const hay = `${c.name} ${c.department} ${departmentLabel(c.department)} ${c.role} ${roleLabel(c.role)} ${c.mood} ${displayLabel(c.mood)}`.toLowerCase();
       return tokens.every(t => hay.includes(t));
     };
     return [
@@ -998,7 +999,7 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
       return (
         <div className={`viz-content ${styles.empty}`} role="status" aria-live="polite">
           <span className={styles.emptySpinner} aria-hidden="true" />
-          <span>Awaiting first turn snapshot — the {scenarioLabels.place} viz will populate once the kernel reports state.</span>
+          <span>等待首回合快照， {scenarioLabels.place}  内核报告状态后将显示可视化。</span>
         </div>
       );
     }
@@ -1012,13 +1013,14 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
       return (
         <div className={`viz-content ${styles.empty}`} role="status" aria-live="polite">
           <span className={styles.emptySpinner} aria-hidden="true" />
-          <span>Loading replay — the {scenarioLabels.place} viz will populate as the cached events stream in.</span>
+          <span>正在加载回放， {scenarioLabels.place}  缓存事件加载后将显示可视化。</span>
         </div>
       );
     }
     return (
       <div className={`viz-content ${styles.empty}`}>
-        Run a simulation to see the {scenarioLabels.place} visualization.
+
+        运行仿真后可查看 {scenarioLabels.place}  的可视化。
       </div>
     );
   }
@@ -1026,7 +1028,7 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
   // Leader metadata is now resolved above (pre-early-return) so
   // dependency arrays in searchMatchesMemo / useSoundCues don't hit TDZ.
   const diffLine = snapA && snapB
-    ? `A vs B: ${snapB.population - snapA.population >= 0 ? '+' : ''}${snapB.population - snapA.population} pop, ${snapB.morale - snapA.morale >= 0 ? '+' : ''}${Math.round((snapB.morale - snapA.morale) * 100)}% morale${typeof snapA.foodReserve === 'number' && typeof snapB.foodReserve === 'number' ? `, ${snapB.foodReserve - snapA.foodReserve > 0 ? '+' : ''}${(snapB.foodReserve - snapA.foodReserve).toFixed(1)}mo food` : ''}`
+    ? `A 对比 B： ${snapB.population - snapA.population >= 0 ? '+' : ''}${snapB.population - snapA.population} 人口，${snapB.morale - snapA.morale >= 0 ? '+' : ''}${Math.round((snapB.morale - snapA.morale) * 100)}% 士气${typeof snapA.foodReserve === 'number' && typeof snapB.foodReserve === 'number' ? `, ${snapB.foodReserve - snapA.foodReserve > 0 ? '+' : ''}${(snapB.foodReserve - snapA.foodReserve).toFixed(1)} 月食物` : ''}`
     : '';
 
   // Phone: force single-panel view. Side-by-side at 380-400px makes
@@ -1051,8 +1053,8 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
         className={`viz-content ${styles.root}`}
       >
         {isCohort && (
-          <div className={styles.cohortViewBar} role="region" aria-label="Cohort view controls">
-            <div className={styles.cohortViewModeToggle} role="tablist" aria-label="Swarm grid view mode">
+          <div className={styles.cohortViewBar} role="region" aria-label="对比组视图控制">
+            <div className={styles.cohortViewModeToggle} role="tablist" aria-label="群体网格视图模式">
               <button
                 type="button"
                 role="tab"
@@ -1062,9 +1064,10 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
                   styles.cohortViewModeButton,
                   vizMode === 'cohort' ? styles.cohortViewModeButtonActive : '',
                 ].filter(Boolean).join(' ')}
-                title="Show every actor's living-swarm panel side-by-side with horizontal scroll"
+                title="并排显示各决策者的群体面板，可横向滚动"
               >
-                All {state.actorIds.length} actors
+
+                全部 {state.actorIds.length} 位决策者
               </button>
               <button
                 type="button"
@@ -1075,15 +1078,16 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
                   styles.cohortViewModeButton,
                   vizMode === 'pair' ? styles.cohortViewModeButtonActive : '',
                 ].filter(Boolean).join(' ')}
-                title="Focus on a 2-actor head-to-head with the original pair-mode diff overlay + sympathy hover"
+                title="聚焦两位决策者，显示差异叠层与关联悬浮提示"
               >
-                Focus pair
+
+                聚焦双人
               </button>
             </div>
             {vizMode === 'pair' && (
               <div className={styles.cohortPairPicker}>
                 <select
-                  aria-label="Left panel actor"
+                  aria-label="左侧决策者"
                   className={styles.cohortPairPickerSelect}
                   value={firstLeaderId ?? ''}
                   onChange={(e) => setPickedAId(e.target.value || undefined)}
@@ -1094,9 +1098,9 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
                     </option>
                   ))}
                 </select>
-                <span className={styles.cohortPairPickerVs}>vs</span>
+                <span className={styles.cohortPairPickerVs}>对比</span>
                 <select
-                  aria-label="Right panel actor"
+                  aria-label="右侧决策者"
                   className={styles.cohortPairPickerSelect}
                   value={secondLeaderId ?? ''}
                   onChange={(e) => setPickedBId(e.target.value || undefined)}
@@ -1137,9 +1141,9 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
             <button
               type="button"
               onClick={() => setOverflowOpen(o => !o)}
-              aria-label={overflowOpen ? 'Hide advanced tools' : 'Show advanced tools (palette, stats, export, settings)'}
+              aria-label={overflowOpen ? "隐藏高级工具" : "显示高级工具（配色、指标、导出、设置）"}
               aria-expanded={overflowOpen}
-              title={overflowOpen ? 'Hide tools' : 'Palette · Stats · Export · Settings'}
+              title={overflowOpen ? "隐藏工具" : "配色 · 指标 · 导出 · 设置"}
               className={[styles.overflowToggle, overflowOpen ? styles.overflowToggleOpen : ''].filter(Boolean).join(' ')}
             >
               {'\u22ef'}
@@ -1147,33 +1151,35 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
             <button
               type="button"
               onClick={() => setDiffOverlay(!diffOverlayOn)}
-              aria-label={diffOverlayOn ? 'Hide A-vs-B diff overlay (D)' : 'Show A-vs-B diff overlay (D)'}
+              aria-label={diffOverlayOn ? "隐藏双人差异叠层（D）" : "显示双人差异叠层（D）"}
               aria-pressed={diffOverlayOn}
-              title="Highlight where Leader A and Leader B diverged this turn (press D)"
+              title="突出两位决策者此回合的分歧（按 D）"
               className={styles.helpBtn}
             >
-              Diff {diffOverlayOn ? 'on' : 'off'}
+
+              差异 {diffOverlayOn ? '开启' : '关闭'}
             </button>
             <button
               type="button"
               onClick={() => setHelpOpen(true)}
-              aria-label="Open help overlay (shortcut: ?)"
-              title="What do these colors / symbols / modes mean? (press ?)"
+              aria-label="打开帮助（快捷键：?）"
+              title="颜色、符号与模式的含义（按 ?）"
               className={styles.helpBtn}
             >
-              ? Help
+
+              ? 帮助
             </button>
             {overflowOpen && (
               <div
                 role="toolbar"
-                aria-label="Viz tools"
+                aria-label="可视化工具"
                 className={styles.toolsRow}
               >
                 <button
                   type="button"
                   onClick={cyclePalette}
                   aria-label={`Palette: ${palette}. Click to cycle.`}
-                  title={`Palette: ${palette.toUpperCase()} (click to cycle)`}
+                  title={`配色：${palette.toUpperCase()}（点击切换）`}
                   className={styles.paletteBtn}
                   style={{
                     '--palette-bg':
@@ -1189,11 +1195,12 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
                 <button
                   type="button"
                   onClick={() => setSummaryOpen(true)}
-                  aria-label="Open run summary"
-                  title="Run summary (cumulative totals)"
+                  aria-label="打开运行总结"
+                  title="运行总结（累计值）"
                   className={styles.toolBtn}
                 >
-                  STATS
+
+                  指标
                 </button>
                 <ExportMenu
                   recording={recording}
@@ -1204,9 +1211,9 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
                 <button
                   type="button"
                   onClick={() => setSettingsOpen(o => !o)}
-                  aria-label="Open grid settings"
+                  aria-label="打开网格设置"
                   aria-expanded={settingsOpen}
-                  title="Viz settings"
+                  title="可视化设置"
                   className={[styles.settingsBtn, settingsOpen ? styles.settingsBtnOpen : ''].filter(Boolean).join(' ')}
                 >
                   {'\u2699'}
@@ -1267,7 +1274,7 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
         {vizMode === 'pair' && phone && (
           <div
             role="tablist"
-            aria-label="Leader panel selector"
+            aria-label="决策者面板选择"
             className={styles.phoneTabRow}
           >
             {(['a', 'b'] as const).map(s => {
@@ -1415,12 +1422,12 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
           onSpeedChange={setSpeed}
         />
         <div className={styles.footerKeys}>
-          <Kbd k="?" v="help" />
-          <Kbd k="1-5" v="mode" />
-          <Kbd k="← →" v="scrub turn" />
-          <Kbd k="space" v="play / pause" />
-          <Kbd k="click" v={`${scenarioLabels.person} drilldown`} />
-          <Kbd k="esc" v="close popover" />
+          <Kbd k="?" v="帮助" />
+          <Kbd k="1-5" v="模式" />
+          <Kbd k="← →" v="拖动选择回合" />
+          <Kbd k="空格" v="播放 / 暂停" />
+          <Kbd k="点击" v={`${scenarioLabels.person}详情`} />
+          <Kbd k="esc" v="关闭浮层" />
         </div>
         {/* Off-screen aria-live region announces turn deltas to
             screen readers without visual change. Only updates when
@@ -1431,7 +1438,7 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
           className={styles.srOnly}
         >
           {snapA && snapB
-            ? `Turn ${Math.max(snapA.turn, snapB.turn)}. ${leaderA?.name ?? 'A'} ${scenarioLabels.place}: ${snapA.cells.filter(c => c.alive).length} alive, ${snapA.births} born, ${snapA.deaths} died, morale ${Math.round(snapA.morale * 100)}%. ${leaderB?.name ?? 'B'} ${scenarioLabels.place}: ${snapB.cells.filter(c => c.alive).length} alive, ${snapB.births} born, ${snapB.deaths} died, morale ${Math.round(snapB.morale * 100)}%.`
+            ? `第 ${Math.max(snapA.turn, snapB.turn)} 回合。 ${leaderA?.name ?? 'A'} ${scenarioLabels.place}: ${snapA.cells.filter(c => c.alive).length} 人存活，${snapA.births} 人出生，${snapA.deaths} 人死亡，士气 ${Math.round(snapA.morale * 100)}%. ${leaderB?.name ?? 'B'} ${scenarioLabels.place}: ${snapB.cells.filter(c => c.alive).length} 人存活，${snapB.births} 人出生，${snapB.deaths} 人死亡，士气 ${Math.round(snapB.morale * 100)}%.`
             : ''}
         </div>
         {maxTurn > 1 && currentTurn < maxTurn - 1 && (
@@ -1441,9 +1448,9 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
             aria-label={`Jump to latest turn (T${maxTurn})`}
             className={styles.jumpLatest}
           >
-            {'\u2193'} Latest · T{maxTurn}
+            {'\u2193'}  最新 · 回合{maxTurn}
             <span className={styles.jumpLatestBehind}>
-              ({maxTurn - 1 - currentTurn} turn{maxTurn - 1 - currentTurn === 1 ? '' : 's'} behind)
+              ({maxTurn - 1 - currentTurn}  回合{maxTurn - 1 - currentTurn === 1 ? '' : 's'}  回合之前）
             </span>
           </button>
         )}
@@ -1493,7 +1500,7 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
               '--side-color': alertToast.side === 'a' ? 'var(--vis)' : 'var(--eng)',
               '--left-accent': alertToast.kind === 'morale-crash' ? 'var(--rust)' : 'var(--amber)',
             } as CSSProperties}
-            title="Click to dismiss"
+            title="点击关闭"
           >
             <div
               className={styles.toastKicker}
@@ -1520,10 +1527,10 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
               '--side-color': crisisToast.side === 'a' ? 'var(--vis)' : 'var(--eng)',
               '--left-accent': 'var(--rust)',
             } as CSSProperties}
-            title="Click to dismiss"
+            title="点击关闭"
           >
             <div className={styles.toastKicker}>
-              <span>⚡ Crisis</span>
+              <span>⚡ 危机</span>
               <span className={styles.toastKickerMeta}>
                 {crisisToast.side.toUpperCase()} · T{crisisToast.turn} · {crisisToast.category}
               </span>

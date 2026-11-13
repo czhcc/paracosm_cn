@@ -25,20 +25,20 @@ export function AddFilterPopover(props: AddFilterPopoverProps): JSX.Element {
 
   return (
     <div className={styles.wrapper} ref={ref}>
-      <button onClick={() => setOpen(o => !o)} className={styles.addBtn} aria-expanded={open}>+ Filter</button>
+      <button onClick={() => setOpen(o => !o)} className={styles.addBtn} aria-expanded={open}>＋ 筛选</button>
       {open && (
-        <div className={styles.popover} role="dialog" aria-label="Add filter">
+        <div className={styles.popover} role="dialog" aria-label="添加筛选">
           {!currentFilters.mode && (
             <fieldset className={styles.section}>
-              <legend>Mode</legend>
-              <button onClick={() => { onAdd({ mode: 'turn-loop' }); setOpen(false); }}>turn-loop</button>
-              <button onClick={() => { onAdd({ mode: 'batch-trajectory' }); setOpen(false); }}>batch-trajectory</button>
-              <button onClick={() => { onAdd({ mode: 'batch-point' }); setOpen(false); }}>batch-point</button>
+              <legend>模式</legend>
+              <button onClick={() => { onAdd({ mode: 'turn-loop' }); setOpen(false); }}>逐回合</button>
+              <button onClick={() => { onAdd({ mode: 'batch-trajectory' }); setOpen(false); }}>批量轨迹</button>
+              <button onClick={() => { onAdd({ mode: 'batch-point' }); setOpen(false); }}>单点预测</button>
             </fieldset>
           )}
           {!currentFilters.scenarioId && scenarioOptions.length > 0 && (
             <fieldset className={styles.section}>
-              <legend>Scenario</legend>
+              <legend>场景</legend>
               {scenarioOptions.map(s => (
                 <button key={s.id} onClick={() => { onAdd({ scenarioId: s.id }); setOpen(false); }}>{s.name}</button>
               ))}
@@ -46,7 +46,7 @@ export function AddFilterPopover(props: AddFilterPopoverProps): JSX.Element {
           )}
           {!currentFilters.actorConfigHash && leaderOptions.length > 0 && (
             <fieldset className={styles.section}>
-              <legend>Leader</legend>
+              <legend>决策者</legend>
               {leaderOptions.map(l => (
                 <button key={l.hash} onClick={() => { onAdd({ actorConfigHash: l.hash }); setOpen(false); }}>{l.label}</button>
               ))}

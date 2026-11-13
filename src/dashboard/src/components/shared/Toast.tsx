@@ -106,7 +106,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 background: 'none', border: 'none', color: 'var(--text-3)',
                 cursor: 'pointer', fontSize: 'var(--font-lg)', lineHeight: 1,
               }}
-              aria-label="Dismiss"
+              aria-label="关闭"
             >
               x
             </button>

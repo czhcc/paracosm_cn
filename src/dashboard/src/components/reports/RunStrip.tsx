@@ -18,20 +18,20 @@ export interface RunStripProps {
 }
 
 const OUTCOME_LABEL: Record<string, string> = {
-  conservative_success: 'SAFE WIN',
-  risky_success:        'RISKY WIN',
-  conservative_failure: 'SAFE LOSS',
-  risky_failure:        'RISKY LOSS',
+  conservative_success: '保守成功',
+  risky_success:        '冒险成功',
+  conservative_failure: '保守失败',
+  risky_failure:        '冒险失败',
 };
 
 /** Phone-friendly 2-char abbreviation. Color still encodes
  *  win/loss; the letter pair encodes safe/risky × win/loss for
  *  users who can read past the color. */
 const OUTCOME_LABEL_SHORT: Record<string, string> = {
-  conservative_success: 'S✓',
-  risky_success:        'R✓',
-  conservative_failure: 'S✗',
-  risky_failure:        'R✗',
+  conservative_success: '稳✓',
+  risky_success:        '险✓',
+  conservative_failure: '稳✗',
+  risky_failure:        '险✗',
 };
 
 function outcomeShort(outcome: string | undefined, compact = false): string {
@@ -48,7 +48,7 @@ function Badge({ outcome, sideColor, compact }: { outcome: string | undefined; s
       style={{
         '--side-color': sideColor,
         '--outcome-color': color,
-        '--badge-size': compact ? '11px' : '9px',
+        '--badge-size': '12px',
         '--badge-spacing': compact ? '0' : '0.04em',
       } as CSSProperties}
     >
@@ -70,8 +70,8 @@ export function RunStrip(props: RunStripProps) {
   };
 
   return (
-    <section aria-label="Run timeline strip" className={styles.section}>
-      <div className={styles.title}>Run Strip</div>
+    <section aria-label="运行时间线" className={styles.section}>
+      <div className={styles.title}>回合时间线</div>
       <div
         role="list"
         className={styles.grid}
@@ -83,7 +83,7 @@ export function RunStrip(props: RunStripProps) {
             type="button"
             role="listitem"
             onClick={() => handleClick(cell.turn)}
-            aria-label={`Jump to turn ${cell.turn}${cell.time ? ', time ' + cell.time : ''}${cell.diverged ? ', divergent' : ''}`}
+            aria-label={`跳转到第 ${cell.turn} 回合${cell.time ? '，时间 ' + cell.time : ''}${cell.diverged ? '，存在分歧' : ''}`}
             className={[styles.cell, cell.diverged ? styles.diverged : ''].filter(Boolean).join(' ')}
           >
             <div className={styles.cellHead}>

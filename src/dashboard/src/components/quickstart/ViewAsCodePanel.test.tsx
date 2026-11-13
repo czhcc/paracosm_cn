@@ -10,7 +10,7 @@ test('ViewAsCodePanel: default render is collapsed — toggle reads "View as cod
     <ViewAsCodePanel seedText="A coastal mayor must evacuate." actorCount={3} />,
   );
   assert.match(html, /aria-expanded="false"/);
-  assert.match(html, /▸ View as code/);
+  assert.match(html, /▸ 查看代码/);
   // The toggle's aria-controls attribute references the panel id even
   // when the panel is hidden, so check for the actual id="..." attribute
   // (which is only emitted when the panel element renders).
@@ -35,7 +35,7 @@ test('ViewAsCodePanel: expanded with TS tab renders the escaped recipe', () => {
     />,
   );
   assert.match(html, /aria-expanded="true"/);
-  assert.match(html, /▾ Hide code/);
+  assert.match(html, /▾ 收起代码/);
   assert.match(html, /id="quickstart-view-as-code-panel"/);
   // TS tab is selected.
   assert.match(html, /id="quickstart-view-as-code-tab-ts"[^>]*aria-pressed="true"/);

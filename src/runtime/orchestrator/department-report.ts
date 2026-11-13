@@ -102,7 +102,7 @@ export async function sendDepartmentReport(call: DepartmentReportCall): Promise<
       droppedKeys = dropped;
       log(`    [${department}] ${line}`);
     }),
-    fallback: { ...emptyReport(department), summary: `${department} report unavailable this turn.` } as unknown as DepartmentReportZ,
+    fallback: { ...emptyReport(department), summary: '本回合未能生成部门报告。' } as unknown as DepartmentReportZ,
   });
   call.recordSchemaAttempt(schemaName, result.attempts, result.fromFallback, result.salvaged);
   if (result.salvaged) {

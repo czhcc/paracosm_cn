@@ -43,7 +43,7 @@ export function CohortLegend({ cohorts, focusedArchetype, onFocusChange }: Cohor
 
   return (
     <div className={styles.legend} role="group" aria-label={`Cohort summary: ${cohorts.length} archetypes across ${totalActors} actors`}>
-      <span className={styles.heading}>COHORTS</span>
+      <span className={styles.heading}>对照组</span>
       <div className={styles.pills}>
         {cohorts.map(c => {
           const focused = focusedArchetype === c.archetype && c.archetype !== '';

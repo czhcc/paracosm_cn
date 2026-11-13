@@ -105,19 +105,19 @@ type Phase =
  */
 function mapLaunchErrorToMessage(raw: string): string {
   if (/Failed to fetch|NetworkError|ERR_CONNECTION|ERR_NETWORK/i.test(raw)) {
-    return "Couldn't reach the server. Check your connection and try again.";
+    return "无法连接服务器，请检查网络后重试。";
   }
   if (/HTTP 502|HTTP 503|HTTP 504/.test(raw)) {
-    return 'Server is temporarily unavailable (502/503/504). Try again in a moment.';
+    return "服务器暂时不可用（502/503/504），请稍后重试。";
   }
   if (/HTTP 429|rate.?limit/i.test(raw)) {
-    return 'Hosted demo is rate-limited (3 runs/day). Drop your own API key in Settings to bypass — your saved keys flow into the run automatically.';
+    return "托管演示每天最多运行 3 次。在设置中填写自己的 API 密钥后可解除演示限额，运行会自动使用已保存的密钥。";
   }
   if (/HTTP 401|HTTP 403|unauthor/i.test(raw)) {
-    return 'Auth error talking to the LLM provider. Check your API key in Settings.';
+    return "模型服务商认证失败，请在设置中检查 API 密钥。";
   }
   if (/Two actors required|at least 2 actors/i.test(raw)) {
-    return 'This scenario needs at least 2 actors. Bump the slider before launching.';
+    return "此场景至少需要 2 位决策者，请先调整滑块。";
   }
   // Last-resort guard: never let a raw V8 TypeError or generic
   // reference error bleed into the user-facing banner. Internal-shape
@@ -127,7 +127,7 @@ function mapLaunchErrorToMessage(raw: string): string {
   // raw text in the console for debugging.
   if (/TypeError|ReferenceError|Cannot read propert|is not a function|is not iterable/i.test(raw)) {
     if (typeof console !== 'undefined') console.error('[quickstart] launch error:', raw);
-    return 'Something went wrong starting the run. Refresh the page and try again — if it keeps happening, drop a note in the GitHub issues with what you clicked just before.';
+    return "启动运行失败。请刷新页面重试；若问题持续，请在 GitHub 问题区说明出错前的操作。";
   }
   return raw;
 }
@@ -270,7 +270,7 @@ export function QuickstartView({ sse, sessionId, onRunStarted, onInterventionRes
         setErrorBanner(friendly);
         // Toast on top of the banner so the user actually notices the
         // failure — banner alone is easy to miss when scrolled past.
-        toast('error', 'Launch failed', friendly, 8000);
+        toast('error', "启动失败", friendly, 8000);
       }
       return;
     }
@@ -287,7 +287,7 @@ export function QuickstartView({ sse, sessionId, onRunStarted, onInterventionRes
       });
       if (!actorsRes.ok) {
         const body = await actorsRes.json().catch(() => ({} as { error?: string }));
-        throw new Error(body.error ?? `Actor generation failed: HTTP ${actorsRes.status}`);
+        throw new Error(body.error ?? `生成决策者失败：HTTP ${actorsRes.status}`);
       }
       const actorsData = (await actorsRes.json().catch(() => null)) as { actors?: ActorConfig[] } | null;
       const actors = actorsData?.actors;
@@ -297,7 +297,7 @@ export function QuickstartView({ sse, sessionId, onRunStarted, onInterventionRes
       // that error if the user picked an invalid count rather than
       // pre-filtering valid 1-actor responses out at this layer.
       if (!actors || actors.length === 0) {
-        throw new Error('Actor generation returned no actors');
+        throw new Error("生成结果中没有决策者");
       }
       setPhase({ kind: 'progress', stage: 'running' });
 
@@ -335,7 +335,7 @@ export function QuickstartView({ sse, sessionId, onRunStarted, onInterventionRes
       const raw = (err as Error)?.message ?? String(err);
       const friendly = mapLaunchErrorToMessage(raw);
       setErrorBanner(friendly);
-      toast('error', 'Launch failed', friendly, 8000);
+      toast('error', "启动失败", friendly, 8000);
     }
   }, [scenario, sse, onRunStarted, toast]);
 
@@ -372,7 +372,7 @@ export function QuickstartView({ sse, sessionId, onRunStarted, onInterventionRes
       if (!res.ok) {
         try { sessionStorage.removeItem(CATALOG_PENDING_KEY); } catch { /* silent */ }
         const body = await res.json().catch(() => ({} as { error?: string }));
-        throw new Error(body.error ?? `Scenario switch failed: HTTP ${res.status}`);
+        throw new Error(body.error ?? `切换场景失败：HTTP ${res.status}`);
       }
       markScenarioSwitched();
       window.location.reload();
@@ -382,7 +382,7 @@ export function QuickstartView({ sse, sessionId, onRunStarted, onInterventionRes
       try { sessionStorage.removeItem(CATALOG_PENDING_KEY); } catch { /* silent */ }
       const friendly = mapLaunchErrorToMessage((err as Error)?.message ?? String(err));
       setErrorBanner(friendly);
-      toast('error', 'Scenario switch failed', friendly, 8000);
+      toast('error', "场景切换失败", friendly, 8000);
     }
   }, [scenario.id, handleLoadedScenarioRun, onRunStarted, toast]);
 
@@ -408,7 +408,7 @@ export function QuickstartView({ sse, sessionId, onRunStarted, onInterventionRes
       return;
     }
     if (pending?.scenarioId !== scenario.id) {
-      toast('error', 'Scenario changed', 'Another tab of this browser picked a different scenario before the run you picked could start, so nothing ran. Pick it in the catalog again.', 8000);
+      toast('error', "场景已切换", "启动前，其他浏览器标签页切换了场景，本次未运行。请在目录中重新选择场景。", 8000);
       return;
     }
     const count = typeof pending?.actorCount === 'number' && pending.actorCount > 0
@@ -464,7 +464,7 @@ export function QuickstartView({ sse, sessionId, onRunStarted, onInterventionRes
         }
       } catch {
         // Network/parse error — surface nothing, still let the run continue.
-        setGroundingSummary({ skipped: true, reason: 'request failed' });
+        setGroundingSummary({ skipped: true, reason: "请求失败" });
       }
       setPhase({ kind: 'progress', stage: 'actors', scenario });
 
@@ -482,12 +482,12 @@ export function QuickstartView({ sse, sessionId, onRunStarted, onInterventionRes
       });
       if (!actorsRes.ok) {
         const body = await actorsRes.json().catch(() => ({} as { error?: string }));
-        throw new Error(body.error ?? `Actor generation failed: HTTP ${actorsRes.status}`);
+        throw new Error(body.error ?? `生成决策者失败：HTTP ${actorsRes.status}`);
       }
       const actorsBody = await actorsRes.json().catch(() => null) as { actors?: ActorConfig[] } | null;
       const actors = actorsBody?.actors;
       if (!actors || actors.length === 0) {
-        throw new Error('Actor generation returned no actors');
+        throw new Error("生成结果中没有决策者");
       }
       setPhase({ kind: 'progress', stage: 'running', scenario, actors });
 
@@ -527,7 +527,7 @@ export function QuickstartView({ sse, sessionId, onRunStarted, onInterventionRes
       const raw = (err as Error)?.message ?? String(err);
       const friendly = mapLaunchErrorToMessage(raw);
       setErrorBanner(friendly);
-      toast('error', 'Quickstart failed', friendly, 8000);
+      toast('error', "快速开始失败", friendly, 8000);
     }
   }, [sse, onRunStarted, toast]);
 
@@ -606,7 +606,7 @@ export function QuickstartView({ sse, sessionId, onRunStarted, onInterventionRes
     // v1.1 will wire this to a single-actor /setup POST that reruns
     // just that card in place.
     void actorIndex; void preset;
-    setErrorBanner('Actor swap rerun is a v1.1 follow-up. Use "Fork in Branches" on the Branches tab to try a preset actor against this run.');
+    setErrorBanner("替换决策者重新运行尚未开放，请在分支页创建分支，以预设决策者继续此运行。");
   }, []);
 
   return (
@@ -614,20 +614,20 @@ export function QuickstartView({ sse, sessionId, onRunStarted, onInterventionRes
       {phase.kind === 'input' && (
         <>
           <header className={styles.header}>
-            <h2>Quickstart</h2>
-            <p>Paste a what-if scenario. Paracosm compiles it into a typed world and runs LLM-driven decision-makers with measurable personalities against it, returning a replayable trajectory you can fork and compare.</p>
+            <h2>快速开始</h2>
+            <p>输入一个假设场景。Paracosm 会将其编译为结构化世界，让具有不同人格的 AI 决策者并行运行，生成可回放、可创建分支和对比的演变记录。</p>
             {/* Collapsed by default so the input form sits closer to the
                 fold. First-time users open it for the glossary; repeat
                 visitors keep it folded and skip the wall of definitions. */}
             <details className={styles.howItWorks}>
-              <summary className={styles.howItWorksSummary}>How it works</summary>
-              <ul className={styles.glossary} aria-label="Key terms">
-                <li><strong>Scenario</strong> — the world Paracosm compiles from your prompt: departments, agents, events, starting state.</li>
-                <li><strong>Actor</strong> — an LLM decision-maker driving the scenario, weighted by a HEXACO personality vector.</li>
-                <li><strong>Run</strong> — one actor playing the scenario turn by turn. Paracosm runs N actors in parallel against the same world so you can compare divergent outcomes.</li>
+              <summary className={styles.howItWorksSummary}>工作原理</summary>
+              <ul className={styles.glossary} aria-label="关键概念">
+                <li><strong>场景</strong> ——根据输入编译的世界，包括部门、智能体、事件和初始状态。</li>
+                <li><strong>决策者</strong> ——由模型驱动、具有 HEXACO 六维人格的决策者。</li>
+                <li><strong>运行</strong> ——一位决策者逐回合推进场景。系统让多位决策者从相同初始世界并行运行，以便比较不同结果。</li>
               </ul>
               <p className={styles.timingHint}>
-                <strong>Heads-up:</strong> a fresh run takes <strong>2-5 minutes</strong> (compile, ground with citations, generate actors, simulate). For instant results, replay a cached run below.
+                <strong>运行提示：</strong> 一次新运行大约需要 <strong>2～5 分钟</strong> （包括编译、引用研究、生成决策者和仿真）。若要立即查看结果，可以回放已保存的运行。
               </p>
             </details>
           </header>
@@ -675,9 +675,10 @@ export function QuickstartView({ sse, sessionId, onRunStarted, onInterventionRes
               type="button"
               className={styles.compareCta}
               onClick={() => setCompareOpen(true)}
-              aria-label={`Compare all ${phase.artifacts.length} actors side-by-side`}
+              aria-label={`并排对比全部 ${phase.artifacts.length} 位决策者`}
             >
-              Compare all {phase.artifacts.length} actors →
+
+              对比全部 {phase.artifacts.length}  位决策者 →
             </button>
           )}
           <QuickstartResults

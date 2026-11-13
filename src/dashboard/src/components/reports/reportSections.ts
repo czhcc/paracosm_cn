@@ -39,21 +39,21 @@ export interface ReportSectionPlan {
 }
 
 export const REPORT_FOCUS_LABELS: Record<ScenarioReportSection, string> = {
-  crisis: 'Crisis',
-  departments: 'Department analysis',
-  decision: 'Decision',
-  outcome: 'Outcome',
-  quotes: 'Agent voices',
-  causality: 'Causality',
+  crisis: '危机',
+  departments: "部门分析",
+  decision: '决策',
+  outcome: '结果',
+  quotes: "成员心声",
+  causality: '因果关系',
 };
 
 export const REPORT_ARTIFACT_LABELS: Record<ReportArtifact, string> = {
-  timeline: 'Turn timeline',
-  verdict: 'Verdict',
-  trajectory: 'Commander arcs',
-  cost: 'Cost breakdown',
-  toolbox: 'Forged toolbox',
-  references: 'References',
+  timeline: "回合时间线",
+  verdict: "评判",
+  trajectory: "决策者轨迹",
+  cost: "费用明细",
+  toolbox: "动态工具箱",
+  references: '参考资料',
 };
 
 const DEFAULT_FOCUS_SECTIONS: ScenarioReportSection[] = [

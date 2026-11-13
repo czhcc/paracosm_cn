@@ -32,8 +32,8 @@ function renderEntry(entry: Entry) {
         )}
         <div className={styles.itemMeta}>
           {entry.doi && <>DOI:{entry.doi} · </>}
-          {depts && <>cited by {depts} · </>}
-          <span title="Which leader's run referenced this source">leader {sidesLabel}</span>
+          {depts && <>引用于 {depts} · </>}
+          <span title="引用此来源的决策者运行">决策者 {sidesLabel}</span>
         </div>
       </span>
     </li>
@@ -96,7 +96,7 @@ function FilterBar({ actors, departments, actorFilter, departmentFilter, onActor
       {actors.length > 1 && (
         <div className={styles.filterField}>
           <label className={styles.filterLabel} htmlFor="references-actor-filter">
-            Leader
+            决策者
           </label>
           <select
             id="references-actor-filter"
@@ -104,7 +104,7 @@ function FilterBar({ actors, departments, actorFilter, departmentFilter, onActor
             value={actorFilter ?? ''}
             onChange={(e) => onActorChange(e.target.value || null)}
           >
-            <option value="">All leaders</option>
+            <option value="">全部决策者</option>
             {actors.map(a => (
               <option key={a} value={a}>{a}</option>
             ))}
@@ -114,7 +114,7 @@ function FilterBar({ actors, departments, actorFilter, departmentFilter, onActor
       {departments.length > 1 && (
         <div className={styles.filterField}>
           <label className={styles.filterLabel} htmlFor="references-department-filter">
-            Department
+            部门
           </label>
           <select
             id="references-department-filter"
@@ -122,7 +122,7 @@ function FilterBar({ actors, departments, actorFilter, departmentFilter, onActor
             value={departmentFilter ?? ''}
             onChange={(e) => onDepartmentChange(e.target.value || null)}
           >
-            <option value="">All departments</option>
+            <option value="">全部部门</option>
             {departments.map(d => (
               <option key={d} value={d}>{d}</option>
             ))}
@@ -130,7 +130,7 @@ function FilterBar({ actors, departments, actorFilter, departmentFilter, onActor
         </div>
       )}
       <span className={styles.filterStats}>
-        Showing {shown} of {total}
+        当前显示 {shown} of {total}
       </span>
     </div>
   );
@@ -203,7 +203,7 @@ export function ReferencesSection({ registry, title = 'References', collapsible 
 
   const inner = filtered.length > 0
     ? <ol className={styles.list}>{filtered.map(renderEntry)}</ol>
-    : <div className={styles.empty}>No references match the current filters.</div>;
+    : <div className={styles.empty}>没有符合当前筛选条件的参考资料。</div>;
 
   if (collapsible) {
     return (

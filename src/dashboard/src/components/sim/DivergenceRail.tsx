@@ -10,11 +10,11 @@ interface DivergenceRailProps {
 }
 
 const PILL_LABEL: Record<TurnDiffClass, string> = {
-  'same': 'Same event, same outcome',
-  'different-outcome': 'Same event, different outcome',
-  'different-event': 'Different events',
-  'pending': 'Turn is still running',
-  'one-sided': 'Only one leader has reached this turn',
+  'same': "相同事件、相同结果",
+  'different-outcome': "相同事件、不同结果",
+  'different-event': '不同事件',
+  'pending': '此回合仍在运行',
+  'one-sided': "仅一位决策者已到达此回合",
 };
 
 const PILL_GLYPH: Record<TurnDiffClass, string> = {
@@ -55,8 +55,8 @@ export function DivergenceRail({ state }: DivergenceRailProps) {
   };
 
   return (
-    <div aria-label="Per-turn divergence map" className={styles.rail}>
-      <span className={styles.heading}>DIVERGENCE</span>
+    <div aria-label="逐回合分歧图" className={styles.rail}>
+      <span className={styles.heading}>分歧</span>
       <div className={styles.pills}>
         {turns.map(t => {
           const entry = diffMap.get(t)!;
@@ -67,7 +67,7 @@ export function DivergenceRail({ state }: DivergenceRailProps) {
               type="button"
               className={`${styles.pill} ${styles[cls]}`}
               onClick={() => handlePillClick(t)}
-              aria-label={`Jump to turn ${t} — ${PILL_LABEL[entry.classification]}`}
+              aria-label={`跳转到回合 ${t} — ${PILL_LABEL[entry.classification]}`}
               title={PILL_LABEL[entry.classification]}
             >
               <span className={styles.pillGlyph} aria-hidden="true">{PILL_GLYPH[entry.classification]}</span>

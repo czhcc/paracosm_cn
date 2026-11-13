@@ -71,9 +71,9 @@ export function useTerminalToast({
       /* silent — fall through and toast once per mount */
     }
     if (isAborted) {
-      toast('info', 'Simulation ended early', 'Partial results saved. Reload to resume from the abort point.');
+      toast('info', "仿真提前结束", "已保存部分结果，重新加载可从中止处继续。");
     } else {
-      toast('success', 'Simulation complete', 'Open the Reports tab for the verdict + full breakdown.');
+      toast('success', "仿真完成", "打开报告页查看结论与完整分析。");
     }
   }, [isComplete, isAborted, abortReason, resultsCount, hasVerdict, replayDone, tourActive, userTriggeredRun, toast]);
 
@@ -102,13 +102,13 @@ export function useTerminalToast({
       } catch { /* silent */ }
       const body = (() => {
         switch (reason) {
-          case 'generation_failed': return 'The verdict LLM call failed. Reports tab has the raw stats.';
-          case 'cohort_too_large': return 'Cohort size exceeded the verdict cap. Reports tab has the breakdown.';
-          case 'economics_skip': return 'Verdicts off in your economics profile. Reports tab has the run summary.';
-          default: return 'Verdict unavailable for this run. See Reports for the breakdown.';
+          case 'generation_failed': return "结论模型调用失败，报告页可查看原始指标。";
+          case 'cohort_too_large': return "对比组人数超出结论评估上限，报告页可查看分析。";
+          case 'economics_skip': return "费用配置已关闭结论生成，报告页可查看运行总结。";
+          default: return "此运行暂无结论，请在报告页查看分析。";
         }
       })();
-      toast('info', 'Run finished — no verdict', body);
+      toast('info', "运行结束 — 暂无结论", body);
       return;
     }
     const winnerRaw = (verdict as { winner?: unknown }).winner;
@@ -136,9 +136,9 @@ export function useTerminalToast({
     }
     const isTie = winner === 'tie';
     const title = mode === 'cohort'
-      ? (isTie ? 'Cohort tied' : `${winnerName} leads the cohort`)
+      ? (isTie ? "对比组平局" : `${winnerName} leads the cohort`)
       : (isTie ? 'Verdict: tie' : `${winnerName} wins`);
-    const body = headline || 'Click the verdict banner for the full breakdown.';
+    const body = headline || "点击结论横幅查看完整分析。";
     toast('success', title, body);
   }, [verdict, replayDone, tourActive, userTriggeredRun, toast]);
 }

@@ -4,6 +4,7 @@ import { resolve, dirname, sep } from 'node:path';
 import { pipeline } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
+import { configuredModel } from '../engine/provider/model-config.js';
 import { normalizeSimulationConfig, applyDemoCaps, type NormalizedSimulationConfig, type SimulationSetupPayload } from '../cli/sim-config.js';
 import { runPairSimulations, runForkSimulation, runBatchSimulations, type BroadcastFn, type RunnerOptions } from '../cli/pair-runner.js';
 import {
@@ -149,7 +150,7 @@ export const MEMORY_SCENARIO_IDLE_MS = 24 * 60 * 60 * 1000;
 
 /** What POST /compile answers for an id it may not take. */
 function scenarioIdTakenMessage(id: string): string {
-  return `"${id}" is taken on this server. Give your scenario an id of its own.`;
+  return `“${id}”已被此服务器上的场景使用，请为新场景设置独立的 ID。`;
 }
 
 /**
@@ -521,7 +522,7 @@ export function buildResultsPayloadFromEventBuffer(eventBuffer: readonly string[
     const pendKey = `${leader}-${turn}-${eventIndex ?? 0}`;
     if (type === 'event_start') {
       slot.events.push({ turn, time, eventIndex, title: data.title as string, category: data.category as string, description: data.description as string, emergent: data.emergent as boolean });
-    } else if (type === 'turn_start' && data.title && data.title !== 'Director generating...') {
+    } else if (type === 'turn_start' && data.title && !['Director generating...', '事件导演正在生成…'].includes(String(data.title))) {
       slot.events.push({ turn, time, title: data.title as string, category: data.category as string, description: data.crisis as string, emergent: data.emergent as boolean });
     } else if (type === 'decision_made') {
       pendingDecision.set(pendKey, {
@@ -1097,7 +1098,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         const raw = JSON.parse(readFileSync(scenarioPath, 'utf-8')) as Record<string, unknown>;
         const compiled = await compileScenarioReal(raw, {
           provider: 'openai',
-          model: 'gpt-5.4-mini',
+          model: configuredModel('openai', env) ?? 'gpt-5.4-mini',
           cache: true,
         });
         digitalTwinWorld = WorldModel.fromScenario(compiled);
@@ -1446,7 +1447,9 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       // without a round-trip to /sessions.
       const titleProvider = run.config?.provider === 'anthropic' ? 'anthropic' : 'openai';
       const store = sessionStore; // non-null inside this closure
-      void generateSessionTitle(events, titleProvider, runGenerateText).then(async (title) => {
+      void generateSessionTitle(events, titleProvider, args => runGenerateText({
+        ...args, model: configuredModel(titleProvider, env) ?? args.model,
+      })).then(async (title) => {
         if (!title) return;
         try {
           await store.updateTitle(result.id, title);
@@ -1941,6 +1944,10 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
           maxActiveDepartments: DEMO_EXECUTION.maxActiveDepartments,
         },
         memoryScenarios: [...(ownMemoryScenarios(req)?.keys() ?? [])],
+        defaultModels: {
+          openai: configuredModel('openai', env),
+          anthropic: configuredModel('anthropic', env),
+        },
         keys: {
           openai: !!env.OPENAI_API_KEY,
           anthropic: !!env.ANTHROPIC_API_KEY,
@@ -2002,15 +2009,15 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         } else {
           const id: unknown = scenarioJson.id;
           if (typeof id !== 'string') {
-            refuse(400, 'The scenario id must be a string.', 'an id that is not a string');
+            refuse(400, '场景 ID 必须是字符串。', 'an id that is not a string');
             return;
           }
           if (customScenarioCatalog.has(id) || hydratingScenarioIds.has(id)) {
-            refuse(409, `"${id}" is the id of a scenario every visitor sees. Give your copy an id of its own.`, 'an id the shared catalog holds');
+            refuse(409, `“${id}”是所有访客可见的公共场景 ID，请为你的副本设置独立的 ID。`, 'an id the shared catalog holds');
             return;
           }
           if (Buffer.byteLength(JSON.stringify(scenarioJson)) > MEMORY_SCENARIO_MAX_BYTES) {
-            refuse(413, `A scenario held in memory is at most ${MEMORY_SCENARIO_MAX_BYTES / 1024} KiB of JSON.`, 'over the size held in memory');
+            refuse(413, `暂存在内存中的单个场景 JSON 不得超过 ${MEMORY_SCENARIO_MAX_BYTES / 1024} KiB。`, 'over the size held in memory');
             return;
           }
           // The counts below are of what is still held: a scenario past the idle time goes first.
@@ -2023,7 +2030,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
             held.usedAt = Date.now();
           } else {
             if (own.size >= MEMORY_SCENARIOS_PER_VISITOR) {
-              refuse(507, `This server holds at most ${MEMORY_SCENARIOS_PER_VISITOR} scenarios in memory for one visitor. Store over one of yours.`, 'the visitor holds the most scenarios in memory');
+              refuse(507, `此服务器为每位访客最多暂存 ${MEMORY_SCENARIOS_PER_VISITOR} 个场景，请覆盖你已暂存的场景。`, 'the visitor holds the most scenarios in memory');
               return;
             }
             const address = IpRateLimiter.getIp(req);
@@ -2034,14 +2041,14 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
               }
             }
             if (atAddress >= MEMORY_SCENARIOS_PER_ADDRESS) {
-              refuse(507, `This server holds at most ${MEMORY_SCENARIOS_PER_ADDRESS} scenarios in memory for one address. Store over one of yours.`, 'the address holds the most scenarios in memory');
+              refuse(507, `此服务器为同一地址最多暂存 ${MEMORY_SCENARIOS_PER_ADDRESS} 个场景，请覆盖你已暂存的场景。`, 'the address holds the most scenarios in memory');
               return;
             }
             if (memoryScenarioCount >= MEMORY_SCENARIOS_CAP) {
               const idle = memoryScenarioIdleMs >= 3_600_000
-                ? `${Math.round(memoryScenarioIdleMs / 3_600_000)} hours`
-                : `${Math.round(memoryScenarioIdleMs / 1000)} seconds`;
-              refuse(507, `This server holds at most ${MEMORY_SCENARIOS_CAP} scenarios in memory, every visitor's together, and it is full. It drops a stored scenario that goes unused for ${idle}, so try again later.`, 'the memory store is full');
+                ? `${Math.round(memoryScenarioIdleMs / 3_600_000)} 小时`
+                : `${Math.round(memoryScenarioIdleMs / 1000)} 秒`;
+              refuse(507, `此服务器供所有访客暂存的场景上限为 ${MEMORY_SCENARIOS_CAP} 个，目前已满。暂存场景闲置 ${idle} 后会被移除，请稍后重试。`, 'the memory store is full');
               return;
             }
             memoryScenarios.set(visitorId, own);
@@ -2167,7 +2174,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
           // `inferProviderFromCredentials` still honors single-key
           // intent when only one of OPENAI/ANTHROPIC is in env.
           defaultProvider: 'openai',
-          defaultModel: 'gpt-5.4-mini',
+          defaultModel: configuredModel('openai', env) ?? 'gpt-5.4-mini',
           recordGroundingCitations: (scenarioId, citations) => {
             groundingCitationsByScenarioId.set(scenarioId, citations);
           },
@@ -2368,7 +2375,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         // paths honor the requested model.
         const demoCompileModel = provider === 'anthropic' ? 'claude-haiku-4-5-20251001' : 'gpt-5.4-nano';
         const model = !hostBilled
-          ? (requestedModel || (provider === 'anthropic' ? 'claude-sonnet-4-6' : 'gpt-5.4-mini'))
+          ? (requestedModel || configuredModel(provider, env) || (provider === 'anthropic' ? 'claude-sonnet-4-6' : 'gpt-5.4-mini'))
           : demoCompileModel;
 
         // SSE progress stream
@@ -2712,6 +2719,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         const provider = resolveProviderFromCredentials(chatRun.config?.provider, chatCredentials, envDefaultProvider);
         const { session, isNew } = await getOrCreateChatAgent(profile, memories, {
           provider,
+          model: configuredModel(provider, env),
           apiKey: chatCredentials.apiKey,
           anthropicKey: chatCredentials.anthropicKey,
           settlementNoun: runLabels?.settlementNoun,
@@ -3228,7 +3236,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         // The visitor whose run this is: the paracosm_visitor cookie the
         // dashboard's HTML gave the browser, else the anonymous visitor.
         const visitorId = readVisitorId(req);
-        let simConfig = normalizeSimulationConfig(config as SimulationSetupPayload, runScenario);
+        let simConfig = normalizeSimulationConfig(config as SimulationSetupPayload, runScenario, env);
 
         // Spec 2B: validate fork preconditions against the supplied
         // parent artifact before spinning up the orchestrator.

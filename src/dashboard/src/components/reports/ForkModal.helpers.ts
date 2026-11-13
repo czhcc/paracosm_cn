@@ -45,7 +45,7 @@ export function resolveLeaderPresets(
   const presetLeaders = (scenario.presets?.[0]?.leaders ?? []).map(l => ({
     name: l.name,
     archetype: l.archetype,
-    unit: 'Forked Branch',
+    unit: "运行分支",
     hexaco: normalizeHexacoProfile(l.hexaco),
     instructions: l.instructions,
   }));

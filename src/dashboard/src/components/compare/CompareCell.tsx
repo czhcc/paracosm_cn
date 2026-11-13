@@ -22,7 +22,7 @@ export function CompareCell({ record, pinned, onTogglePin, onOpen, displayIndex 
           <h4 className={styles.name}>{displayName}</h4>
           {record.actorArchetype && <p className={styles.archetype}>{record.actorArchetype}</p>}
         </div>
-        <label className={styles.pinLabel} title={pinned ? 'Unpin' : 'Pin to compare side-by-side'}>
+        <label className={styles.pinLabel} title={pinned ? 'Unpin' : "固定以并排对比"}>
           <input
             type="checkbox"
             checked={pinned}
@@ -36,7 +36,7 @@ export function CompareCell({ record, pinned, onTogglePin, onOpen, displayIndex 
       <footer className={styles.foot}>
         <span className={styles.cost}>{record.costUSD ? `$${record.costUSD.toFixed(2)}` : '—'}</span>
         <span className={styles.duration}>{record.durationMs ? `${Math.round(record.durationMs / 1000)}s` : '—'}</span>
-        <button onClick={onOpen} className={styles.openBtn} aria-label={`Open ${displayName} details`}>Open</button>
+        <button onClick={onOpen} className={styles.openBtn} aria-label={`Open ${displayName} details`}>打开</button>
       </footer>
     </article>
   );
@@ -54,7 +54,7 @@ function Sparkline({ values }: { values: number[] }): JSX.Element {
     .map((v, i) => `${pad + (i / (values.length - 1)) * (W - pad * 2)},${pad + (H - pad * 2) * (1 - (v - minV) / range)}`)
     .join(' ');
   return (
-    <svg className={styles.sparkline} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Run trajectory sparkline">
+    <svg className={styles.sparkline} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="运行轨迹迷你图">
       <polyline points={points} fill="none" stroke="var(--amber)" strokeWidth={1.5} />
     </svg>
   );

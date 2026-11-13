@@ -58,24 +58,21 @@ export function LoadPriorRunsCTA({ hideWhenUnavailable = true }: LoadPriorRunsCT
       <div className={styles.headerRow}>
         <div>
           <div className={kickerCls}>
-            ▶ {isEmpty ? 'Replay from cache' : 'Watch a prior run'}
+            ▶ {isEmpty ? "从缓存回放" : "查看以往运行"}
           </div>
           {isEmpty ? (
             <div className={leadCls}>
-              No saved runs yet.{' '}
+              暂无已保存的运行。{' '}
               <span className={styles.leadMuted}>
-                Once any simulation completes it{"'"}s auto-cached here, so you can replay the
-                full turn-by-turn playback — every decision, tool forge, and divergence —
-                without re-spending credits.
+                任何仿真完成后都会{"'"}自动保存在这里，便于逐回合回放决策、工具生成和演变分叉，无需再次产生调用费用。
               </span>
             </div>
           ) : (
             <div className={leadCls}>
-              Don{"'"}t want to spend credits?{' '}
+              不{"'"}想产生调用费用？{' '}
               <span className={styles.leadMuted}>
-                Replay any of <strong className={styles.leadCount}>{sessions.length}</strong>{' '}
-                cached simulation{sessions.length === 1 ? '' : 's'} turn-by-turn, complete with
-                every decision, tool forge, and divergence.
+                可以回放 <strong className={styles.leadCount}>{sessions.length}</strong>{' '}
+                个已缓存仿真{sessions.length === 1 ? '' : 's'} ，逐回合查看每次决策、工具生成和演变分叉。
               </span>
             </div>
           )}
@@ -83,11 +80,11 @@ export function LoadPriorRunsCTA({ hideWhenUnavailable = true }: LoadPriorRunsCT
         <button
           type="button"
           onClick={refresh}
-          aria-label="Refresh prior runs list"
-          title="Refresh list"
+          aria-label="刷新历史运行列表"
+          title="刷新列表"
           className={styles.refreshBtn}
         >
-          ↻ Refresh
+          ↻ 刷新
         </button>
       </div>
       {!isEmpty && (
@@ -112,15 +109,14 @@ export function LoadPriorRunsCTA({ hideWhenUnavailable = true }: LoadPriorRunsCT
               {typeof s.totalCostUSD === 'number' && s.totalCostUSD > 0 && (
                 <span className={styles.tileCost}>${s.totalCostUSD.toFixed(2)}</span>
               )}
-              <span className={styles.tileCta}>Replay →</span>
+              <span className={styles.tileCta}>回放 →</span>
             </button>
           ))}
         </div>
       )}
       {!isEmpty && sessions.length > 3 && (
         <div className={styles.moreNote}>
-          + {sessions.length - 3} more — use the <strong>LOAD</strong> button in the top bar to
-          browse the full list.
+          + {sessions.length - 3} 更多，请使用 <strong>加载</strong> 顶部按钮浏览完整列表。
         </div>
       )}
     </div>

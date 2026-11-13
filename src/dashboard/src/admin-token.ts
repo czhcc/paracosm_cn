@@ -21,7 +21,7 @@ export const ADMIN_TOKEN_STORAGE_KEY = 'paracosm:adminToken';
 export const ADMIN_TOKEN_HEADER = 'X-Admin-Token';
 
 /** Where a person enters the token. Shown after the server refuses a call. */
-export const ADMIN_TOKEN_WHERE = 'Enter it in Settings, under Admin Token, and press Save.';
+export const ADMIN_TOKEN_WHERE = '请在“设置”的“管理员令牌”中输入令牌，然后点击“保存”。';
 
 /** `stored`: in this browser's storage. `held`: the browser could not store it, in memory until a reload. */
 export type AdminTokenState = 'none' | 'stored' | 'held';

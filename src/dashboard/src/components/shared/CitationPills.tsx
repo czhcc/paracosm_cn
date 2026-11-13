@@ -29,7 +29,7 @@ export function CitationPills({ citations, label = 'sources', inline = false }: 
     const url = (c.url || '').trim();
     const text = (c.text || '').trim();
     if (!url && !text) continue;
-    if (!url && text === 'Seed document') continue;
+    if (!url && text === "种子文档") continue;
     const lookup = url || text;
     const n = registry.getNumber(lookup);
     if (n === 0 || seen.has(n)) continue;
@@ -66,7 +66,7 @@ function CitationPill({ n, entry }: { n: number; entry: CitationEntry | { text: 
 
   const popover = (
     <div className={styles.popoverWrap}>
-      <div className={styles.popoverHeader}>REFERENCE [{n}]</div>
+      <div className={styles.popoverHeader}>参考资料 [{n}]</div>
       <div className={styles.popoverText}>{text}</div>
       {url && (
         <div className={styles.popoverUrlRow}>
@@ -78,12 +78,13 @@ function CitationPill({ n, entry }: { n: number; entry: CitationEntry | { text: 
       {doi && <div className={styles.popoverDoi}>DOI:{doi}</div>}
       {(departments.length > 0 || actorNames.length > 0) && (
         <div className={styles.popoverProvenance}>
-          {departments.length > 0 && <>cited by {departments.join(', ')} · </>}
-          {actorNames.length > 0 && <>leader {actorNames.join(' · ')}</>}
+          {departments.length > 0 && <>引用于 {departments.join(', ')} · </>}
+          {actorNames.length > 0 && <>决策者 {actorNames.join(' · ')}</>}
         </div>
       )}
       <div className={styles.popoverHint}>
-        Click to open source · or scroll to References below
+
+        点击打开来源，或滚动至下方参考资料
       </div>
     </div>
   );

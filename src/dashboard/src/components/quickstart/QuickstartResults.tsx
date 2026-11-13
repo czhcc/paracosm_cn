@@ -104,28 +104,28 @@ export function QuickstartResults({ actors, artifacts, sessionId, onSwap }: Quic
   }, [artifacts]);
 
   return (
-    <div className={styles.results} role="region" aria-label="Quickstart results">
-      <div className={styles.runSummary} role="region" aria-label="Run summary">
-        <div className={styles.summaryStat} title="Web sources Paracosm pulled via Serper + Tavily and attached to the scenario before generating actors. Grounds the sim in real-world knowledge instead of pure LLM imagination.">
+    <div className={styles.results} role="region" aria-label="快速开始结果">
+      <div className={styles.runSummary} role="region" aria-label="运行总结">
+        <div className={styles.summaryStat} title="生成决策者前，通过 Serper 和 Tavily 检索并加入场景的网络来源，为仿真提供现实资料依据。">
           <span className={styles.summaryNum}>{summary.totalCitations}</span>
-          <span className={styles.summaryLabel}>citations · web research</span>
+          <span className={styles.summaryLabel}>条引用 · 网络研究</span>
         </div>
-        <div className={styles.summaryStat} title="AgentOS tool forging: when a department needed a calculation the codebase didn't provide, it wrote one in a sandboxed node:vm at runtime. The judge reviewed each for safety + correctness before letting it enter the decision pipeline.">
+        <div className={styles.summaryStat} title="当部门需要现有代码未提供的计算时，AgentOS 在 node:vm 沙箱中动态创建工具。工具须通过安全性与正确性审查后才能参与决策。">
           <span className={styles.summaryNum}>{summary.totalTools}</span>
-          <span className={styles.summaryLabel}>tools forged · AgentOS sandbox</span>
+          <span className={styles.summaryLabel}>个生成工具 · AgentOS 沙箱</span>
         </div>
-        <div className={styles.summaryStat} title="Commander decisions across all 3 actors. Each one went through the full propose / judge / execute cycle.">
+        <div className={styles.summaryStat} title="各决策者的决策次数，每次均经过提议、审查与执行流程。">
           <span className={styles.summaryNum}>{summary.totalDecisions}</span>
-          <span className={styles.summaryLabel}>commander decisions</span>
+          <span className={styles.summaryLabel}>次指挥官决策</span>
         </div>
-        <div className={styles.summaryStat} title="Total simulation turns across all 3 parallel actors. Each turn = one decision cycle: department analysis, commander decision, kernel advance, agent reactions.">
+        <div className={styles.summaryStat} title="所有并行决策者的仿真回合总数。每回合包含部门分析、决策、内核推进与成员反应。">
           <span className={styles.summaryNum}>{summary.totalTurns}</span>
-          <span className={styles.summaryLabel}>turns simulated</span>
+          <span className={styles.summaryLabel}>个仿真回合</span>
         </div>
         {summary.totalCostUSD > 0 && (
-          <div className={styles.summaryStat} title="Total LLM spend across all 3 actors. Provider: gpt-5.4-mini for sims, gpt-4o for verdict.">
+          <div className={styles.summaryStat} title="所有决策者累计模型调用费用，具体模型以当前运行配置为准。">
             <span className={styles.summaryNum}>${summary.totalCostUSD.toFixed(2)}</span>
-            <span className={styles.summaryLabel}>LLM cost</span>
+            <span className={styles.summaryLabel}>模型费用</span>
           </div>
         )}
       </div>
@@ -198,7 +198,7 @@ function ActorResultCard({
           onClick={onRequestSwap}
           aria-label={`Swap ${actor.name}`}
         >
-          Swap
+          更换
         </button>
       </header>
       <div className={styles.hexaco}>
@@ -223,7 +223,7 @@ function ActorResultCard({
         </code>
       </div>
       {deltas.length > 0 && (
-        <ul className={styles.deltas} aria-label="Delta vs peer median">
+        <ul className={styles.deltas} aria-label="与组内中位数的差值">
           {deltas.slice(0, 4).map(d => (
             <li
               key={`${d.bag}.${d.key}`}
@@ -235,23 +235,23 @@ function ActorResultCard({
         </ul>
       )}
       <div className={styles.actions}>
-        <button type="button" onClick={onDownload}>Download JSON</button>
+        <button type="button" onClick={onDownload}>下载 JSON</button>
         <button
           type="button"
           onClick={onShare}
           disabled={!shareEnabled}
-          title="Copy a deep link that opens this run on the visualization tab"
+          title="复制可直接打开此次运行可视化页面的链接"
         >
-          {copiedHere ? 'Copied!' : 'Copy viz share link'}
+          {copiedHere ? 'Copied!' : "复制可视化分享链接"}
         </button>
         <button
           type="button"
           onClick={onFork}
           disabled={turnsCompleted === 0}
           className={styles.forkButton}
-          title={turnsCompleted === 0 ? 'No turns completed yet' : `Promote to fork root and open Branches tab. ${turnsCompleted} ${turnsCompleted === 1 ? timeLabel : `${timeLabel}s`} available.`}
+          title={turnsCompleted === 0 ? "尚无已完成回合" : `设为分支起点并打开分支页。 ${turnsCompleted} ${turnsCompleted === 1 ? timeLabel : `${timeLabel}s`} available.`}
         >
-          Fork in Branches &rarr;
+          在分支中继续运行 →
         </button>
       </div>
       <div className={styles.forkHint}>

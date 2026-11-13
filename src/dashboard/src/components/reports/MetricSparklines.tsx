@@ -27,7 +27,7 @@ export interface MetricSparklinesProps {
 }
 
 function formatValue(v: number, unit?: string): string {
-  if (unit === 'mo' || unit === 'kW') return `${v.toFixed(1)}${unit ? ' ' + unit : ''}`;
+  if (unit === '月' || unit === 'kW') return `${v.toFixed(1)}${unit ? ' ' + unit : ''}`;
   if (v > 0 && v < 1) return `${Math.round(v * 100)}%`;
   return `${Math.round(v)}${unit ? ' ' + unit : ''}`;
 }
@@ -101,7 +101,7 @@ function SparkCard({ metric, sideAColor, sideBColor }: CardProps) {
           width="100%"
           height={H}
           role="img"
-          aria-label={`${metric.label} sparkline (${metric.series!.length} actors)`}
+          aria-label={`${metric.label}变化图（${metric.series!.length} 位决策者）`}
         >
           <line x1={padX} y1={H / 2} x2={W - padX} y2={H / 2} stroke="var(--border)" strokeWidth="0.5" strokeDasharray="2,3" />
           {metric.series!.map((s) => {
@@ -166,7 +166,7 @@ function SparkCard({ metric, sideAColor, sideBColor }: CardProps) {
         width="100%"
         height={H}
         role="img"
-        aria-label={`${metric.label} sparkline`}
+        aria-label={`${metric.label}变化图`}
       >
         <line x1={padX} y1={H / 2} x2={W - padX} y2={H / 2} stroke="var(--border)" strokeWidth="0.5" strokeDasharray="2,3" />
         {aPoints && (
@@ -208,9 +208,9 @@ export function MetricSparklines(props: MetricSparklinesProps) {
   } as CSSProperties;
 
   return (
-    <section aria-label="Metric sparklines" className={styles.section} style={themeStyle}>
+    <section aria-label="指标迷你图" className={styles.section} style={themeStyle}>
       <div className={styles.sectionHeader}>
-        <span className={styles.sectionTitle}>Metric Trajectories</span>
+        <span className={styles.sectionTitle}>指标变化轨迹</span>
         {isCohortShape ? (
           <span className={styles.legendCohort}>
             {(populated[0].series ?? []).map((s, idx) => (

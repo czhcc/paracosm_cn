@@ -1,3 +1,4 @@
+import { roleLabel, departmentLabel, displayLabel } from '../../../template-localization';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { TurnSnapshot, ClusterMode, CellSnapshot } from '../viz-types.js';
 import styles from './LivingSwarmGrid.module.scss';
@@ -909,8 +910,8 @@ export function LivingSwarmGrid(props: LivingSwarmGridProps) {
           role="img"
           aria-label={
             snapshot
-              ? `${actorName} ${scenarioLabels.place}, turn ${snapshot.turn}. ${snapshot.cells.filter(c => c.alive).length} alive, morale ${Math.round(snapshot.morale * 100)}%${typeof snapshot.foodReserve === 'number' ? `, food reserve ${snapshot.foodReserve.toFixed(1)} months` : ''}. ${snapshot.births} births, ${snapshot.deaths} deaths this turn. Click a ${scenarioLabels.person} glyph for drilldown.`
-              : `${actorName} ${scenarioLabels.place} — waiting for first turn.`
+              ? `${actorName} ${scenarioLabels.place}，第 ${snapshot.turn} 回合。 ${snapshot.cells.filter(c => c.alive).length} 人存活，士气 ${Math.round(snapshot.morale * 100)}%${typeof snapshot.foodReserve === 'number' ? `, 食物储备 ${snapshot.foodReserve.toFixed(1)} 月` : ''}. ${snapshot.births} 人出生，${snapshot.deaths} 人于本回合死亡。点击 ${scenarioLabels.person}查看详情.`
+              : `${actorName} ${scenarioLabels.place} — 等待首个回合。`
           }
           onMouseMove={onMouseMove}
           onMouseLeave={onMouseLeave}
@@ -930,8 +931,8 @@ export function LivingSwarmGrid(props: LivingSwarmGridProps) {
         <button
           type="button"
           onClick={() => setRosterOpen(v => !v)}
-          aria-label={rosterOpen ? 'Close roster' : 'Open roster'}
-          title={rosterOpen ? 'Close roster' : 'Open roster'}
+          aria-label={rosterOpen ? "关闭成员名单" : "打开成员名单"}
+          title={rosterOpen ? "关闭成员名单" : "打开成员名单"}
           className={styles.cornerBtn}
           style={{
             '--right-offset': onToggleFocus ? '36px' : '8px',
@@ -945,8 +946,8 @@ export function LivingSwarmGrid(props: LivingSwarmGridProps) {
           <button
             type="button"
             onClick={() => onToggleFocus(side)}
-            aria-label={isFocused ? 'Restore split view' : 'Focus this panel'}
-            title={isFocused ? 'Restore split view' : 'Focus this panel'}
+            aria-label={isFocused ? "恢复分栏视图" : "聚焦此面板"}
+            title={isFocused ? "恢复分栏视图" : "聚焦此面板"}
             className={`${styles.cornerBtn} ${styles.focusBtn}`}
             style={{
               '--btn-color': isFocused ? 'var(--amber)' : 'var(--text-3)',
@@ -994,7 +995,8 @@ export function LivingSwarmGrid(props: LivingSwarmGridProps) {
         {mode === 'divergence' && snapshot && (divergedIds?.size ?? 0) === 0 && (
           <div className={styles.divergenceEmpty}>
             <div className={styles.divergenceEmptyMsg}>
-              Both timelines identical this turn — no divergence yet
+
+              此回合两条时间线相同，尚未出现分歧
             </div>
           </div>
         )}
@@ -1007,9 +1009,9 @@ export function LivingSwarmGrid(props: LivingSwarmGridProps) {
           );
           const top = Math.max(margin, hoveredTile.y - 84);
           const kindLabel =
-            hoveredTile.kind === 'birth' ? '+ BIRTH MARKER'
-            : hoveredTile.kind === 'death' ? '× DEATH MARKER'
-            : '◼ CONWAY CELL';
+            hoveredTile.kind === 'birth' ? "+ 出生标记"
+            : hoveredTile.kind === 'death' ? "× 死亡标记"
+            : "◼ 康威元胞";
           const kindColor =
             hoveredTile.kind === 'birth' ? 'rgba(154, 205, 96, 0.95)'
             : hoveredTile.kind === 'death' ? 'rgba(168, 152, 120, 0.95)'
@@ -1025,30 +1027,34 @@ export function LivingSwarmGrid(props: LivingSwarmGridProps) {
             >
               <div className={styles.tileKindLabel}>{kindLabel}</div>
               <div className={styles.tileCoords}>
-                tile ({hoveredTile.col}, {hoveredTile.row})
+
+                单元格（{hoveredTile.col}, {hoveredTile.row})
               </div>
               {hoveredTile.nearest ? (
                 <>
                   <div className={styles.tileNearestName}>{hoveredTile.nearest.name}</div>
                   <div className={styles.tileNearestRole}>
-                    {hoveredTile.nearest.role} · {hoveredTile.nearest.department.toUpperCase()}
+                    {roleLabel(hoveredTile.nearest.role)} · {departmentLabel(hoveredTile.nearest.department)}
                   </div>
                   {hoveredTile.kind === 'death' ? (
                     <div className={styles.tileNearestDeath}>
-                      deceased · mood at death: {hoveredTile.nearest.mood}
+
+                      已故 · 去世时情绪： {displayLabel(hoveredTile.nearest.mood)}
                     </div>
                   ) : hoveredTile.kind === 'birth' ? (
                     <div className={styles.tileNearestBirth}>
-                      native-born · generation {hoveredTile.nearest.generation ?? 0}
+
+                      本地出生 · 世代 {hoveredTile.nearest.generation ?? 0}
                     </div>
                   ) : (
                     <div className={styles.tileNearestPattern}>
-                      pattern seeded by nearest colonist's mood: {hoveredTile.nearest.mood}
+
+                      图案由最近居民的情绪决定： {displayLabel(hoveredTile.nearest.mood)}
                     </div>
                   )}
                 </>
               ) : (
-                <div className={styles.tileAmbient}>ambient CA cell</div>
+                <div className={styles.tileAmbient}>背景元胞</div>
               )}
               {/* Per-cell GoL state — distinguishes physically distinct
                   cells that share the same nearest-colonist attribution.
@@ -1072,7 +1078,8 @@ export function LivingSwarmGrid(props: LivingSwarmGridProps) {
                 }
                 return (
                   <div className={styles.tileNearestPattern}>
-                    age {age} · {neighbors} neighbors alive
+
+                    年龄 {age} · {neighbors}  存活邻居
                   </div>
                 );
               })()}
@@ -1103,15 +1110,16 @@ export function LivingSwarmGrid(props: LivingSwarmGridProps) {
             <div className={styles.hoverHeader}>
               {hovered.cell.name}
               {hovered.cell.featured && (
-                <span className={styles.hoverFeaturedPill}>FEATURED</span>
+                <span className={styles.hoverFeaturedPill}>重点成员</span>
               )}
             </div>
             <div className={styles.hoverRole}>
-              {hovered.cell.department.toUpperCase()} · {hovered.cell.role}
+              {departmentLabel(hovered.cell.department)} · {roleLabel(hovered.cell.role)}
               {typeof hovered.cell.age === 'number' ? ` · age ${hovered.cell.age}` : ''}
             </div>
             <div className={styles.hoverMood}>
-              mood: <span className={styles.hoverMoodValue}>{hovered.cell.mood}</span>
+
+              情绪： <span className={styles.hoverMoodValue}>{displayLabel(hovered.cell.mood)}</span>
               {typeof hovered.cell.psychScore === 'number'
                 ? ` · psych ${Math.round(hovered.cell.psychScore * 100)}%`
                 : ''}
@@ -1138,14 +1146,14 @@ export function LivingSwarmGrid(props: LivingSwarmGridProps) {
                 .join(' ');
               return (
                 <div className={styles.psychBlock}>
-                  <div className={styles.psychLabel}>PSYCH TRAJECTORY</div>
+                  <div className={styles.psychLabel}>心理变化轨迹</div>
                   <svg
                     viewBox={`0 0 ${sW} ${sH}`}
                     preserveAspectRatio="none"
                     width={sW}
                     height={sH}
                     role="img"
-                    aria-label={`Psychological trajectory across ${trail.length} turns`}
+                    aria-label={`心理变化轨迹，覆盖 ${trail.length} turns`}
                     className={styles.psychSvg}
                   >
                     <line
@@ -1169,7 +1177,8 @@ export function LivingSwarmGrid(props: LivingSwarmGridProps) {
               );
             })()}
             <div className={styles.hoverHint}>
-              click for drilldown
+
+              点击查看详情
             </div>
           </div>
           );

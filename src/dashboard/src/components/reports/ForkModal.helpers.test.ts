@@ -31,7 +31,7 @@ test('resolveLeaderPresets: Mars scenario exposes at least one well-formed prese
   for (const p of presets) {
     assert.ok(p.name && p.archetype, 'leader has name + archetype');
     assert.ok(p.hexaco && typeof p.hexaco.openness === 'number', 'leader has HEXACO profile');
-    assert.equal(p.unit, 'Forked Branch', 'unit filled in with fork-branch label');
+    assert.equal(p.unit, "运行分支", 'unit filled in with fork-branch label');
   }
 });
 

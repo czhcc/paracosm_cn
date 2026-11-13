@@ -1,3 +1,4 @@
+import { CHINESE_OUTPUT_INSTRUCTIONS } from './chinese.js';
 /**
  * One-shot schema-validated LLM call, wrapping AgentOS's generateObject
  * with paracosm's run-level observability (cost tracking, provider error
@@ -83,6 +84,8 @@ export async function generateValidatedObject<T extends ZodType>(
   const systemBlocks: Array<{ text: string; cacheBreakpoint?: boolean }> = [];
   if (opts.systemCacheable) systemBlocks.push({ text: opts.systemCacheable, cacheBreakpoint: true });
   if (opts.systemTail) systemBlocks.push({ text: opts.systemTail });
+
+  systemBlocks.push({ text: CHINESE_OUTPUT_INSTRUCTIONS });
 
   try {
     const result = await impl({

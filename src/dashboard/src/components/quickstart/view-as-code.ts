@@ -23,7 +23,7 @@ export interface RecipeInput {
  * first arg (string brief or URL instance for sourceUrl-driven runs).
  */
 export function renderTsRecipe(state: RecipeInput): string {
-  const seed = escapeForTsTemplate(state.seedText.length > 0 ? state.seedText : '<paste your scenario above>');
+  const seed = escapeForTsTemplate(state.seedText.length > 0 ? state.seedText : "<在上方粘贴场景描述>");
   const lines: string[] = [];
   lines.push("// Recreate this Quickstart run from your code.");
   lines.push("import { runMany } from 'paracosm';");
@@ -75,7 +75,7 @@ function escapeForTsSingleQuote(s: string): string {
  */
 export function renderCurlRecipe(state: RecipeInput): string {
   const body: Record<string, string | number> = {
-    seedText: state.seedText.length > 0 ? state.seedText : '<paste your scenario above>',
+    seedText: state.seedText.length > 0 ? state.seedText : "<在上方粘贴场景描述>",
   };
   if (state.domainHint && state.domainHint.trim().length > 0) {
     body.domainHint = state.domainHint;

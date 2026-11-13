@@ -22,7 +22,7 @@ test('CompareModal: extraArtifacts only (no bundleId) renders without crash + in
     />,
   );
   assert.match(html, /Aria Chen/);
-  assert.match(html, /uploaded/i);
+  assert.match(html, /已上传/i);
 });
 
 test('CompareModal: existing bundleId-only invocation still works (regression)', () => {

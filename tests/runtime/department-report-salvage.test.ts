@@ -182,7 +182,7 @@ test('a report that no reply can give is still counted and reported as a fallbac
   assert.equal(result.fromFallback, true);
   assert.equal(result.salvaged, false);
   assert.deepEqual(result.droppedKeys, []);
-  assert.equal(result.report.summary, 'medical report unavailable this turn.');
+  assert.equal(result.report.summary, '本回合未能生成部门报告。');
   assert.equal(fallbacks.length, 1);
   assert.equal(events.length, 0, 'the fallback event is the orchestrator\'s, through onValidationFallback');
   assert.deepEqual(tracker.finalCost().schemaRetries?.DepartmentReport, { attempts: 3, calls: 1, fallbacks: 1 });
@@ -271,8 +271,8 @@ test('a salvaged report and a fallback each show in the turn row they happened i
       React.createElement(EventCard, { actorIndex: 0, event: event as never })),
   );
   const salvageCard = draw(salvage[0]);
-  assert.match(salvageCard, /SCHEMA SALVAGE/);
+  assert.match(salvageCard, /结构校验修复/);
   // React's server render puts <!-- --> between adjacent text parts.
-  assert.match(salvageCard, /kept without: (<!-- -->)?power</);
-  assert.match(draw(fallback[0]), /SCHEMA FALLBACK/);
+  assert.match(salvageCard, /保留但缺少： (<!-- -->)?power</);
+  assert.match(draw(fallback[0]), /结构校验回退/);
 });

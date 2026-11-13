@@ -9,9 +9,9 @@ import {
 import styles from './AdminTokenField.module.scss';
 
 const STATUS: Record<AdminTokenState, string> = {
-  none: 'No token is saved in this browser.',
-  stored: 'A token is saved in this browser. It is not shown back.',
-  held: 'This browser could not store the token, so it is kept only until this page reloads.',
+  none: '此浏览器尚未保存管理员令牌。',
+  stored: '此浏览器已保存管理员令牌，已保存的内容不会回显。',
+  held: '此浏览器无法持久保存令牌，仅在本次页面打开期间有效，刷新后失效。',
 };
 
 /**
@@ -44,12 +44,11 @@ export function AdminTokenField() {
   return (
     <div>
       <p className={styles.intro}>
-        Admin writes on this server take its <code>ADMIN_TOKEN</code>: Save to Disk in the scenario editor below,
-        the server wipe that Clear local data runs, and Delete in a scenario&apos;s details. Enter the token once.
-        The dashboard sends it only on those requests, as the <code>X-Admin-Token</code> header, and keeps it in
-        this browser.
+        本服务器的管理写入操作需要 <code>ADMIN_TOKEN</code>，包括下方场景编辑器的“保存到磁盘”、
+        “清空本地数据”触发的服务器数据清除，以及场景详情中的“删除”。输入一次即可保存到此浏览器。
+        控制台仅在这些请求中通过 <code>X-Admin-Token</code> 请求头发送令牌。
       </p>
-      <label htmlFor="admin-token" className={styles.label}>Token for this server</label>
+      <label htmlFor="admin-token" className={styles.label}>此服务器的管理员令牌</label>
       <div className={styles.row}>
         <input
           id="admin-token"
@@ -59,7 +58,7 @@ export function AdminTokenField() {
           value={draft}
           onChange={e => setDraft(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') save(); }}
-          placeholder={state === 'none' ? 'Not entered' : 'Saved'}
+          placeholder={state === 'none' ? '尚未输入' : '已保存'}
           aria-describedby="admin-token-status"
           className={styles.input}
         />
@@ -68,18 +67,18 @@ export function AdminTokenField() {
           onClick={save}
           disabled={!draft.trim()}
           className={[styles.btn, styles.amber].join(' ')}
-          aria-label="Save admin token"
+          aria-label="保存管理员令牌"
         >
-          Save
+          保存
         </button>
         <button
           type="button"
           onClick={clear}
           disabled={state === 'none' && !draft}
           className={styles.btn}
-          aria-label="Clear admin token"
+          aria-label="清除管理员令牌"
         >
-          Clear
+          清除
         </button>
       </div>
       <div id="admin-token-status" role="status" className={styles.status}>{STATUS[state]}</div>

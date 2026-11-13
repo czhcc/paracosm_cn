@@ -17,7 +17,7 @@ export function SmallMultiplesGrid({
   onOpenRun,
 }: SmallMultiplesGridProps): JSX.Element {
   return (
-    <section className={styles.grid} aria-label="Bundle members grid">
+    <section className={styles.grid} aria-label="运行组成员网格">
       {members.map((m, i) => (
         <CompareCell
           key={m.runId}

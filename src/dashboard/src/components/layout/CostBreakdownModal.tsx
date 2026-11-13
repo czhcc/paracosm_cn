@@ -36,12 +36,12 @@ interface CostBreakdownModalProps {
 
 /** Human-readable descriptions for each pipeline stage. */
 const SITE_DESCRIPTIONS: Record<string, { label: string; description: string }> = {
-  director: { label: 'Event Director', description: 'Generates events each turn based on world state' },
-  commander: { label: 'Commander', description: 'Reads dept reports, picks options, promotes department heads' },
-  departments: { label: 'Department Analysis', description: '5 specialists analyzing each event in parallel' },
-  judge: { label: 'Forge Judge', description: 'LLM safety + correctness review of every forged tool' },
-  reactions: { label: 'Agent Reactions', description: '~100 colonists reacting to each turn\'s outcome' },
-  other: { label: 'Other', description: 'Uncategorized calls' },
+  director: { label: "事件导演", description: "每回合根据世界状态生成事件" },
+  commander: { label: 'Commander', description: "阅读部门报告、选择方案并提拔部门负责人" },
+  departments: { label: "部门分析", description: "五位专家并行分析每个事件" },
+  judge: { label: "工具评审", description: "模型审查每个动态工具的安全性与正确性" },
+  reactions: { label: "成员反应", description: "约 100 位居民对每回合结果作出反应" },
+  other: { label: 'Other', description: "未分类调用" },
 };
 
 function fmtUsd(v: number): string {
@@ -95,7 +95,7 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Cost breakdown"
+      aria-label="费用明细"
       onClick={onClose}
       className={styles.backdrop}
     >
@@ -106,21 +106,21 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
         className={styles.dialog}
       >
         <div className={styles.titleRow}>
-          <h3 className={styles.title}>COST BREAKDOWN</h3>
+          <h3 className={styles.title}>费用明细</h3>
           <button
             onClick={onClose}
-            aria-label="Close cost breakdown"
+            aria-label="关闭费用明细"
             className={styles.escBtn}
           >
             ESC
           </button>
         </div>
         <div className={styles.totalLine}>
-          Total: <span className={styles.totalAmount}>{fmtUsd(total)}</span>
+          合计： <span className={styles.totalAmount}>{fmtUsd(total)}</span>
           {' · '}
-          {combined.llmCalls.toLocaleString()} calls
+          {combined.llmCalls.toLocaleString()} 次调用
           {' · '}
-          {fmtTokens(combined.totalTokens)} tokens
+          {fmtTokens(combined.totalTokens)}  词元
         </div>
 
         {/* Prompt-cache savings block. Only renders when the provider
@@ -150,18 +150,18 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
             verdictColor = 'var(--amber)';
             // Negative savings means creation overhead hasn't been
             // amortized yet. Normal on turn 1; concerning by turn 3+.
-            verdictLine = `Cache priming cost ${fmtUsd(-savings)} so far · reuse will repay this`;
+            verdictLine = `Cache priming cost ${fmtUsd(-savings)} 截至目前 · 后续复用可抵偿此成本`;
           } else if (reads > 0) {
             verdictColor = 'var(--green)';
-            verdictLine = 'Cache reuse breaking even with priming cost';
+            verdictLine = "缓存复用收益已抵消预填费用";
           } else {
             verdictColor = 'var(--amber)';
-            verdictLine = 'Cache filled but nothing reused yet · retry run or check prompt stability';
+            verdictLine = "缓存已填充但尚未复用，请重新运行或检查提示词稳定性";
           }
 
           return (
             <div className={styles.cacheBlock}>
-              <div className={styles.cacheLabel}>PROMPT CACHING</div>
+              <div className={styles.cacheLabel}>提示词缓存</div>
               <div
                 className={styles.cacheVerdict}
                 style={{ '--cache-verdict-color': verdictColor } as CSSProperties}
@@ -169,11 +169,11 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
                 {verdictLine}
               </div>
               <div className={styles.cacheSubLine}>
-                {Math.round(hitRate * 100)}% hit rate on cached input ({fmtTokens(reads)} reused / {fmtTokens(total)} cache tokens)
+                {Math.round(hitRate * 100)}% 缓存输入命中率（{fmtTokens(reads)} 已复用 / {fmtTokens(total)} 缓存 tokens）
               </div>
               <div className={styles.cacheTokenRow}>
-                <span>reads {fmtTokens(reads)} <span className={styles.cacheMultiplier}>@0.10×</span></span>
-                <span>creates {fmtTokens(creates)} <span className={styles.cacheMultiplier}>@1.25×</span></span>
+                <span>读取 {fmtTokens(reads)} <span className={styles.cacheMultiplier}>@0.10×</span></span>
+                <span>创建 {fmtTokens(creates)} <span className={styles.cacheMultiplier}>@1.25×</span></span>
               </div>
             </div>
           );
@@ -181,16 +181,16 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
 
         {rows.length === 0 ? (
           <div className={styles.emptyState}>
-            No LLM calls have been billed yet. Start a simulation to see spend by pipeline stage.
+            暂无模型调用费用。启动仿真后可查看各阶段支出。
           </div>
         ) : (
           <table className={styles.table}>
             <thead>
               <tr className={styles.headRow}>
-                <th className={styles.th}>STAGE</th>
-                <th className={styles.thRight}>CALLS</th>
-                <th className={styles.thRight}>TOKENS</th>
-                <th className={styles.thRight}>COST</th>
+                <th className={styles.th}>阶段</th>
+                <th className={styles.thRight}>调用次数</th>
+                <th className={styles.thRight}>词元</th>
+                <th className={styles.thRight}>费用</th>
                 <th className={styles.thRight}>%</th>
               </tr>
             </thead>
@@ -231,14 +231,14 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
             and the turn ran with an empty skeleton. */}
         {combined.schemaRetries && Object.keys(combined.schemaRetries).length > 0 && (
           <div className={styles.section}>
-            <div className={styles.sectionLabel}>SCHEMA RELIABILITY</div>
+            <div className={styles.sectionLabel}>结构校验可靠性</div>
             <table className={styles.tableSm}>
               <thead>
                 <tr className={styles.headRow}>
-                  <th className={styles.th}>SCHEMA</th>
-                  <th className={styles.thRight}>CALLS</th>
-                  <th className={styles.thRight}>AVG ATTEMPTS</th>
-                  <th className={styles.thRight}>FALLBACKS</th>
+                  <th className={styles.th}>结构</th>
+                  <th className={styles.thRight}>调用次数</th>
+                  <th className={styles.thRight}>平均尝试次数</th>
+                  <th className={styles.thRight}>回退次数</th>
                 </tr>
               </thead>
               <tbody>
@@ -273,7 +273,7 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
               </tbody>
             </table>
             <div className={styles.sectionFootnote}>
-              1.00 = first-try success. Higher = model retrying on validation failures. Tune <code className="mono">maxRetries</code> or tighten schema if a row stays above 1.3.
+              1.00 表示首次成功，越高代表校验失败后重试越多。可调整 <code className="mono">maxRetries</code> 或收紧结构约束，尤其当数值持续高于 1.3 时。
             </div>
           </div>
         )}
@@ -285,7 +285,7 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
             marginal quality. */}
         {combined.forgeStats && combined.forgeStats.attempts > 0 && (
           <div className={styles.section}>
-            <div className={styles.sectionLabel}>FORGE RELIABILITY</div>
+            <div className={styles.sectionLabel}>工具生成可靠性</div>
             {(() => {
               const f = combined.forgeStats!;
               const approvalRate = f.attempts > 0 ? f.approved / f.attempts : 0;
@@ -296,11 +296,11 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
                 <table className={styles.tableSm}>
                   <thead>
                     <tr className={styles.headRow}>
-                      <th className={styles.thRight}>ATTEMPTS</th>
-                      <th className={styles.thRight}>APPROVED</th>
-                      <th className={styles.thRight}>REJECTED</th>
-                      <th className={styles.thRight}>APPROVAL RATE</th>
-                      <th className={styles.thRight}>AVG CONF</th>
+                      <th className={styles.thRight}>尝试次数</th>
+                      <th className={styles.thRight}>通过</th>
+                      <th className={styles.thRight}>拒绝</th>
+                      <th className={styles.thRight}>通过率</th>
+                      <th className={styles.thRight}>平均置信度</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -326,7 +326,7 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
               );
             })()}
             <div className={styles.sectionFootnote}>
-              Rejections come from shape check OR judge verdict. Retry-with-feedback usually recovers; persistent low approval rate suggests the department model is weak at writing schema-compliant code.
+              拒绝可能来自结构检查或评审结果。带反馈重试通常可以修复；长期低通过率可能表示部门模型不擅长生成符合结构要求的代码。
             </div>
           </div>
         )}
@@ -338,12 +338,13 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
         {(() => {
           const rs = retryStats.data;
           if (retryStats.loading && !rs) {
-            return <div className={styles.statusInline}>RECENT RUNS — loading…</div>;
+            return <div className={styles.statusInline}>最近运行 — 加载中…</div>;
           }
           if (retryStats.error) {
             return (
               <div className={styles.statusInline}>
-                RECENT RUNS — <span className={styles.statusErrorTag}>fetch failed ({retryStats.error})</span>
+
+                最近运行 — <span className={styles.statusErrorTag}>获取失败（{retryStats.error})</span>
               </div>
             );
           }
@@ -385,18 +386,18 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
 
           return (
             <div className={styles.section}>
-              <div className={styles.sectionLabel}>RECENT RUNS (last {rs.runCount})</div>
+              <div className={styles.sectionLabel}>最近运行（最近 {rs.runCount})</div>
 
               {runtimeSchemas.length > 0 && (
                 <div className={styles.subBlock}>
-                  <div className={styles.subBlockLabel}>RUNTIME SCHEMAS</div>
+                  <div className={styles.subBlockLabel}>运行时结构校验</div>
                   <table className={styles.tableSm}>
                     <thead>
                       <tr className={styles.headRow}>
-                        <th className={styles.th}>SCHEMA</th>
-                        <th className={styles.thRight}>CALLS</th>
-                        <th className={styles.thRight}>AVG ATT</th>
-                        <th className={styles.thRight}>FALLBACK %</th>
+                        <th className={styles.th}>结构</th>
+                        <th className={styles.thRight}>调用次数</th>
+                        <th className={styles.thRight}>平均尝试</th>
+                        <th className={styles.thRight}>回退比例</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -408,14 +409,14 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
 
               {compileSchemas.length > 0 && (
                 <div className={styles.subBlock}>
-                  <div className={styles.subBlockLabel}>COMPILE HOOKS</div>
+                  <div className={styles.subBlockLabel}>编译钩子</div>
                   <table className={styles.tableSm}>
                     <thead>
                       <tr className={styles.headRow}>
-                        <th className={styles.th}>HOOK</th>
-                        <th className={styles.thRight}>CALLS</th>
-                        <th className={styles.thRight}>AVG ATT</th>
-                        <th className={styles.thRight}>FALLBACK %</th>
+                        <th className={styles.th}>钩子</th>
+                        <th className={styles.thRight}>调用次数</th>
+                        <th className={styles.thRight}>平均尝试</th>
+                        <th className={styles.thRight}>回退比例</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -427,17 +428,17 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
 
               {forges && forges.runsPresent > 0 && (
                 <div className={styles.subBlock}>
-                  <div className={styles.subBlockLabel}>FORGES</div>
+                  <div className={styles.subBlockLabel}>工具生成</div>
                   <table className={styles.tableSm}>
                     <thead>
                       <tr className={styles.headRow}>
-                        <th className={styles.thRight}>RUNS</th>
-                        <th className={styles.thRight}>ATTEMPTS</th>
-                        <th className={styles.thRight}>ATTEMPT RATE</th>
-                        <th className={styles.thRight}>UNIQUE TOOLS</th>
-                        <th className={styles.thRight}>EVENTUALLY APPROVED</th>
-                        <th className={styles.thRight}>TERMINAL FAILS</th>
-                        <th className={styles.thRight}>AVG CONF</th>
+                        <th className={styles.thRight}>运行次数</th>
+                        <th className={styles.thRight}>尝试次数</th>
+                        <th className={styles.thRight}>尝试通过率</th>
+                        <th className={styles.thRight}>独立工具数</th>
+                        <th className={styles.thRight}>最终通过</th>
+                        <th className={styles.thRight}>最终失败</th>
+                        <th className={styles.thRight}>平均置信度</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -481,7 +482,7 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
                     </tbody>
                   </table>
                   <div className={styles.sectionFootnoteTight}>
-                    ATTEMPT RATE counts every forge call including retries. EVENTUALLY APPROVED is the real quality signal — tools that landed in the toolbox. TERMINAL FAILS are tools the retry loop never recovered.
+                    尝试通过率统计所有生成调用及重试；最终通过表示进入工具箱的工具，最终失败表示重试后仍未修复的工具。
                   </div>
                   {(() => {
                     const rr = forges.rejectionReasons;
@@ -495,16 +496,16 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
                     return (
                       <div className={styles.rejectionWrap}>
                         <div className={styles.rejectionLabel}>
-                          REJECTION REASONS (last {forges.runsPresent} run{forges.runsPresent === 1 ? '' : 's'})
+                          拒绝原因（最近 {forges.runsPresent}  运行{forges.runsPresent === 1 ? '' : 's'})
                         </div>
                         <table className={styles.tableSm}>
                           <thead>
                             <tr className={styles.headRow}>
-                              <th className={styles.thRight}>SCHEMA EXTRA FIELD</th>
-                              <th className={styles.thRight}>SHAPE CHECK</th>
-                              <th className={styles.thRight}>PARSE ERROR</th>
-                              <th className={styles.thRight}>JUDGE CORRECTNESS</th>
-                              <th className={styles.thRight}>OTHER</th>
+                              <th className={styles.thRight}>存在额外字段</th>
+                              <th className={styles.thRight}>结构检查</th>
+                              <th className={styles.thRight}>解析错误</th>
+                              <th className={styles.thRight}>正确性评审</th>
+                              <th className={styles.thRight}>其他</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -528,7 +529,7 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
                           </tbody>
                         </table>
                         <div className={styles.sectionFootnoteTight}>
-                          SCHEMA EXTRA FIELD dominating means the LLM's return-keys don't match its declared outputSchema.properties — the target of the 2026-04-18 forge-guidance prompt fix. JUDGE CORRECTNESS = real logic bugs the judge caught.
+                          “结构含额外字段”占比高，说明模型返回的键与声明的 outputSchema.properties 不一致；“评审正确性”表示评审发现了实际逻辑错误。
                         </div>
                       </div>
                     );
@@ -538,17 +539,17 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
 
               {providerErrors && providerErrors.runsPresent > 0 && (
                 <div className={styles.subBlock}>
-                  <div className={styles.subBlockLabel}>PROVIDER ERRORS</div>
+                  <div className={styles.subBlockLabel}>模型服务错误</div>
                   <table className={styles.tableSm}>
                     <thead>
                       <tr className={styles.headRow}>
-                        <th className={styles.thRight}>RUNS W/ ERRORS</th>
-                        <th className={styles.thRight}>TOTAL</th>
-                        <th className={styles.thRight}>AUTH</th>
-                        <th className={styles.thRight}>QUOTA</th>
-                        <th className={styles.thRight}>RATE</th>
-                        <th className={styles.thRight}>NET</th>
-                        <th className={styles.thRight}>OTHER</th>
+                        <th className={styles.thRight}>存在错误的运行</th>
+                        <th className={styles.thRight}>合计</th>
+                        <th className={styles.thRight}>认证</th>
+                        <th className={styles.thRight}>额度</th>
+                        <th className={styles.thRight}>限流</th>
+                        <th className={styles.thRight}>网络</th>
+                        <th className={styles.thRight}>其他</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -592,22 +593,22 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
                     </tbody>
                   </table>
                   <div className={styles.sectionFootnoteTight}>
-                    AUTH/QUOTA are terminal (run aborts). RATE/NET/OTHER are non-terminal — the retry layer handles them.
+                    认证与额度错误会中止运行；限流、网络等错误由重试机制处理。
                   </div>
                 </div>
               )}
 
               {caches && caches.runsPresent > 0 && (
                 <div>
-                  <div className={styles.subBlockLabel}>PROMPT CACHE</div>
+                  <div className={styles.subBlockLabel}>提示词缓存</div>
                   <table className={styles.tableSm}>
                     <thead>
                       <tr className={styles.headRow}>
-                        <th className={styles.thRight}>RUNS WITH CACHE</th>
-                        <th className={styles.thRight}>READ TOKENS</th>
-                        <th className={styles.thRight}>CREATE TOKENS</th>
-                        <th className={styles.thRight}>READ RATIO</th>
-                        <th className={styles.thRight}>SAVINGS</th>
+                        <th className={styles.thRight}>使用缓存的运行</th>
+                        <th className={styles.thRight}>读取 Tokens</th>
+                        <th className={styles.thRight}>创建 Tokens</th>
+                        <th className={styles.thRight}>读取比例</th>
+                        <th className={styles.thRight}>节省费用</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -637,7 +638,7 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
                     </tbody>
                   </table>
                   <div className={styles.sectionFootnoteTight}>
-                    Read ratio &gt;= 70% is healthy. Lower ratios mean the cache keeps getting invalidated.
+                    读取比例至少 70% 表示缓存使用良好，较低比例可能表示缓存经常失效。
                   </div>
                 </div>
               )}
@@ -652,7 +653,7 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
             hidden in the pair-mode A/B-only summary below. */}
         {actors && actors.length > 2 && (
           <div className={styles.section}>
-            <div className={styles.sectionLabel}>PER ACTOR · {actors.length} ACTORS</div>
+            <div className={styles.sectionLabel}>按决策者 · {actors.length} 决策者</div>
             {(() => {
               const sortedActors = [...actors].sort((a, b) => b.cost.totalCostUSD - a.cost.totalCostUSD);
               const maxActorCost = sortedActors[0]?.cost.totalCostUSD ?? 0;
@@ -676,7 +677,7 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
                         </div>
                         <div className={styles.perActorCost}>{fmtUsd(entry.cost.totalCostUSD)}</div>
                         <div className={styles.perActorMeta}>
-                          {entry.cost.llmCalls} calls · {fmtTokens(entry.cost.totalTokens)} tok · {sharePct.toFixed(1)}%
+                          {entry.cost.llmCalls}  次调用 · {fmtTokens(entry.cost.totalTokens)}  词元 · {sharePct.toFixed(1)}%
                         </div>
                       </div>
                     );
@@ -692,7 +693,7 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
             runaway tool-call loop on one side). */}
         {leaderA && leaderB && (leaderA.totalCostUSD > 0 || leaderB.totalCostUSD > 0) && (
           <div className={styles.section}>
-            <div className={styles.sectionLabel}>PER LEADER</div>
+            <div className={styles.sectionLabel}>按决策者</div>
             <div className={styles.perLeaderRow}>
               <div className={styles.leaderCard}>
                 <div
@@ -702,7 +703,7 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
                   {leaderAName || 'Leader A'}
                 </div>
                 <div className={styles.leaderCost}>{fmtUsd(leaderA.totalCostUSD)}</div>
-                <div className={styles.leaderMeta}>{leaderA.llmCalls} calls · {fmtTokens(leaderA.totalTokens)} tok</div>
+                <div className={styles.leaderMeta}>{leaderA.llmCalls}  次调用 · {fmtTokens(leaderA.totalTokens)}  词元</div>
               </div>
               <div className={styles.leaderCard}>
                 <div
@@ -712,7 +713,7 @@ export function CostBreakdownModal({ combined, leaderA, leaderB, leaderAName, le
                   {leaderBName || 'Leader B'}
                 </div>
                 <div className={styles.leaderCost}>{fmtUsd(leaderB.totalCostUSD)}</div>
-                <div className={styles.leaderMeta}>{leaderB.llmCalls} calls · {fmtTokens(leaderB.totalTokens)} tok</div>
+                <div className={styles.leaderMeta}>{leaderB.llmCalls}  次调用 · {fmtTokens(leaderB.totalTokens)}  词元</div>
               </div>
             </div>
           </div>

@@ -45,27 +45,27 @@ const c = '(<!-- -->)?';
 
 test('SwarmPanel renders the title + population + morale', () => {
   const html = renderToString(<SwarmPanel artifact={baseArtifact} />);
-  assert.match(html, /Agent swarm/);
+  assert.match(html, /智能体群体/);
   assert.match(html, new RegExp(`T${c}6`));
-  assert.match(html, new RegExp(`3${c} alive`));
+  assert.match(html, new RegExp(`3${c} 存活`));
   assert.match(html, new RegExp(`72${c}%`));
 });
 
 test('SwarmPanel renders mood histogram (alive only)', () => {
   const html = renderToString(<SwarmPanel artifact={baseArtifact} />);
-  assert.match(html, /Mood histogram/);
-  assert.match(html, /focused/);
-  assert.match(html, /anxious/);
+  assert.match(html, /情绪分布/);
+  assert.match(html, /专注/);
+  assert.match(html, /焦虑/);
   assert.doesNotMatch(html, /despair/, 'dead agents should not contribute to mood histogram');
 });
 
 test('SwarmPanel renders department headcount with alive fraction', () => {
   const html = renderToString(<SwarmPanel artifact={baseArtifact} />);
-  assert.match(html, /Department headcount/);
+  assert.match(html, /部门人数/);
   // engineering: 2 alive / 2 total
-  assert.match(html, new RegExp(`2${c}/${c}2${c} alive`));
+  assert.match(html, new RegExp(`2${c}/${c}2${c} 存活`));
   // agriculture: 1 alive / 2 total (Ren is dead)
-  assert.match(html, new RegExp(`1${c}/${c}2${c} alive`));
+  assert.match(html, new RegExp(`1${c}/${c}2${c} 存活`));
 });
 
 test('SwarmPanel renders the roster with agent names', () => {
@@ -74,7 +74,7 @@ test('SwarmPanel renders the roster with agent names', () => {
   assert.match(html, /Jin Park/);
   assert.match(html, /Ari Vega/);
   assert.match(html, /Ren Cole/);
-  assert.match(html, /deceased/, 'dead agents are tagged "deceased"');
+  assert.match(html, /已故/, 'dead agents are tagged "deceased"');
 });
 
 test('SwarmPanel returns null when artifact has no finalSwarm', () => {

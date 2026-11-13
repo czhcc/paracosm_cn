@@ -1,3 +1,4 @@
+import { chinesePrompt } from '../../../llm/chinese.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateValidatedCode } from './generateValidatedCode.js';
@@ -132,5 +133,5 @@ test('passes system block with cacheBreakpoint to generateText', async () => {
     generateText: mock as any,
   });
   assert.ok(typeof capturedCall === 'object', 'should call with options form');
-  assert.deepEqual((capturedCall as { system: unknown }).system, [{ text: 'stable', cacheBreakpoint: true }]);
+  assert.deepEqual((capturedCall as { system: unknown }).system, [{ text: chinesePrompt('stable'), cacheBreakpoint: true }]);
 });

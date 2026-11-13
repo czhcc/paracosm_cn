@@ -25,14 +25,14 @@ test('ReplayBanner: no inline opacity hacks on the muted spans', () => {
 
 test('ReplayBanner: cached-playback tag is preceded by a separator (no run-on with the timestamp)', () => {
   const html = renderToString(<ReplayBanner replaySessionId="abc" />);
-  // The bug surfaced as "8:28 AMcached playback (no new LLM cost)" with
+  // The bug surfaced as "8:28 AM缓存回放 (no new LLM cost)" with
   // no separator. Post-fix: a leading "· " character precedes the tag,
   // independent of the inline whitespace from React's text rendering.
-  assert.match(html, /·\s*cached playback/);
+  assert.match(html, /·\s*缓存回放/);
 });
 
 test('ReplayBanner: REPLAYING strong + EXIT REPLAY button still render', () => {
   const html = renderToString(<ReplayBanner replaySessionId="abc" />);
-  assert.match(html, /<strong[^>]*>REPLAYING<\/strong>/);
-  assert.match(html, /EXIT REPLAY/);
+  assert.match(html, /<strong[^>]*>正在回放<\/strong>/);
+  assert.match(html, /退出回放/);
 });

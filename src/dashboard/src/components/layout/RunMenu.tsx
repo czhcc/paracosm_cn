@@ -77,7 +77,7 @@ function SessionCard({ s, onPick }: { s: StoredSessionMeta; onPick: () => void }
   const roster = formatRoster(s);
   const deterministicTitle = roster
     ? `${roster}${s.scenarioName ? ` · ${s.scenarioName}` : ''}`
-    : s.scenarioName || 'Simulation Run';
+    : s.scenarioName || "仿真运行";
   const title = s.title || s.scenarioName || deterministicTitle;
   const actors = roster;
   const scenarioSub = s.title && s.scenarioName ? s.scenarioName : '';
@@ -160,10 +160,10 @@ export function RunMenu({
         disabled={open}
         content={
           <div>
-            <div className={styles.tooltipHeading}>Run</div>
+            <div className={styles.tooltipHeading}>运行</div>
             <div>
-              Launches a fresh simulation, replays a cached one, or
-              loads a saved JSON from disk. Click to open the menu.
+
+              启动新仿真、回放缓存运行，或从磁盘加载已保存的 JSON。点击打开菜单。
             </div>
           </div>
         }
@@ -176,12 +176,12 @@ export function RunMenu({
           className={styles.triggerButton}
         >
           <span aria-hidden="true">▶</span>
-          RUN
+          运行
           <span aria-hidden="true" className={styles.triggerCaret}>▾</span>
         </button>
       </Tooltip>
       {open && (
-        <div role="menu" aria-label="Run actions" className={styles.menuPopover}>
+        <div role="menu" aria-label="运行操作" className={styles.menuPopover}>
           {/* Run New Simulation — primary action, loudest styling.
               Hardcoded near-black text on the rust gradient so the
               label stays high-contrast in both dark and light
@@ -195,9 +195,9 @@ export function RunMenu({
           >
             <span className={styles.menuButtonInnerLeft}>
               <span aria-hidden="true" className={styles.menuButtonIcon}>▶</span>
-              <span>{scenarioReady ? 'Run New Simulation' : 'Loading scenario…'}</span>
+              <span>{scenarioReady ? "启动新仿真" : "正在加载场景…"}</span>
             </span>
-            <span className={styles.runNewBadge}>spends credits</span>
+            <span className={styles.runNewBadge}>产生调用费用</span>
           </button>
 
           {/* Run Saved Simulation — expandable row, disabled when empty.
@@ -212,12 +212,12 @@ export function RunMenu({
           >
             <span className={styles.menuButtonInnerLeft}>
               <span aria-hidden="true" className={styles.menuButtonIcon}>↻</span>
-              <span>Run Saved Simulation</span>
+              <span>回放已保存的仿真</span>
             </span>
             <span className={[styles.runSavedBadge, cacheAvailable ? '' : styles.disabled].filter(Boolean).join(' ')}>
               {cacheAvailable
                 ? `${sessions.length} cached · ${savedExpanded ? 'hide' : 'pick'}`
-                : 'no cache yet'}
+                : "暂无缓存"}
             </span>
           </button>
 
@@ -229,16 +229,16 @@ export function RunMenu({
                 <SessionCard key={s.id} s={s} onPick={() => handlePickSession(s.id)} />
               ))}
               {body === 'loading' && (
-                <div className={styles.savedStatus}>Loading cached runs…</div>
+                <div className={styles.savedStatus}>正在加载缓存运行…</div>
               )}
               {body === 'error' && (
                 <div className={styles.savedError}>
-                  Could not reach /sessions. Try again in a moment.
+                  无法获取会话列表，请稍后重试。
                 </div>
               )}
               {body === 'unavailable' && (
                 <div className={styles.savedStatus}>
-                  Session cache is disabled on this server.
+                  此服务器未启用会话缓存。
                 </div>
               )}
             </div>
@@ -258,10 +258,10 @@ export function RunMenu({
               >
                 <span className={historyStyles.historyRowLabel}>
                   <span aria-hidden="true">🕘</span>
-                  <span>Local history</span>
+                  <span>本地历史</span>
                 </span>
                 <span className={historyStyles.historyRowBadge}>
-                  {history.length} recent · {historyExpanded ? 'hide' : 'show'}
+                  {history.length} 最近 · {historyExpanded ? 'hide' : 'show'}
                 </span>
               </button>
               {historyExpanded && (
@@ -302,7 +302,7 @@ export function RunMenu({
                             if (
                               liveStateHasEvents &&
                               !window.confirm(
-                                'Replace current simulation with this history entry?',
+                                "用此历史记录替换当前仿真？",
                               )
                             ) {
                               return;
@@ -328,22 +328,22 @@ export function RunMenu({
                     <button
                       type="button"
                       className={historyStyles.historyClearAll}
-                      title="Wipe everything in this browser: saved-runs ring, event cache, current sim state. Server data untouched — use Wipe All in the ⋯ menu for that."
+                      title="清除此浏览器的已保存运行、事件缓存和当前仿真状态。服务器数据可在 ⋯ 菜单中选择全部清除。"
                       onClick={() => {
                         if (
                           window.confirm(
-                            'Clear all local browser state?\n\n' +
-                            '  • Saved-runs ring (this dropdown)\n' +
-                            '  • Event cache (Sim / Constellation / Log)\n' +
-                            '  • Current SSE state\n\n' +
-                            'Server-stored runs are NOT affected (use Wipe All in the ⋯ menu for that).\n\nCannot be undone.',
+                            "清除浏览器全部本地状态？\n\n" +
+                            "  • 已保存的运行列表（此下拉菜单）\n" +
+                            "  • 事件缓存（仿真／星座／日志）\n" +
+                            '  • 当前事件流状态\n\n' +
+                            '服务器保存的运行不受影响（如需清除，请使用 ⋯ 菜单中的“全部清除”）。\n\n此操作无法撤销。',
                           )
                         ) {
                           onClearHistory();
                         }
                       }}
                     >
-                      Clear local data
+                      清空本地数据
                     </button>
                   )}
                 </div>
@@ -363,9 +363,9 @@ export function RunMenu({
             >
               <span className={styles.menuButtonInnerLeft}>
                 <span aria-hidden="true" className={styles.menuButtonIcon}>📁</span>
-                <span>Load from file…</span>
+                <span>从文件加载…</span>
               </span>
-              <span className={styles.loadFileBadge}>json export</span>
+              <span className={styles.loadFileBadge}>JSON 导出文件</span>
             </button>
           )}
         </div>

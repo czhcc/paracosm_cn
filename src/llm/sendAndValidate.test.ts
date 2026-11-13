@@ -1,3 +1,4 @@
+import { chinesePrompt } from './chinese.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { z } from 'zod';
@@ -59,7 +60,7 @@ test('sendAndValidate retries on schema validation failure', async () => {
   });
   assert.equal(result.object.value, 'right');
   assert.equal(session.history.length, 2);
-  assert.match(session.history[1], /Validation errors/);
+  assert.match(session.history[1], /校验错误/);
 });
 
 test('sendAndValidate preserves session history across retries', async () => {
@@ -72,7 +73,7 @@ test('sendAndValidate preserves session history across retries', async () => {
     prompt: 'original prompt',
     schema: TestSchema,
   });
-  assert.equal(session.history[0], 'original prompt');
+  assert.equal(session.history[0], chinesePrompt('original prompt'));
   assert.match(session.history[1], /previous|validation|json/i);
 });
 

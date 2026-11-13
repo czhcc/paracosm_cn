@@ -25,7 +25,7 @@ test('RiskFlagList sorts critical first, then high, medium, low', () => {
 
 test('RiskFlagList renders empty-state placeholder when flags are empty', () => {
   const html = renderToString(React.createElement(RiskFlagList, { flags: [] }));
-  assert.ok(html.includes('No risks'), 'must show empty-state copy');
+  assert.ok(html.includes('暂无风险'), 'must show empty-state copy');
 });
 
 test('RiskFlagList renders detail when expandable is true', () => {

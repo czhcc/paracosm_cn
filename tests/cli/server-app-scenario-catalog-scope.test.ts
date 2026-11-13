@@ -188,16 +188,16 @@ test('a compile under the id of a built-in or a curated scenario is refused befo
         const res = await compile(author, station(id, 'Replaced'));
         assert.equal(res.status, 409, `${who} compiling ${id}: ${res.status}`);
         assert.match(res.headers.get('content-type') ?? '', /application\/json/, 'the refusal is JSON, not a stream');
-        assert.match(await errorOf(res), new RegExp(`"${id}" is taken on this server`));
+        assert.match(await errorOf(res), new RegExp(`“${id}”已被此服务器上的场景使用`));
       }
     }
     assert.deepEqual(compiles, [], 'no refused compile reached the compiler');
 
     for (const [who, reader] of [['A', a], ['B', b], ['a caller with no cookie', cookieless]] as const) {
       const entries = await catalog(reader);
-      assert.equal(entries.find(e => e.id === mars.id)?.name, 'Mars Genesis', `${who}'s catalog`);
+      assert.equal(entries.find(e => e.id === mars.id)?.name, mars.labels.name, `${who}'s catalog`);
       assert.equal(entries.find(e => e.id === mars.id)?.source, 'builtin', `${who}'s catalog`);
-      assert.equal(entries.find(e => e.id === atlasLab.id)?.name, 'Atlas Lab', `${who}'s catalog`);
+      assert.equal(entries.find(e => e.id === atlasLab.id)?.name, atlasLab.labels.name, `${who}'s catalog`);
       assert.equal(entries.find(e => e.id === atlasLab.id)?.source, 'disk', `${who}'s catalog`);
       assert.equal(entries.filter(e => e.name === 'Replaced').length, 0, `${who}'s catalog`);
     }
@@ -210,7 +210,7 @@ test('a compile under the id of a built-in or a curated scenario is refused befo
     // B runs the built-in by its id and gets the built-in.
     const run = await b.post('/setup', settingsBody(mars));
     assert.equal(run.status, 200);
-    assert.equal((await waitFor(() => api.launches[0], "B's run")).scenario?.labels.name, 'Mars Genesis');
+    assert.equal((await waitFor(() => api.launches[0], "B's run")).scenario?.labels.name, mars.labels.name);
   });
 });
 
@@ -220,9 +220,9 @@ test('at boot a saved compiled draft under the id of a built-in or a curated sce
     // Boot compiles newest first, so the kept draft, the oldest, lands last.
     await waitFor(async () => (await entry(reader, 'kept-station')) ?? null, 'the kept draft to load', 5000);
     const entries = await catalog(reader);
-    assert.equal(entries.find(e => e.id === mars.id)?.name, 'Mars Genesis');
+    assert.equal(entries.find(e => e.id === mars.id)?.name, mars.labels.name);
     assert.equal(entries.find(e => e.id === mars.id)?.source, 'builtin');
-    assert.equal(entries.find(e => e.id === atlasLab.id)?.name, 'Atlas Lab');
+    assert.equal(entries.find(e => e.id === atlasLab.id)?.name, atlasLab.labels.name);
     assert.equal(entries.find(e => e.id === atlasLab.id)?.source, 'disk');
     assert.equal(entries.find(e => e.id === 'kept-station')?.name, 'Kept Station');
     assert.equal(entries.find(e => e.id === 'kept-station')?.source, 'compiled');
@@ -249,7 +249,7 @@ test('a Quickstart compile whose id is taken lands under an id of its own and re
     // The compiled scenario carries a built-in's id.
     const seeded = await quickstartCompile(a, seed('scope-marker-mars'));
     assert.equal(seeded, `${mars.id}-2`);
-    assert.equal((await entry(b, mars.id))?.name, 'Mars Genesis');
+    assert.equal((await entry(b, mars.id))?.name, mars.labels.name);
     assert.equal((await entry(b, mars.id))?.source, 'builtin');
     assert.equal((await entry(b, seeded))?.name, 'Seeded Mars');
     assert.equal((await entry(b, seeded))?.source, 'compiled');
@@ -335,7 +335,7 @@ test("a compile under an id another visitor's compile or stored scenario already
     for (const [who, author] of [['B', b], ['A', a]] as const) {
       const again = await compile(author, station('tide-station', `Recompiled by ${who}`));
       assert.equal(again.status, 409, `${who} compiling tide-station again: ${again.status}`);
-      assert.match(await errorOf(again), /"tide-station" is taken on this server/);
+      assert.match(await errorOf(again), /“tide-station”已被此服务器上的场景使用/);
     }
     assert.equal((await entry(a, 'tide-station'))?.name, 'Compiled by A');
     const aRun = await a.post('/setup', { ...settingsBody(mars), scenarioId: 'tide-station' });
@@ -346,7 +346,7 @@ test("a compile under an id another visitor's compile or stored scenario already
     assert.equal((await store(b, station('reef-station', "B's Reef"))).status, 200);
     const overStored = await compile(a, station('reef-station', "A's Reef"));
     assert.equal(overStored.status, 409);
-    assert.match(await errorOf(overStored), /"reef-station" is taken on this server/);
+    assert.match(await errorOf(overStored), /“reef-station”已被此服务器上的场景使用/);
     assert.equal(await entry(a, 'reef-station'), undefined, "A's catalog");
     const bRun = await b.post('/setup', { ...settingsBody(mars), scenarioId: 'reef-station' });
     assert.equal(bRun.status, 200);
@@ -430,7 +430,7 @@ test('one address holds at most 20 stored scenarios, whatever visitor ids it sen
     }
     const pastAddress = await store(third, station('v2-s0'));
     assert.equal(pastAddress.status, 507);
-    assert.match(await errorOf(pastAddress), new RegExp(`at most ${PER_ADDRESS} scenarios in memory for one address`));
+    assert.match(await errorOf(pastAddress), new RegExp(`同一地址最多暂存 ${PER_ADDRESS} 个场景`));
     assert.deepEqual(await storedIds(third), []);
     // Storing over an id of their own still works for a visitor at that address.
     assert.equal((await store(first, station('v0-s3', 'Renamed'))).status, 200);

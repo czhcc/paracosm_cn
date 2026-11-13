@@ -18,5 +18,5 @@ export async function compileRefusal(res: Response): Promise<string | null> {
   } catch {
     // Not JSON: the status below is all there is to show.
   }
-  return `The compile was refused (HTTP ${res.status}).`;
+  return `编译被拒绝（HTTP ${res.status}）。`;
 }

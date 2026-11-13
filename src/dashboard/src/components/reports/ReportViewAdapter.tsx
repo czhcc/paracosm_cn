@@ -22,7 +22,7 @@ export function ReportViewAdapter({ artifact }: ReportViewAdapterProps): JSX.Ele
   const decisions = artifact.decisions ?? [];
 
   if (turns.length === 0) {
-    return <div className={styles.empty}>No turns recorded for this run.</div>;
+    return <div className={styles.empty}>本次运行未记录回合。</div>;
   }
 
   return (
@@ -33,12 +33,12 @@ export function ReportViewAdapter({ artifact }: ReportViewAdapterProps): JSX.Ele
         const turnIdx = (tp as { t?: number; time?: number }).t ?? (tp as { time?: number }).time ?? i + 1;
         return (
           <article key={i} className={styles.turn}>
-            <header className={styles.turnHead}>Turn {turnIdx}</header>
+            <header className={styles.turnHead}>回合 {turnIdx}</header>
             {Object.keys(metrics).length > 0 && (
               <pre className={styles.metrics}>{JSON.stringify(metrics, null, 2)}</pre>
             )}
             {decision?.label && (
-              <p className={styles.decision}><strong>Decision:</strong> {decision.label}</p>
+              <p className={styles.decision}><strong>决策：</strong> {decision.label}</p>
             )}
           </article>
         );

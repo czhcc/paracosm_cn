@@ -21,57 +21,58 @@ export function GridHelpOverlay({ open, onClose }: GridHelpOverlayProps) {
   const dialogCls = [styles.dialog, phone ? styles.phone : ''].filter(Boolean).join(' ');
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Grid viz help" onClick={onClose} className={styles.backdrop}>
+    <div role="dialog" aria-modal="true" aria-label="网格可视化帮助" onClick={onClose} className={styles.backdrop}>
       <div onClick={e => e.stopPropagation()} className={dialogCls}>
         <div className={styles.header}>
-          <h2 className={styles.title}>Living {labels.Place} Grid — Legend</h2>
-          <button type="button" onClick={onClose} aria-label="Close help" className={styles.closeBtn}>
+          <h2 className={styles.title}>存活 {labels.Place}  网格 — 图例</h2>
+          <button type="button" onClick={onClose} aria-label="关闭帮助" className={styles.closeBtn}>
             ×
           </button>
         </div>
 
-        <Section title="Modes">
-          <Row k="LIVING" v={`Full chemistry + ${labels.person} glyphs + family lines + event flares`} />
-          <Row k="MOOD" v={`Emphasizes ${labels.person} seeds + mood-coded chemistry clouds`} />
-          <Row k="FORGE" v="Dims field, highlights forge attempts + reuse arcs" />
-          <Row k="ECOLOGY" v="Hides glyphs; metrics strip + crisis flares lead" />
-          <Row k="DIVERGENCE" v={`Only shows ${labels.people} alive here but dead on the other side`} />
+        <Section title="模式">
+          <Row k="存活" v={`Full chemistry + ${labels.person} 人员符号、亲属连线与事件光效`} />
+          <Row k="情绪" v={`Emphasizes ${labels.person} 标记与按情绪着色的云图`} />
+          <Row k="工具创建" v="弱化背景，突出工具创建尝试与复用弧线" />
+          <Row k="生态" v="隐藏人员符号，突出指标与危机光效" />
+          <Row k="分歧" v={`Only shows ${labels.people} 此侧存活、另一侧已故`} />
         </Section>
 
-        <Section title="Grid elements">
-          <Row k={<Swatch color="rgba(232, 180, 74, 0.9)" />} v={`Warm amber = high vitality (${labels.place} thriving)`} />
-          <Row k={<Swatch color="rgba(196, 74, 30, 0.9)" />} v="Rust red = stress concentration (decay / anxiety)" />
-          <Row k="○ small ring" v={`Alive ${labels.person}, hover for identity`} />
-          <Row k="◎ thick ring" v={`Featured ${labels.person} (drives narrative this turn)`} />
-          <Row k="○ amber halo" v={`Diverged ${labels.person} — alive here but dead on the other side`} />
-          <Row k="DEPT label" v="Cluster centroid label showing dept + live count" />
+        <Section title="网格元素">
+          <Row k={<Swatch color="rgba(232, 180, 74, 0.9)" />} v={`暖琥珀色表示活力较高（${labels.place} thriving)`} />
+          <Row k={<Swatch color="rgba(196, 74, 30, 0.9)" />} v="锈红色表示压力集中（衰退／焦虑）" />
+          <Row k="○ 小圆环" v={`Alive ${labels.person}, hover for identity`} />
+          <Row k="◎ 粗圆环" v={`Featured ${labels.person} （本回合的叙事重点）`} />
+          <Row k="○ 琥珀色光晕" v={`Diverged ${labels.person} — 此侧存活、另一侧已故`} />
+          <Row k="部门标签" v="群组中心标签：部门与存活人数" />
         </Section>
 
-        <Section title="Event flares">
-          <Row k={<Swatch color="rgba(154, 205, 96, 0.8)" />} v="Green bloom — birth" />
-          <Row k={<Swatch color="rgba(168, 152, 120, 0.7)" />} v="Grey wave — death" />
-          <Row k={<Swatch color="rgba(232, 180, 74, 0.8)" />} v="Amber dot — forge approved" />
-          <Row k={<Swatch color="rgba(224, 101, 48, 0.7)" />} v="Red flash — forge rejected" />
-          <Row k={<Swatch color="rgba(232, 180, 74, 0.6)" />} v="Amber arc — tool reuse across departments" />
-          <Row k={<Swatch color="rgba(196, 74, 30, 0.8)" />} v="Red ring — crisis shockwave (category-gated)" />
+        <Section title="事件光效">
+          <Row k={<Swatch color="rgba(154, 205, 96, 0.8)" />} v="绿色绽放 — 出生" />
+          <Row k={<Swatch color="rgba(168, 152, 120, 0.7)" />} v="灰色波纹 — 死亡" />
+          <Row k={<Swatch color="rgba(232, 180, 74, 0.8)" />} v="琥珀色圆点 — 工具获批" />
+          <Row k={<Swatch color="rgba(224, 101, 48, 0.7)" />} v="红色闪光 — 工具被拒" />
+          <Row k={<Swatch color="rgba(232, 180, 74, 0.6)" />} v="琥珀色弧线 — 跨部门工具复用" />
+          <Row k={<Swatch color="rgba(196, 74, 30, 0.8)" />} v="红色圆环 — 危机冲击波（按类别）" />
         </Section>
 
-        <Section title="Family lines">
-          <Row k="— side color, bowed" v="Partner link" />
-          <Row k="– teal, dashed" v="Parent → child link" />
+        <Section title="亲属连线">
+          <Row k="— 对应侧颜色的弧线" v="伴侣连线" />
+          <Row k="– 青色虚线" v="父母 → 子女连线" />
         </Section>
 
-        <Section title="Keyboard">
-          <Row k="1 / 2 / 3 / 4 / 5" v="Switch mode (Living / Mood / Forge / Ecology / Divergence)" />
-          <Row k="← / →" v="Step turn back / forward" />
-          <Row k="Space" v="Play / pause timeline" />
-          <Row k="?" v="Toggle this help overlay" />
-          <Row k="Esc" v="Close popover / this overlay" />
-          <Row k="click glyph" v={`Open ${labels.person} drilldown (HEXACO radar, memory, chat)`} />
+        <Section title="键盘操作">
+          <Row k="1 / 2 / 3 / 4 / 5" v="切换模式（存活／情绪／工具创建／生态／分歧）" />
+          <Row k="← / →" v="前一回合／后一回合" />
+          <Row k="空格" v="播放／暂停时间线" />
+          <Row k="?" v="打开／关闭此帮助" />
+          <Row k="Esc" v="关闭浮层／此帮助" />
+          <Row k="点击人员符号" v={`Open ${labels.person} 详情（HEXACO 雷达图、记忆与聊天）`} />
         </Section>
 
         <div className={styles.footer}>
-          Press <kbd className={styles.kbd}>?</kbd> anytime to reopen.
+
+          按下 <kbd className={styles.kbd}>?</kbd>  可随时重新打开。
         </div>
       </div>
     </div>

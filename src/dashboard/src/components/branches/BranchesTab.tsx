@@ -24,20 +24,18 @@ export function BranchesTab() {
 
   if (!state.parent && state.branches.length === 0) {
     return (
-      <div className={styles.emptyState} role="region" aria-label="Branches (empty)">
-        <h2>No branches yet</h2>
+      <div className={styles.emptyState} role="region" aria-label="分支（暂无记录）">
+        <h2>暂无分支</h2>
         <p>
-          Run a simulation with snapshot capture enabled (default for dashboard runs),
-          then open the <strong>Reports</strong> tab and click{' '}
-          <code>&#x21B3; Fork at {labels.Time} N</code> on any completed turn to branch
-          with a different leader.
+          运行启用快照捕获的仿真（控制台默认启用），然后打开 <strong>报告</strong> 页面，点击{' '}
+          <code>↳ 创建分支于 {labels.Time} N</code> 即可在已完成回合更换决策者并继续运行。
         </p>
       </div>
     );
   }
 
   return (
-    <div className={styles.tab} role="region" aria-label="Branches">
+    <div className={styles.tab} role="region" aria-label="分支">
       {state.parent && <ParentCard artifact={state.parent} labels={labels} />}
       <div className={styles.branchList}>
         {state.branches.map(branch => (
@@ -58,12 +56,12 @@ function ParentCard({ artifact, labels }: { artifact: RunArtifact; labels: Scena
   const metrics = (artifact.finalState?.metrics ?? {}) as Record<string, number | string | boolean>;
   const turnsCompleted = artifact.trajectory?.timepoints?.length ?? 0;
   return (
-    <section className={styles.parentCard} aria-label="Parent run">
+    <section className={styles.parentCard} aria-label="父运行">
       <header className={styles.cardHeader}>
         <div>
-          <h3 className={styles.parentTitle}>{artifact.metadata.scenario.name} (parent)</h3>
+          <h3 className={styles.parentTitle}>{artifact.metadata.scenario.name} （原始运行）</h3>
           <span className={styles.meta}>
-            {turnsCompleted} {turnsCompleted === 1 ? labels.time : labels.times} completed · run{' '}
+            {turnsCompleted} {turnsCompleted === 1 ? labels.time : labels.times} 已完成 · 运行{' '}
             <code>{artifact.metadata.runId}</code>
           </span>
         </div>
@@ -112,7 +110,7 @@ function BranchCard({
       <header className={styles.cardHeader}>
         <div className={styles.branchMeta}>
           <span className={styles.badge}>
-            Forked at {labels.Time} {branch.forkedAtTurn}
+            分支起点 {labels.Time} {branch.forkedAtTurn}
           </span>
           <h4 className={styles.branchTitle}>
             {branch.actorName} <span className={styles.archetype}>({branch.actorArchetype})</span>
@@ -123,7 +121,7 @@ function BranchCard({
         </span>
       </header>
       {branch.status === 'complete' && deltas.length > 0 && (
-        <ul className={styles.deltas} aria-label="Delta vs parent">
+        <ul className={styles.deltas} aria-label="与父运行的差值">
           {deltas.slice(0, 4).map(d => (
             <li
               key={`${d.bag}.${d.key}`}
@@ -133,11 +131,11 @@ function BranchCard({
               {formatDelta(d)}
             </li>
           ))}
-          {deltas.length > 4 && <li className={styles.more}>+{deltas.length - 4} more</li>}
+          {deltas.length > 4 && <li className={styles.more}>+{deltas.length - 4} 更多</li>}
         </ul>
       )}
       {branch.status === 'complete' && deltas.length === 0 && (
-        <p className={styles.identical}>Identical final state. Leader overrides did not diverge.</p>
+        <p className={styles.identical}>最终状态相同，更换决策者未产生分叉。</p>
       )}
       {branch.status === 'error' && branch.errorMessage && (
         <p className={styles.error} role="alert">{branch.errorMessage}</p>

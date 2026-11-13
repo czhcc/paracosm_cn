@@ -27,7 +27,8 @@ export function GhostLayer({ ghosts, selectedId, onSelect }: GhostLayerProps) {
         color: 'var(--text-3)',
         minWidth: 60,
       }}>
-        LOST {ghosts.length}
+
+        已故 {ghosts.length}
       </div>
       <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
         {ghosts.map(t => (

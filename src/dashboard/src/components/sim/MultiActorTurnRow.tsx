@@ -1,3 +1,4 @@
+import { departmentLabel } from '../../template-localization';
 /**
  * One row inside `MultiActorTurnGrid`. Shows a header strip with the
  * turn number + each actor's event title for that turn, followed by a
@@ -34,9 +35,9 @@ function summarizePending(events: ProcessedEvent[]): string {
     }
   }
   const parts: string[] = [];
-  if (depts.size > 0) parts.push(`${[...depts].join(', ')} analyzing`);
-  if (waitingDecision) parts.push('awaiting decision');
-  return parts.length > 0 ? parts.join(' · ') + '…' : 'Working on this turn…';
+  if (depts.size > 0) parts.push(`${[...depts].map(departmentLabel).join('、')}正在分析`);
+  if (waitingDecision) parts.push('等待决策');
+  return parts.length > 0 ? parts.join(' · ') + '…' : '事件导演正在生成…';
 }
 
 /** Pull the user-facing event title from a turn's event list. Mirrors
@@ -120,7 +121,7 @@ export function MultiActorTurnRow({ turn, actorIds, eventsByActor, runTerminal, 
               key={id}
               className={styles.cell}
               style={{ ['--cell-color' as string]: getActorColorVar(idx) } as CSSProperties}
-              aria-label={`Events for actor ${idx + 1} on turn ${turn}`}
+              aria-label={`决策者 ${idx + 1} 的第 ${turn} 回合事件`}
             >
               <span className={styles.cellBand} aria-hidden="true" />
               {cellEvents.length === 0 ? (
@@ -133,17 +134,17 @@ export function MultiActorTurnRow({ turn, actorIds, eventsByActor, runTerminal, 
                   <div
                     className={styles.cellEmpty}
                     title={runAborted
-                      ? 'Run was interrupted before this actor reached this turn.'
-                      : 'No event recorded for this actor on this turn.'}
+                      ? "运行在此决策者到达该回合前中断。"
+                      : "此回合未记录该决策者的事件。"}
                   >
                     {runAborted
-                      ? `Stopped before T${turn}`
-                      : `No event for T${turn}`}
+                      ? `在第 ${turn} 回合开始前中断`
+                      : `第 ${turn} 回合没有事件`}
                   </div>
                 ) : (
-                  <div className={styles.cellPending} aria-live="polite" title="Parallel runs can drift turn-to-turn — events arrive whenever this actor's LLM calls finish.">
+                  <div className={styles.cellPending} aria-live="polite" title="并行运行的进度可能不同；模型调用完成后会显示该决策者的事件。">
                     <span className={`spinner ${styles.cellPendingSpinner}`} aria-hidden="true" />
-                    Catching up to turn {turn}…
+                    正在同步回合 {turn}…
                   </div>
                 )
               ) : allPending ? (
@@ -151,12 +152,12 @@ export function MultiActorTurnRow({ turn, actorIds, eventsByActor, runTerminal, 
                   <div
                     className={styles.cellEmpty}
                     title={runAborted
-                      ? 'Run was interrupted while this turn was still processing.'
-                      : 'No outcome recorded for this actor on this turn.'}
+                      ? "此回合处理过程中运行中断。"
+                      : "此回合未记录该决策者的结果。"}
                   >
                     {runAborted
-                      ? `Stopped during T${turn}`
-                      : `T${turn} ended without an outcome`}
+                      ? `在第 ${turn} 回合处理中中断`
+                      : `T${turn} 结束时未产生结果`}
                   </div>
                 ) : (
                   <div className={styles.cellPending} aria-live="polite">

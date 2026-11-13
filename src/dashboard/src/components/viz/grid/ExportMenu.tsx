@@ -48,12 +48,13 @@ export function ExportMenu({
         onClick={() => setOpen(v => !v)}
         aria-expanded={open}
         aria-haspopup="menu"
-        aria-label="Export options"
-        title={recording ? 'Recording in progress — click for options' : 'Export options'}
+        aria-label="导出选项"
+        title={recording ? "正在录制，点击查看选项" : "导出选项"}
         className={[styles.trigger, open ? styles.triggerOpen : ''].filter(Boolean).join(' ')}
       >
         {recording && <span aria-hidden="true" className={styles.recDot} />}
-        EXPORT ▼
+
+        导出 ▼
       </button>
       {open && (
         <div role="menu" className={styles.menu}>
@@ -67,7 +68,7 @@ export function ExportMenu({
             className={styles.item}
           >
             <span className={styles.itemKey}>PNG</span>
-            <span className={styles.itemDesc}>Current frame</span>
+            <span className={styles.itemDesc}>当前画面</span>
           </button>
           <button
             type="button"
@@ -82,7 +83,7 @@ export function ExportMenu({
               {recording ? 'STOP' : 'REC'}
             </span>
             <span className={styles.itemDesc}>
-              {recording ? 'End recording & download' : 'Timelapse to webm'}
+              {recording ? "结束录制并下载" : "导出延时视频（WebM）"}
             </span>
           </button>
           <button
@@ -95,7 +96,7 @@ export function ExportMenu({
             className={styles.item}
           >
             <span className={styles.itemKey}>JSON</span>
-            <span className={styles.itemDesc}>Replay snapshot</span>
+            <span className={styles.itemDesc}>回放快照</span>
           </button>
         </div>
       )}

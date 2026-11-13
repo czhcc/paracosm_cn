@@ -69,7 +69,7 @@ test('ActorDrillInModal: renders close button', () => {
   const html = renderToString(
     <ActorDrillInModal actorName="Aria" state={state} actorIndex={0} onClose={() => {}} />,
   );
-  assert.match(html, /aria-label="Close drill-in"/);
+  assert.match(html, /aria-label="关闭详情"/);
 });
 
 test('ActorDrillInModal: derives a Decisions section from decision_made events', () => {

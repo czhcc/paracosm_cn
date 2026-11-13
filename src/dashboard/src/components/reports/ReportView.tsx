@@ -1,3 +1,4 @@
+import { departmentLabel, displayLabel, roleLabel, metricLabel } from '../../template-localization';
 import { useMemo, useEffect, useRef, useState, useCallback, type CSSProperties, type ReactNode } from 'react';
 import type { GameState } from '../../hooks/useGameState';
 import { useCitationContext } from '../../hooks/useCitationRegistry';
@@ -127,7 +128,7 @@ function buildSideTurnMap(
     if (evt.type === 'turn_start') {
       if (evt.data?.time != null) t.time = evt.data.time as number;
       if (evt.data?.metrics) t.metrics = evt.data.metrics as Record<string, unknown>;
-      if (evt.data?.title && evt.data?.title !== 'Director generating...' && !evt.data?.totalEvents) {
+      if (evt.data?.title && evt.data?.title !== "事件导演正在生成…" && !evt.data?.totalEvents) {
         const block = getEventBlock(t, 0, 1);
         block.title = evt.data.title as string;
         block.category = evt.data.category as string | undefined;
@@ -420,13 +421,13 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
     // Hero scoreboard + verdict are nested under the single
     // `#summary` section so the sidenav jumps straight there.
     const items: SideNavItem[] = [];
-    if (stripCells.length > 0) items.push({ id: 'strip', label: 'Strip' });
-    if (metricSeries.some(m => m.a.length > 0 || m.b.length > 0)) items.push({ id: 'sparklines', label: 'Metrics' });
-    if (hasTrajectories) items.push({ id: 'trajectory', label: 'Trajectory' });
-    for (const [turnNum] of turns) items.push({ id: `turn-${turnNum}`, label: `Turn ${turnNum}` });
-    if (toolRegistry.list.length > 0) items.push({ id: 'toolbox', label: 'Toolbox' });
-    items.push({ id: 'summary', label: verdict ? 'Verdict' : 'Summary' });
-    if (citationRegistry.list.length > 0) items.push({ id: 'references', label: 'References' });
+    if (stripCells.length > 0) items.push({ id: 'strip', label: '时间线' });
+    if (metricSeries.some(m => m.a.length > 0 || m.b.length > 0)) items.push({ id: 'sparklines', label: '指标' });
+    if (hasTrajectories) items.push({ id: 'trajectory', label: "演变过程" });
+    for (const [turnNum] of turns) items.push({ id: `turn-${turnNum}`, label: `第 ${turnNum} 回合` });
+    if (toolRegistry.list.length > 0) items.push({ id: 'toolbox', label: '工具箱' });
+    items.push({ id: 'summary', label: verdict ? "评判" : '总结' });
+    if (citationRegistry.list.length > 0) items.push({ id: 'references', label: "参考资料" });
     return items;
   }, [verdict, stripCells.length, metricSeries, hasTrajectories, turns, toolRegistry.list.length, citationRegistry.list.length]);
 
@@ -462,7 +463,7 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
         <div className={styles.empty}>
           <div className={`${styles.emptyMsg} ${styles.emptyMsgRunning ?? ''}`} role="status" aria-live="polite">
             <span className={styles.emptySpinner} aria-hidden="true" />
-            <span>Awaiting first turn — the report populates once the kernel reports an event.</span>
+            <span>等待首个回合，内核报告事件后将显示报告。</span>
           </div>
         </div>
       );
@@ -470,7 +471,7 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
     return (
       <div className={styles.empty}>
         <div className={styles.emptyMsg}>
-          Run a simulation first to see the report.
+          请先运行仿真，再查看报告。
         </div>
       </div>
     );
@@ -483,11 +484,12 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
         onScroll={onScroll}
         className={`reports-content ${styles.scroll}`}
         role="region"
-        aria-label="Turn-by-turn report"
+        aria-label="逐回合报告"
       >
       {pageScenarioReady && parentInOtherScenario && (
         <p className={styles.forkNotice} role="note">
-          This run is in {parentScenario?.name ?? parentScenario?.id}, and a fork runs in its parent&apos;s scenario. Switch to {parentScenario?.name ?? parentScenario?.id} to fork it.
+
+          此运行使用场景 {parentScenario?.name ?? parentScenario?.id}，分支将沿用父运行的场景。请切换到 {parentScenario?.name ?? parentScenario?.id} 后创建分支。
         </p>
       )}
       {/* Key Insight tile — the TL;DR card at the very top so users
@@ -517,28 +519,28 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
         const totalToolsA = sideA?.events.filter(e => e.type === 'forge_attempt' && e.data?.approved === true).length ?? 0;
         const totalToolsB = sideB?.events.filter(e => e.type === 'forge_attempt' && e.data?.approved === true).length ?? 0;
         const stats: Array<{ label: string; value: string; tone?: 'pos' | 'neg' | 'neutral' }> = [
-          { label: 'Turns', value: String(turnCount) },
+          { label: "回合数", value: String(turnCount) },
           {
-            label: 'Final pop',
+            label: '最终人口',
             value: `A ${finalPopA}${finalPopA < initialPopA ? ` (↓${initialPopA - finalPopA})` : ''} · B ${finalPopB}${finalPopB < initialPopB ? ` (↓${initialPopB - finalPopB})` : ''}`,
             tone: finalPopA + finalPopB < initialPopA + initialPopB ? 'neg' : 'neutral',
           },
           {
-            label: 'Final morale',
+            label: '最终士气',
             value: `A ${Math.round(finalMoraleA * 100)}% · B ${Math.round(finalMoraleB * 100)}%`,
             tone: Math.min(finalMoraleA, finalMoraleB) < 0.3 ? 'neg' : Math.min(finalMoraleA, finalMoraleB) >= 0.6 ? 'pos' : 'neutral',
           },
-          { label: 'Tools forged', value: `A ${totalToolsA} · B ${totalToolsB}` },
+          { label: "生成工具", value: `A ${totalToolsA} · B ${totalToolsB}` },
         ];
         return (
           <div className={styles.tldr}>
             <div className={styles.tldrTopRow}>
-              <span className={styles.tldrTag}>TL;DR</span>
+              <span className={styles.tldrTag}>摘要</span>
               {winnerName ? (
-                <span className={styles.tldrHeadline}>{winnerName} wins</span>
+                <span className={styles.tldrHeadline}>{winnerName}  获胜</span>
               ) : turnCount > 0 ? (
                 <span className={styles.tldrHeadline}>
-                  Run {turnCount} turn{turnCount === 1 ? '' : 's'} — verdict pending
+                  运行 {turnCount}  回合  — 等待结论
                 </span>
               ) : null}
               {headline && <span className={styles.tldrSub}>{headline}</span>}
@@ -566,7 +568,7 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
           top so they can jump there without reading the whole
           turn-by-turn report first. */}
       <div className={styles.headerRow}>
-        <h2 className={styles.headerTitle}>Turn-by-Turn Report</h2>
+        <h2 className={styles.headerTitle}>逐回合报告</h2>
         <button
           type="button"
           onClick={() => {
@@ -575,7 +577,7 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
           }}
           className={styles.jumpBtn}
         >
-          {verdict ? '↓ See verdict + full summary' : '↓ Jump to summary'}
+          {verdict ? "↓ 查看结论与完整总结" : '↓ 跳转到总结'}
         </button>
       </div>
 
@@ -586,20 +588,20 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
           N actors via the horizontally-scrolling track — the picker
           does NOT scope it. */}
       {isNActor && (
-        <div className={styles.actorPairPicker} role="region" aria-label="Pair focus toggle">
+        <div className={styles.actorPairPicker} role="region" aria-label="对比对象选择">
           <label className={styles.actorPairPickerToggle}>
             <input
               type="checkbox"
               checked={isPairFocus}
               onChange={(e) => setIsPairFocus(e.target.checked)}
-              aria-label="Toggle pair-focus view for strip, sparklines, and trajectory"
+              aria-label="切换摘要、迷你图和轨迹的双人聚焦视图"
             />
-            <span className={styles.actorPairPickerToggleText}>Focus pair</span>
+            <span className={styles.actorPairPickerToggleText}>聚焦双人</span>
           </label>
           {isPairFocus ? (
             <>
               <select
-                aria-label="Left side actor"
+                aria-label="左侧决策者"
                 className={styles.actorPairPickerSelect}
                 value={aId ?? ''}
                 onChange={(e) => setPickedAId(e.target.value || null)}
@@ -610,9 +612,9 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
                   </option>
                 ))}
               </select>
-              <span className={styles.actorPairPickerVs}>vs</span>
+              <span className={styles.actorPairPickerVs}>对比</span>
               <select
-                aria-label="Right side actor"
+                aria-label="右侧决策者"
                 className={styles.actorPairPickerSelect}
                 value={bId ?? ''}
                 onChange={(e) => setPickedBId(e.target.value || null)}
@@ -624,12 +626,14 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
                 ))}
               </select>
               <span className={styles.actorPairPickerHint}>
-                strip + metrics + trajectory show this pair only · turn-by-turn below shows all {state.actorIds.length} actors
+
+                摘要、指标和轨迹仅显示此二人；下方逐回合视图显示全部 {state.actorIds.length} 位决策者
               </span>
             </>
           ) : (
             <span className={styles.actorPairPickerHint}>
-              Showing all {state.actorIds.length} actors. Toggle on to focus on a 2-actor head-to-head view in the strip, sparklines, and trajectory cards.
+
+              当前显示全部 {state.actorIds.length}  位决策者。开启后，摘要、迷你图和轨迹卡将聚焦双人对比。
             </span>
           )}
         </div>
@@ -704,19 +708,19 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
           never reported any LLM calls. */}
       {state.cost && state.cost.llmCalls > 0 && (
         <div className={styles.costBar}>
-          <span className={styles.costLabel}>Run cost</span>
+          <span className={styles.costLabel}>运行费用</span>
           <span className={styles.costAmount}>
             ${state.cost.totalCostUSD < 0.01 ? state.cost.totalCostUSD.toFixed(4) : state.cost.totalCostUSD.toFixed(2)}
           </span>
           <span className={styles.costMeta}>
-            · {state.cost.llmCalls} LLM calls · {(state.cost.totalTokens / 1000).toFixed(1)}k tokens
+            · {state.cost.llmCalls}  次模型调用 · {(state.cost.totalTokens / 1000).toFixed(1)}千词元
           </span>
           <button
             type="button"
             onClick={() => setCostOpen(true)}
             className={styles.costBtn}
           >
-            Per-stage breakdown ›
+            查看各阶段费用 ›
           </button>
         </div>
       )}
@@ -765,14 +769,14 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
           >
             <div className={styles.turnHeader}>
               <span className={styles.turnTitle}>
-                Turn {turnNum} &mdash; Y{time}
+                回合 {turnNum}  — 时间{time}
                 {eventCount > 1 && (
-                  <span className={styles.turnEventCount}>{eventCount} events</span>
+                  <span className={styles.turnEventCount}>{eventCount} 个事件</span>
                 )}
               </span>
               <div className={styles.turnHeaderRight}>
                 <span className={[styles.divergenceFlag, diverged ? styles.diverged : ''].filter(Boolean).join(' ')}>
-                  {diverged ? 'DIVERGENT' : 'SHARED'}
+                  {diverged ? '存在分歧' : '共同事件'}
                 </span>
                 {canFork(turnNum) && (
                   <button
@@ -781,7 +785,7 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
                     onClick={() => setForkModalAtTurn(turnNum)}
                     aria-label={`Fork at ${labels.time} ${turnNum}`}
                   >
-                    &#x21B3; Fork at {labels.Time} {turnNum}
+                    ↳ 创建分支于 {labels.Time} {turnNum}
                   </button>
                 )}
               </div>
@@ -836,14 +840,14 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
           >
             <div className={styles.turnHeader}>
               <span className={styles.turnTitle}>
-                Turn {turnNum} &mdash; Y{time}
+                回合 {turnNum}  — 时间{time}
                 {maxEventCount > 1 && (
-                  <span className={styles.turnEventCount}>{maxEventCount} events</span>
+                  <span className={styles.turnEventCount}>{maxEventCount} 个事件</span>
                 )}
               </span>
               <div className={styles.turnHeaderRight}>
                 <span className={[styles.divergenceFlag, diverged ? styles.diverged : ''].filter(Boolean).join(' ')}>
-                  {diverged ? 'DIVERGENT' : 'SHARED'}
+                  {diverged ? '存在分歧' : '共同事件'}
                 </span>
                 {canFork(turnNum) && (
                   <button
@@ -852,7 +856,7 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
                     onClick={() => setForkModalAtTurn(turnNum)}
                     aria-label={`Fork at ${labels.time} ${turnNum}`}
                   >
-                    &#x21B3; Fork at {labels.Time} {turnNum}
+                    ↳ 创建分支于 {labels.Time} {turnNum}
                   </button>
                 )}
               </div>
@@ -917,7 +921,7 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
         {toolRegistry.list.length > 0 && (
           <ToolboxSection
             registry={toolRegistry}
-            title="Forged Toolbox"
+            title="动态工具箱"
             collapsible
             defaultOpen={toolsOpen}
             onToggle={setToolsOpen}
@@ -932,7 +936,7 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
           (winner + key deltas) and the full verdict panel (LLM
           judgement reasoning). */}
       <section id="summary" className={styles.summarySection}>
-        <div className={styles.summaryLabel}>Run Summary · Verdict · Winner</div>
+        <div className={styles.summaryLabel}>运行总结 · 结论 · 获胜者</div>
         <HeroScoreboard
           verdict={verdict}
           leaderAName={nameA}
@@ -956,7 +960,7 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
         {citationRegistry.list.length > 0 && (
           <ReferencesSection
             registry={citationRegistry}
-            title="References"
+            title="参考资料"
             collapsible
             defaultOpen={refsOpen}
             onToggle={setRefsOpen}
@@ -965,10 +969,10 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
       </section>
 
       <details className={styles.aboutDetails}>
-        <summary className={styles.aboutSummary}>What's in this report?</summary>
+        <summary className={styles.aboutSummary}>报告包含哪些内容？</summary>
         <div className={styles.aboutBody}>
           <div>
-            <div className={styles.aboutBlockTitle}>Scenario focus</div>
+            <div className={styles.aboutBlockTitle}>场景重点</div>
             <div className={styles.aboutChips}>
               {reportPlan.focusSections.map(section => (
                 <span key={section} className={styles.aboutChip}>
@@ -978,7 +982,7 @@ export function ReportView({ state, verdict, reportSections }: ReportViewProps) 
             </div>
           </div>
           <div>
-            <div className={styles.aboutBlockTitle}>This run produced</div>
+            <div className={styles.aboutBlockTitle}>本次运行产生了</div>
             <div className={styles.aboutChips}>
               {reportPlan.artifacts.map(artifact => (
                 <span key={artifact} className={styles.aboutChipNeutral}>
@@ -1027,10 +1031,10 @@ function EventSide({ block, eventIndex, totalEvents, name, sideColor, sections }
         <h4 className={styles.eventHeading} style={sideStyle}>
           {name}
           {totalEvents > 1 && (
-            <span className={styles.eventSubLabel}>Event {eventIndex + 1}/{totalEvents}</span>
+            <span className={styles.eventSubLabel}>事件 {eventIndex + 1}/{totalEvents}</span>
           )}
         </h4>
-        <span className={styles.eventAwaiting}>Awaiting data...</span>
+        <span className={styles.eventAwaiting}>暂无事件数据</span>
       </div>
     );
   }
@@ -1040,8 +1044,8 @@ function EventSide({ block, eventIndex, totalEvents, name, sideColor, sections }
       <div key="crisis">
         <div className={styles.eventTitle}>
           {block.title}
-          {block.category && <span className={styles.categoryPill}>{block.category}</span>}
-          {block.emergent && <span className={styles.emergentPill}>EMERGENT</span>}
+          {block.category && <span className={styles.categoryPill}>{displayLabel(block.category)}</span>}
+          {block.emergent && <span className={styles.emergentPill}>涌现事件</span>}
         </div>
 
         {block.description && (
@@ -1064,21 +1068,21 @@ function EventSide({ block, eventIndex, totalEvents, name, sideColor, sections }
     ) : null,
     causality: block.rationale ? (
       <details key="causality" className={styles.eventDetails}>
-        <summary className={styles.eventDetailsSummary} style={sideStyle}>Rationale</summary>
+        <summary className={styles.eventDetailsSummary} style={sideStyle}>决策理由</summary>
         <div className={styles.eventRationale} style={sideStyle}>{block.rationale}</div>
       </details>
     ) : null,
     departments: Object.keys(block.depts).length > 0 ? (
       <details key="departments" className={styles.eventDetails} open>
         <summary className={styles.eventDetailsSummary} style={sideStyle}>
-          Departments ({Object.keys(block.depts).length})
+          部门（{Object.keys(block.depts).length})
         </summary>
         <div className={styles.deptList}>
           {Object.entries(block.depts).map(([dept, d]) => (
             <div key={dept} className={styles.deptItem} style={sideStyle}>
               <div className={styles.deptHead}>
-                <span className={styles.deptName}>{dept.charAt(0).toUpperCase() + dept.slice(1)}</span>
-                <span className={styles.deptMeta}>{d.citations}c {d.tools}t</span>
+                <span className={styles.deptName}>{departmentLabel(dept)}</span>
+                <span className={styles.deptMeta}>{d.citations} 条引用 · {d.tools} 个工具</span>
               </div>
               {d.summary && <div className={styles.deptSummary}>{d.summary}</div>}
               <CitationPills citations={d.citationList} label="" />
@@ -1094,7 +1098,7 @@ function EventSide({ block, eventIndex, totalEvents, name, sideColor, sections }
       <h4 className={styles.eventHeading} style={sideStyle}>
         {name}
         {totalEvents > 1 && (
-          <span className={styles.eventSubLabel}>Event {eventIndex + 1}/{totalEvents}</span>
+          <span className={styles.eventSubLabel}>事件 {eventIndex + 1}/{totalEvents}</span>
         )}
       </h4>
 
@@ -1114,12 +1118,12 @@ function TurnSharedFooter({ data, name, sideColor, showQuotes }: { data: TurnDat
       {systems && (
         <details className={data.reactions.length ? styles.footerDetails : styles.footerDetailsLast}>
           <summary className={styles.footerSummary} style={sideStyle}>
-            {name} &middot; Systems State
+            {name} · 系统状态
           </summary>
           <div className={styles.systemsRow}>
             {Object.entries(systems).map(([k, v]) => (
               <span key={k} className={styles.systemItem}>
-                <span className={styles.systemKey}>{k}: </span>
+                <span className={styles.systemKey}>{metricLabel(k)}： </span>
                 <span className={styles.systemValue}>{typeof v === 'number' ? (Number.isInteger(v) ? v : v.toFixed(2)) : String(v)}</span>
               </span>
             ))}
@@ -1130,7 +1134,7 @@ function TurnSharedFooter({ data, name, sideColor, showQuotes }: { data: TurnDat
       {showQuotes && data.reactions.length > 0 && (
         <details open>
           <summary className={styles.footerSummary} style={sideStyle}>
-            Agent Voices ({data.totalReactions || data.reactions.length})
+            成员心声（{data.totalReactions || data.reactions.length})
           </summary>
           <div className={styles.reactionsList}>
             {data.reactions.map((r, i) => (
@@ -1141,7 +1145,7 @@ function TurnSharedFooter({ data, name, sideColor, showQuotes }: { data: TurnDat
                     className={styles.moodPill}
                     style={{ '--mood-color': moodColors[String(r.mood)] || 'var(--text-3)' } as CSSProperties}
                   >
-                    {String(r.mood || '').toUpperCase()}
+                    {displayLabel(String(r.mood || ''))}
                   </span>
                 </div>
                 <div className={styles.reactionQuote}>
@@ -1149,7 +1153,7 @@ function TurnSharedFooter({ data, name, sideColor, showQuotes }: { data: TurnDat
                 </div>
                 {!!r.role && (
                   <div className={styles.reactionRole}>
-                    {String(r.role)} {r.department ? `in ${String(r.department)}` : ''}
+                    {roleLabel(String(r.role))} {r.department ? `· ${departmentLabel(String(r.department))}` : ''}
                   </div>
                 )}
               </div>

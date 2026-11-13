@@ -113,14 +113,14 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
     : 'var(--text-3)';
 
   const statusText = sse.isAborted
-    ? 'Interrupted'
+    ? "已中断"
     : sse.isComplete
-    ? 'Complete'
+    ? "已完成"
     : sse.status === 'connected'
-    ? 'Live'
+    ? "已连接"
     : sse.status === 'error'
-    ? 'Reconnecting'
-    : 'Connecting';
+    ? "重新连接中"
+    : "连接中";
 
   // Human-readable tooltip. Every pill state gets a one-line hint, and
   // an interrupted run additionally names the cause (quota, disconnect,
@@ -128,13 +128,13 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
   // or keep the partial results.
   const abortReasonLabel = (raw: string): string => {
     switch (raw) {
-      case 'client_disconnected': return 'browser tab closed before the sim finished';
-      case 'quota_exhausted': return 'provider credits exhausted';
-      case 'user_aborted': return 'cancelled by the user';
-      case 'provider_error': return 'provider returned an unrecoverable error';
-      case 'another_run_started': return 'you started another run';
-      case 'server_restarted': return 'the server restarted before the run finished';
-      case 'unknown': return 'reason not recorded by the server';
+      case 'client_disconnected': return "仿真结束前浏览器标签页被关闭";
+      case 'quota_exhausted': return "模型服务额度已耗尽";
+      case 'user_aborted': return "用户取消了运行";
+      case 'provider_error': return "模型服务返回无法恢复的错误";
+      case 'another_run_started': return "已启动另一次运行";
+      case 'server_restarted': return "运行结束前服务器重启";
+      case 'unknown': return "服务器未记录原因";
       default: return raw;
     }
   };
@@ -146,23 +146,23 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
         // provider errors, so without this branch the pill would read
         // "reason not recorded" on quota exhaustion.
         if (sse.providerError) {
-          return `Run interrupted: ${sse.providerError.message}. Click Clear to reset.`;
+          return `Run interrupted: ${sse.providerError.message}。点击清空可重置。`;
         }
         const r = sse.abortReason;
-        if (!r) return 'Run was interrupted before finishing all turns. Click Clear to reset.';
+        if (!r) return "运行未完成全部回合就已中断，点击“清空”可重置。";
         const base = `Run interrupted: ${abortReasonLabel(r.reason)}`;
         const where = typeof r.completedTurns === 'number'
           ? ` after ${r.completedTurns} turn${r.completedTurns === 1 ? '' : 's'}`
           : '';
-        return `${base}${where}. Click Clear to reset.`;
+        return `${base}${where}。点击清空可重置。`;
       })()
     : sse.isComplete
-    ? 'Run finished all turns. Verdict is broadcast in Reports.'
+    ? "所有回合已完成，请到“报告”查看评判结果。"
     : sse.status === 'connected'
-    ? 'Connected to the simulation server. Press RUN to start.'
+    ? "已连接仿真服务器，点击“运行”开始。"
     : sse.status === 'error'
-    ? 'Reconnecting to the simulation server.'
-    : 'Connecting to the simulation server.';
+    ? "正在重新连接仿真服务器。"
+    : "正在连接仿真服务器。";
 
   // Guard against gameState.maxTurns === 0 during the initialization
   // window before /scenario resolves. The outer `turn > 0` check below
@@ -183,7 +183,7 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
             previously, creating two adjacent Tab stops for the same
             navigation. Visible layout is preserved by keeping the
             inline-flex container on .logoLink. */}
-        <a href="/" className={`${styles.logoLink} ${styles.brand}`} aria-label="Paracosm home">
+        <a href="/" className={`${styles.logoLink} ${styles.brand}`} aria-label="Paracosm 首页">
           <ParacosmLogo size={20} />
           <span>PARA<span className={styles.brandAccent}>COSM</span></span>
         </a>
@@ -192,8 +192,8 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
           target="_blank"
           rel="noopener"
           className={`topbar-agentos ${styles.agentosTag}`}
-          aria-label="AgentOS Runtime (opens in new tab)"
-          title="AgentOS Runtime"
+          aria-label="AgentOS 运行时（在新标签页打开）"
+          title="AgentOS 运行时"
         >
           AGENTOS
         </a>
@@ -216,16 +216,15 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
               content={
                 <div>
                   <div className={styles.tooltipTitle}>
-                    Turn {gameState.turn} / {gameState.maxTurns}
+                    回合 {gameState.turn} / {gameState.maxTurns}
                   </div>
                   <div>
-                    One decision cycle per turn. Departments analyze the
-                    situation, the commander picks a policy, the kernel
-                    advances in-sim time, colonists age. At turn
-                    {' '}{gameState.maxTurns}{' '}the run finishes
+
+                    每回合完成一次决策：部门分析情况，决策者选择政策，内核推进仿真时间，居民随之变老。达到回合
+                    {' '}{gameState.maxTurns}{' '}时运行结束
                     {gameState.actorIds.length === 2
-                      ? ' and the verdict judge compares the two commanders.'
-                      : '; cohort runs (3+ commanders) skip the verdict and surface group-median deltas instead.'}
+                      ? " 随后由评估模型比较两位决策者。"
+                      : "；三位及以上的运行跳过双人评估，展示与组内中位数的差值。"}
                   </div>
                 </div>
               }
@@ -240,14 +239,11 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
               content={
                 <div>
                   <div className={styles.tooltipTitle}>
-                    In-sim time {gameState.time}
+                    仿真时间 {gameState.time}
                   </div>
                   <div>
-                    The time the colony thinks it's living in. Advances by
-                    the scenario's <code>timePerTurn</code> (usually 5-10)
-                    each decision cycle. Drives aging, childbirth,
-                    retirement, and long-arc narrative. Real wall-clock
-                    time doesn't matter — only the in-sim time.
+
+                    场景中的仿真时间。每次决策按场景的 <code>timePerTurn</code>  （通常为 5～10）推进，影响衰老、生育、退休与长期叙事。这里使用仿真时间。
                   </div>
                 </div>
               }
@@ -261,15 +257,11 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
               content={
                 <div>
                   <div className={styles.tooltipTitle}>
-                    Random seed {gameState.seed}
+                    随机种子 {gameState.seed}
                   </div>
                   <div>
-                    All kernel-side randomness (colonist generation, mood
-                    drift, crisis selection) derives from this seed. Same
-                    seed + same leaders + same scenario produces identical
-                    rosters and identical kernel outcomes — so Leader A
-                    and Leader B start from the same colony and diverge
-                    only by their personalities, not by luck.
+
+                    内核随机性（居民生成、情绪变化、危机选择）均由此种子决定。相同种子、决策者和场景可复现相同人员与内核结果，使对比从相同条件出发。
                   </div>
                 </div>
               }
@@ -285,7 +277,7 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
               aria-valuenow={gameState.turn}
               aria-valuemin={0}
               aria-valuemax={gameState.maxTurns}
-              aria-label={`Simulation progress, turn ${gameState.turn} of ${gameState.maxTurns}`}
+              aria-label={`仿真进度，第 ${gameState.turn} / ${gameState.maxTurns} 回合`}
             >
               <div
                 className={`h-full rounded-full transition-all ${styles.progressFill}`}
@@ -301,8 +293,8 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
               const fellBack = fallbacks.reduce((sum, b) => sum + b.count, 0);
               const kept = salvages.reduce((sum, b) => sum + b.count, 0);
               const total = fellBack + kept;
-              const fellBackLabel = `${fellBack} validation fallback${fellBack === 1 ? '' : 's'}`;
-              const keptLabel = `${kept} ${kept === 1 ? 'reply' : 'replies'} kept without the keys the run does not hold`;
+              const fellBackLabel = `${fellBack} 次校验回退`;
+              const keptLabel = `${kept} 次回复移除未持有的字段后保留`;
               const label = [fellBack > 0 ? fellBackLabel : '', kept > 0 ? keptLabel : ''].filter(Boolean).join(', ');
               const rows = (buckets: typeof fallbacks) => (
                 <div className={styles.fallbackBlock}>
@@ -310,7 +302,7 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
                     <div key={b.schemaName} className={styles.fallbackRow}>
                       <span>{b.schemaName}</span>
                       <span className={styles.fallbackRowMeta}>
-                        {b.count}× {b.lastSite ? `(last: ${b.lastSite})` : ''}
+                        {b.count}× {b.lastSite ? `（最近：${b.lastSite}）` : ''}
                       </span>
                     </div>
                   ))}
@@ -324,11 +316,7 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
                         <div style={{ marginBottom: kept > 0 ? 8 : 0 }}>
                           <div className={styles.tooltipTitle}>⚠ {fellBackLabel}</div>
                           <div style={{ marginBottom: 8 }}>
-                            An LLM call returned a JSON payload that failed zod
-                            schema validation. After retries were exhausted the
-                            orchestrator continued with an empty skeleton so the
-                            sim wouldn't abort mid-turn. Numbers here let you
-                            spot which schema is misbehaving.
+                            模型返回的 JSON 未通过 Zod 结构校验。重试耗尽后，调度器使用空结构继续运行，避免仿真在回合中途退出。此处统计可帮助定位校验失败的结构。
                           </div>
                           {rows(fallbacks)}
                         </div>
@@ -337,10 +325,7 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
                         <div>
                           <div className={styles.tooltipTitle}>⚠ {keptLabel}</div>
                           <div style={{ marginBottom: 8 }}>
-                            A reply failed schema validation only on effect keys
-                            the run does not hold. After retries the run kept the
-                            model's own reply with those keys dropped; nothing
-                            was replaced with a skeleton.
+                            回复仅因包含本次运行未持有的效果字段而未通过结构校验。重试后，系统移除这些字段并保留模型的原始回复，没有用空结构替代。
                           </div>
                           {rows(salvages)}
                         </div>
@@ -361,7 +346,7 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
           </div>
         )}
         <div className={`topbar-center hidden md:block truncate ${styles.tagline}`}>
-          {gameState.turn === 0 ? 'Same input. Different decisions. Emergent divergence.' : ''}
+          {gameState.turn === 0 ? "相同起点，不同决策，演变出不同未来。" : ''}
         </div>
       </div>
 
@@ -375,8 +360,8 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
           target="_blank"
           rel="noopener noreferrer"
           className={`topbar-github ${styles.github}`}
-          title="Star Paracosm on GitHub"
-          aria-label="Open Paracosm on GitHub"
+          title="在 GitHub 为 Paracosm 点星"
+          aria-label="在 GitHub 查看 Paracosm"
         >
           <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" className={styles.githubIcon}>
             <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/>
@@ -389,10 +374,10 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
           <button
             onClick={onTour}
             className={`topbar-tour ${styles.tourBtn}`}
-            title="Interactive guided tour with sample data"
-            aria-label="Start guided tour"
+            title="使用示例数据体验交互导览"
+            aria-label="开始导览"
           >
-            <span className="topbar-tour-label">HOW IT WORKS</span>
+            <span className="topbar-tour-label">工作原理</span>
             <span className="topbar-tour-icon" aria-hidden="true" style={{ display: 'none' }}>{'?'}</span>
           </button>
         )}
@@ -417,7 +402,7 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
             role="status"
             aria-live="polite"
           >
-            LAUNCHING…
+            正在启动…
           </span>
         )}
         {/* Save / Copy / Clear consolidated behind a single overflow
@@ -436,8 +421,8 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
               onClick={() => setOverflowOpen(o => !o)}
               aria-haspopup="menu"
               aria-expanded={overflowOpen}
-              aria-label={overflowOpen ? 'Close run actions' : 'Open run actions menu'}
-              title="Save · Share · Copy · Wipe"
+              aria-label={overflowOpen ? "关闭运行操作菜单" : "打开运行操作菜单"}
+              title="保存 · 分享 · 复制 · 清空"
               className={`${styles.toolBtn} ${styles.overflowTrigger}`}
             >
               ⋯
@@ -455,9 +440,9 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
                     type="button"
                     onClick={() => { setOverflowOpen(false); onSave(); }}
                     className={styles.overflowItem}
-                    title="Export simulation data as .json"
+                    title="将仿真数据导出为 JSON"
                   >
-                    Save
+                    保存
                   </button>
                 )}
                 {hasEvents && onShareViz && (
@@ -466,9 +451,9 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
                     type="button"
                     onClick={() => { setOverflowOpen(false); onShareViz(); }}
                     className={styles.overflowItem}
-                    title="Copy a deep link that opens this run on the visualization tab"
+                    title="复制可直接打开此次运行可视化页面的链接"
                   >
-                    Share viz link
+                    分享可视化链接
                   </button>
                 )}
                 {hasEvents && onCopy && (
@@ -477,9 +462,9 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
                     type="button"
                     onClick={() => { setOverflowOpen(false); onCopy(); }}
                     className={styles.overflowItem}
-                    title="Copy simulation summary to clipboard"
+                    title="复制仿真摘要到剪贴板"
                   >
-                    Copy
+                    复制
                   </button>
                 )}
                 {onClear && (
@@ -488,9 +473,9 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
                     type="button"
                     onClick={() => { setOverflowOpen(false); onClear(); }}
                     className={styles.overflowItemDanger}
-                    title="Clear in-browser simulation buffer + cached events. Server-stored runs are kept, unless an admin token is saved in Settings."
+                    title="清空浏览器中的仿真缓冲和事件缓存。通常保留服务器运行记录；若已在设置中保存管理员令牌，还会请求清除服务器数据。"
                   >
-                    Clear local data
+                    清空本地数据
                   </button>
                 )}
               </div>
@@ -521,8 +506,8 @@ export function TopBar({ scenario, sse, gameState, onSave, onLoad, onClear, onRu
         <button
           onClick={() => setTheme(resolved === 'dark' ? 'light' : 'dark')}
           className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${styles.themeBtn}`}
-          title={`Switch to ${resolved === 'dark' ? 'light' : 'dark'} mode`}
-          aria-label={`Switch to ${resolved === 'dark' ? 'light' : 'dark'} mode`}
+          title={`切换${resolved === 'dark' ? '浅色' : '深色'}模式`}
+          aria-label={`切换${resolved === 'dark' ? '浅色' : '深色'}模式`}
         >
           {resolved === 'dark' ? '☀' : '☽'}
         </button>

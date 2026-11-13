@@ -1,0 +1,199 @@
+{
+  "id": "public-opinion-response",
+  "version": "1.0.0",
+  "engineArchetype": "closed_turn_based_settlement",
+  "labels": {
+    "name": "舆情应对：封堵限制与沟通疏导",
+    "shortName": "opinion-response",
+    "populationNoun": "代表性用户",
+    "settlementNoun": "服务平台",
+    "currency": "资源点",
+    "eventNoun": "舆情事件",
+    "eventNounSingular": "舆情事件",
+    "timeUnitNoun": "day",
+    "timeUnitNounPlural": "days",
+    "actorNoun": "应对负责人",
+    "actorNounPlural": "应对负责人",
+    "tagline": "同一虚拟服务事故的八日对比：相同初始人格，分别采用封堵限制和沟通疏导。比较短期传播、长期信任、谣言、问题解决与反弹；数值均为未校准的情景假设。"
+  },
+  "theme": {
+    "primaryColor": "#6366f1",
+    "accentColor": "#14b8a6",
+    "cssVariables": { "--accent": "#6366f1" }
+  },
+  "setup": {
+    "defaultTurns": 8,
+    "defaultSeed": 20261113,
+    "defaultStartTime": 1,
+    "defaultTimePerTurn": 1,
+    "defaultPopulation": 100,
+    "maxEventsPerTurn": 1,
+    "mortalityDice": "life",
+    "configurableSections": ["actors", "personnel", "resources", "departments", "events", "models"]
+  },
+  "departments": [
+    {
+      "id": "monitoring",
+      "label": "舆情观察组",
+      "role": "舆情分析主管",
+      "icon": "📊",
+      "instructions": "分析公开讨论量、未解决诉求、谣言影响和传播反弹。严格区分真实批评、待核实信息、已证伪谣言及骚扰内容。公开讨论量下降可能来自问题解决，也可能来自表达渠道收缩，不能据此直接判定信任恢复。私下传播压力仅为隐藏传播的代理指数，不是实际监测到的私聊数据。本场景不接触真实个人、真实平台或实时网络。所有可读文本使用简体中文。"
+    },
+    {
+      "id": "verification",
+      "label": "事实核验组",
+      "role": "事实核验主管",
+      "icon": "🔎",
+      "instructions": "只按预设事故事实和已披露证据核验信息。服务中断和重复扣款属实，用户有合理诉求；没有证据证明个人资料外泄。无证据不等于已经证伪，新增报告应标为待核实。不得制造权威背书、假引用或内部调查结果；不得将批评自动标为谣言。可建议提高事实可得性、纠错覆盖和信息准确性，但具体变化必须列入可验证的 recommendedEffects。所有可读文本使用简体中文。"
+    },
+    {
+      "id": "communications",
+      "label": "沟通与用户关系组",
+      "role": "用户关系主管",
+      "icon": "💬",
+      "instructions": "分别评估回应及时性、用户能否表达诉求、解释是否可核验，以及渠道变化对信任的影响。为负责人列出可选方案及代价，由负责人在本策略边界内选择。不得预设封堵必然失败或沟通必然成功；沟通也可能迟缓、信息不一致或无法兑现承诺。不要生成针对特定人群的操纵话术、虚假账号活动或个体追踪方案。所有可读文本使用简体中文。"
+    },
+    {
+      "id": "remediation",
+      "label": "服务修复与诉求处理组",
+      "role": "服务修复主管",
+      "icon": "🛠️",
+      "instructions": "两种策略拥有相同的服务修复、退款权限和初始执行能力。跟踪已验证修复与已完成诉求处理，区分宣布、受理和实际解决。到第3日仅按共同事实确认核心服务恢复；退款及个别诉求仍可能未完成。不得因某策略更会发声就自动提高解决率，也不得因限制讨论就否认实际修复。问题解决率为情景代理，没有真实工单队列。所有可读文本使用简体中文。"
+    },
+    {
+      "id": "audit",
+      "label": "成本与权益评估组",
+      "role": "评估主管",
+      "icon": "⚖️",
+      "instructions": "核对资源投入、合理诉求表达渠道和信息准确性。两方均有100资源点，不虚构追加资源。识别误伤真实反馈、承诺未兑现及指标重复记账。成本仅指本次应对投入，不是现实货币。模型给出的数值建议与内核实际变化必须分开说明，不得宣称存在硬预算审计或真实舆情测量。所有可读文本使用简体中文。"
+    }
+  ],
+  "metrics": [
+    { "id": "publicTrust", "label": "公众信任（情景代理）", "source": "metrics.publicTrust", "format": "percent" },
+    { "id": "resolutionRate", "label": "诉求实际解决率（代理）", "source": "metrics.resolutionRate", "format": "percent" },
+    { "id": "rumorImpact", "label": "未证实及虚假信息影响", "source": "metrics.rumorImpact", "format": "percent", "better": "lower" },
+    { "id": "reboundRisk", "label": "舆情反弹风险（代理）", "source": "metrics.reboundRisk", "format": "percent", "better": "lower" },
+    { "id": "discussionIndex", "label": "公开讨论量指数（初始100）", "source": "metrics.discussionIndex", "format": "number" },
+    { "id": "unresolvedGrievance", "label": "未解决诉求压力", "source": "metrics.unresolvedGrievance", "format": "percent", "better": "lower" },
+    { "id": "hiddenSpreadPressure", "label": "非公开传播压力（代理）", "source": "metrics.hiddenSpreadPressure", "format": "percent", "better": "lower" },
+    { "id": "expressionAccess", "label": "合理诉求渠道可用度", "source": "metrics.expressionAccess", "format": "percent" },
+    { "id": "factAccess", "label": "核实事实可得性", "source": "metrics.factAccess", "format": "percent" },
+    { "id": "responseCost", "label": "累计应对成本（资源点）", "source": "metrics.responseCost", "format": "number", "better": "lower" }
+  ],
+  "events": [
+    { "id": "crisis", "label": "舆情节点", "icon": "📣", "color": "#6366f1" },
+    { "id": "decision", "label": "应对决策", "icon": "🧭", "color": "#14b8a6" },
+    { "id": "tool_forge", "label": "分析工具生成", "icon": "🔧", "color": "#f59e0b" }
+  ],
+  "effects": {
+    "incident": { "publicTrust": 0.01, "factAccess": 0.02, "unresolvedGrievance": -0.01, "responseCost": 2 },
+    "uncertainty": { "factAccess": 0.02, "rumorImpact": -0.01, "hiddenSpreadPressure": -0.01, "responseCost": 2 },
+    "repair": { "resolutionRate": 0.03, "unresolvedGrievance": -0.02, "publicTrust": 0.01, "responseCost": 2 },
+    "scrutiny": { "expressionAccess": 0.02, "factAccess": 0.02, "publicTrust": 0.01, "responseCost": 2 },
+    "claims": { "resolutionRate": 0.03, "unresolvedGrievance": -0.02, "reboundRisk": -0.01, "responseCost": 2 },
+    "attention": { "discussionIndex": -2, "hiddenSpreadPressure": -0.01, "rumorImpact": -0.01, "responseCost": 2 },
+    "follow-up": { "reboundRisk": -0.02, "publicTrust": 0.01, "factAccess": 0.02, "responseCost": 2 },
+    "evaluation": {}
+  },
+  "ui": {
+    "headerMetrics": [
+      { "id": "publicTrust", "format": "percent" },
+      { "id": "resolutionRate", "format": "percent" },
+      { "id": "rumorImpact", "format": "percent" },
+      { "id": "reboundRisk", "format": "percent" },
+      { "id": "discussionIndex", "format": "number" },
+      { "id": "responseCost", "format": "number" }
+    ],
+    "tooltipFields": ["psychScore"],
+    "reportSections": ["crisis", "departments", "decision", "outcome", "quotes"],
+    "departmentIcons": { "monitoring": "📊", "verification": "🔎", "communications": "💬", "remediation": "🛠️", "audit": "⚖️" },
+    "setupSections": ["actors", "personnel", "resources", "departments", "events", "models"]
+  },
+  "policies": {
+    "toolForging": { "enabled": true, "requiredPerDepartment": false },
+    "liveSearch": { "enabled": false, "mode": "off" },
+    "bulletin": { "enabled": true },
+    "characterChat": { "enabled": true },
+    "sandbox": { "timeoutMs": 10000, "memoryMB": 128 }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "label": "相同初始人格：封堵限制与沟通疏导",
+      "leaders": [
+        {
+          "name": "甲方负责人·陈宁",
+          "archetype": "封堵限制策略",
+          "hexaco": { "openness": 0.6, "conscientiousness": 0.75, "extraversion": 0.55, "agreeableness": 0.65, "emotionality": 0.45, "honestyHumility": 0.8 },
+          "instructions": "你是甲方负责人陈宁。与乙方初始人格、修复权限、资源和目标相同，仅应对策略不同。固定执行封堵限制策略：主要依靠限制公开评论、减少相关内容可见性及收缩讨论渠道，试图抑制短期传播；使用抽象策略强度描述，不提供真实平台操作、个人追踪或规避审计细节。保持真实服务修复及必要的事故通知，不编造事实，不把真实批评自动说成谣言。依据部门证据，在recommendedEffects中同时考虑公开讨论、合理诉求渠道、非公开传播压力、信任和反弹；不能因为表面热度下降就宣布问题解决。可调整限制强度和持续时间，不改换为以双向公开沟通为主的策略。总资源100点，所有建议需说明成本，限制本身也可能有成本和副作用。不得预设本策略必胜或必败。终期分别比较短期传播控制、信任、诉求解决、谣言影响、反弹和成本，不擅自合成综合冠军。可读文本使用简体中文，JSON字段及枚举保持协议格式。"
+        },
+        {
+          "name": "乙方负责人·林清",
+          "archetype": "沟通疏导策略",
+          "hexaco": { "openness": 0.6, "conscientiousness": 0.75, "extraversion": 0.55, "agreeableness": 0.65, "emotionality": 0.45, "honestyHumility": 0.8 },
+          "instructions": "你是乙方负责人林清。与甲方初始人格、修复权限、资源和目标相同，仅应对策略不同。固定执行沟通疏导策略：公开已经核实的事实和未知事项，保留正常反馈渠道，回应具体诉求，公布可验证的修复与退款进展；对已证伪信息作事实澄清，对骚扰按相同基础规则处理。不得通过制造假账号、虚假支持、隐瞒关键事实或操纵特定人群降低热度。可调整回应频率、资源分配和承诺范围，不改换为广泛压制真实讨论的策略。总资源100点，服务修复能力与甲方相同；不能把多发声明当成更高实际解决率。沟通可能增加短期讨论、暴露未知问题或因承诺失信造成反弹，需在recommendedEffects中说明成本与风险。不得预设本策略必胜或必败。终期分别比较短期传播控制、信任、诉求解决、谣言影响、反弹和成本，不擅自合成综合冠军。可读文本使用简体中文，JSON字段及枚举保持协议格式。"
+        }
+      ]
+    }
+  ],
+  "world": {
+    "metrics": {
+      "population": { "id": "population", "label": "代表性用户样本（非总用户数）", "unit": "人", "type": "number", "initial": 100, "min": 0, "category": "metric" },
+      "morale": { "id": "morale", "label": "样本用户满意度", "unit": "%", "type": "number", "initial": 0.55, "min": 0, "max": 1, "category": "metric" },
+      "publicTrust": { "id": "publicTrust", "label": "公众信任代理", "unit": "%", "type": "number", "initial": 0.55, "min": 0, "max": 1, "category": "metric" },
+      "resolutionRate": { "id": "resolutionRate", "label": "诉求实际解决率代理", "unit": "%", "type": "number", "initial": 0.1, "min": 0, "max": 1, "category": "metric" },
+      "rumorImpact": { "id": "rumorImpact", "label": "未证实及虚假信息影响", "unit": "%", "type": "number", "initial": 0.2, "min": 0, "max": 1, "category": "metric" },
+      "reboundRisk": { "id": "reboundRisk", "label": "反弹风险代理", "unit": "%", "type": "number", "initial": 0.4, "min": 0, "max": 1, "category": "metric" },
+      "discussionIndex": { "id": "discussionIndex", "label": "公开讨论量指数", "unit": "初始100", "type": "number", "initial": 100, "min": 0, "category": "metric" },
+      "unresolvedGrievance": { "id": "unresolvedGrievance", "label": "未解决诉求压力", "unit": "%", "type": "number", "initial": 0.6, "min": 0, "max": 1, "category": "metric" },
+      "hiddenSpreadPressure": { "id": "hiddenSpreadPressure", "label": "非公开传播压力代理", "unit": "%", "type": "number", "initial": 0.25, "min": 0, "max": 1, "category": "metric" },
+      "expressionAccess": { "id": "expressionAccess", "label": "合理诉求渠道可用度", "unit": "%", "type": "number", "initial": 0.9, "min": 0, "max": 1, "category": "metric" },
+      "factAccess": { "id": "factAccess", "label": "核实事实可得性", "unit": "%", "type": "number", "initial": 0.3, "min": 0, "max": 1, "category": "metric" },
+      "responseCost": { "id": "responseCost", "label": "累计应对成本", "unit": "资源点", "type": "number", "initial": 0, "min": 0, "category": "metric" }
+    },
+    "capacities": {},
+    "statuses": {
+      "incidentFacts": { "id": "incidentFacts", "label": "共同事故事实", "unit": "", "type": "string", "initial": "虚构的生活服务平台发生支付故障，部分用户重复扣款，服务一度中断。第3日核心服务按预设恢复，退款与个别诉求可能仍待处理。不存在已证实的数据泄露，也不能将待核实消息自动视为谣言。", "category": "status" },
+      "experimentScope": { "id": "experimentScope", "label": "实验范围", "unit": "", "type": "string", "initial": "独立世界对比，不是共享社交网络对抗。八个相同预设事件；相同初始人格、事实与资源。人格可能在引擎中随运行漂移。政策边界与资源上限为提示约束，并非硬规则。", "category": "status" },
+      "measurementNotes": { "id": "measurementNotes", "label": "统计口径与局限", "unit": "", "type": "string", "initial": "所有传播、信任、反弹和解决率均为未经实证校准的情景代理；没有社交图、真实工单、隐藏信息测量或预测模型。未证实及虚假信息合并指标不能单独解释为已证伪谣言。公开讨论量没有单调的优劣方向。比较第1至2日短期表现与第7至8日后续表现，不能只看期末热度。通用评判分不等同于本实验的多维结论。", "category": "status" }
+    },
+    "politics": {},
+    "environment": {
+      "responseBudget": { "id": "responseBudget", "label": "初始应对资源上限", "unit": "资源点", "type": "number", "initial": 100, "category": "environment" }
+    }
+  },
+  "knowledge": { "topics": {}, "categoryMapping": {} },
+  "names": { "first": ["宁", "安", "清", "平"], "last": ["陈", "林", "周", "许"], "child": [] },
+  "dataDrivenHooks": {
+    "directorInstructions": "这是虚构服务事故的应对策略对比，不涉及真实人物、政治活动、选举或真实平台操作。默认八轮使用共同预设事件；每个事件是相同外部输入，不代表双方必然出现相同结果。不得为了证明某策略而改写事故事实。若延长运行，仅使用现有效果类别，且明确延长后不再保证双方事件一致。文本使用简体中文，不伪造来源。",
+    "departments": {
+      "monitoring": { "heading": "传播与诉求：", "chips": [{ "label": "公开讨论量", "source": "metrics.discussionIndex", "format": "number" }, { "label": "未解决诉求", "source": "metrics.unresolvedGrievance", "format": "percent" }, { "label": "非公开传播压力", "source": "metrics.hiddenSpreadPressure", "format": "percent" }] },
+      "verification": { "heading": "事实与不确定性：", "chips": [{ "label": "事实可得性", "source": "metrics.factAccess", "format": "percent" }, { "label": "未证实及虚假信息影响", "source": "metrics.rumorImpact", "format": "percent" }, { "label": "事故事实", "source": "statuses.incidentFacts", "format": "string" }] },
+      "communications": { "heading": "信任与反馈：", "chips": [{ "label": "公众信任", "source": "metrics.publicTrust", "format": "percent" }, { "label": "诉求渠道", "source": "metrics.expressionAccess", "format": "percent" }, { "label": "反弹风险", "source": "metrics.reboundRisk", "format": "percent" }] },
+      "remediation": { "heading": "真实问题处理：", "chips": [{ "label": "解决率代理", "source": "metrics.resolutionRate", "format": "percent" }, { "label": "未解决诉求", "source": "metrics.unresolvedGrievance", "format": "percent" }, { "label": "事故事实", "source": "statuses.incidentFacts", "format": "string" }] },
+      "audit": { "heading": "成本与渠道：", "chips": [{ "label": "累计成本", "source": "metrics.responseCost", "format": "number" }, { "label": "资源上限", "source": "environment.responseBudget", "format": "number" }, { "label": "诉求渠道", "source": "metrics.expressionAccess", "format": "percent" }, { "label": "统计局限", "source": "statuses.measurementNotes", "format": "string" }] }
+    },
+    "postureRules": [
+      { "posture": "低热度但问题未解", "when": { "all": [{ "field": "discussionIndex", "op": "<", "value": 60 }, { "field": "unresolvedGrievance", "op": ">", "value": 0.5 }] } },
+      { "posture": "信任与解决同步改善", "when": { "all": [{ "field": "publicTrust", "op": ">=", "value": 0.65 }, { "field": "resolutionRate", "op": ">=", "value": 0.6 }] } },
+      { "posture": "反弹压力较高", "when": { "field": "reboundRisk", "op": ">=", "value": 0.6 } }
+    ],
+    "fingerprintAxes": [
+      { "name": "trust", "bands": [{ "label": "改善", "when": { "field": "publicTrust", "op": ">", "value": 0.55 } }, { "label": "持平或下降", "default": true }] },
+      { "name": "resolution", "bands": [{ "label": "多数诉求解决", "when": { "field": "resolutionRate", "op": ">=", "value": 0.6 } }, { "label": "仍有较多待办", "default": true }] },
+      { "name": "rebound", "bands": [{ "label": "压力下降", "when": { "field": "reboundRisk", "op": "<", "value": 0.4 } }, { "label": "仍需观察", "default": true }] }
+    ],
+    "politics": {},
+    "reactionTemplate": "你是虚构平台的代表性用户，岗位为{{role}}，所属样本组为{{department}}。从服务是否可用、款项是否退回、事实是否清楚和反馈能否得到回应的角度表达感受。你不代表全部公众，不知道真实私聊传播数据。使用简体中文。",
+    "milestones": [
+      { "turn": 1, "event": { "title": "服务故障与重复扣款引发讨论", "description": "共同输入：部分用户报告重复扣款，平台服务中断，公开讨论量初始指数100。两方拥有相同事故事实、修复权限及100资源点，仅传播应对策略不同。分别决定本策略的启动强度，并说明对真实问题处理的安排。", "category": "incident", "options": [{ "id": "option_a", "label": "分阶段实施本策略", "description": "按现有证据逐步执行，保留复核与调整空间。", "isRisky": false }, { "id": "option_b", "label": "集中实施本策略", "description": "快速扩大本策略强度，承担执行偏差、资源消耗和公众误解风险。", "isRisky": true }], "riskyOptionId": "option_b", "riskSuccessProbability": 0.55, "researchKeywords": [], "relevantDepartments": ["monitoring", "verification", "communications", "remediation", "audit"], "turnSummary": "相同事故，相同起点，分别启动封堵限制与沟通疏导。" } },
+      { "turn": 2, "event": { "title": "关于数据泄露的未核实消息出现", "description": "共同输入：出现一条没有充分证据的外泄传言。当前只能标为待核实，不能据此宣布泄露属实或消息已证伪。比较两种策略如何处理不确定性、讨论渠道和事实可得性，不提供真实个人识别或追踪方案。", "category": "uncertainty", "options": [{ "id": "option_a", "label": "核实后逐项调整", "description": "在本策略范围内按证据更新，不对未知事项作绝对承诺。", "isRisky": false }, { "id": "option_b", "label": "迅速扩大本策略执行", "description": "加快处理与回应范围，承担误判及后续纠错成本。", "isRisky": true }], "riskyOptionId": "option_b", "riskSuccessProbability": 0.45, "researchKeywords": [], "relevantDepartments": ["verification", "monitoring", "communications", "audit"], "turnSummary": "区分合理批评、未知信息和已经证伪的内容。" } },
+      { "turn": 3, "event": { "title": "核心服务恢复，退款仍需处理", "description": "共同事实更新：核心服务已恢复；这不代表全部退款或诉求完成。两方拥有相同的基础修复进度，在各自策略下处理后续诉求。不得将公开讨论下降当作退款完成，也不能以声明次数替代实际处理。", "category": "repair", "options": [{ "id": "option_a", "label": "先核验完成再扩大执行", "description": "以可核验的修复与退款进度支持本策略。", "isRisky": false }, { "id": "option_b", "label": "并行加速处理和策略执行", "description": "同步推进多项工作，承担协调、承诺和资源冲突风险。", "isRisky": true }], "riskyOptionId": "option_b", "riskSuccessProbability": 0.6, "researchKeywords": [], "relevantDepartments": ["remediation", "communications", "monitoring", "audit"], "turnSummary": "检验传播管理与真实问题解决是否一致。" } },
+      { "turn": 4, "event": { "title": "独立评测者要求解释事故处理过程", "description": "共同输入：一名虚构的独立评测者询问故障原因、退款进度与讨论渠道规则。这不是对任一方已经失信的判定。双方按本策略提供可验证的处理依据，不制造权威背书，不改变事故事实。", "category": "scrutiny", "options": [{ "id": "option_a", "label": "按证据范围回应与复核", "description": "核对已执行措施和真实进度，修正可识别的偏差。", "isRisky": false }, { "id": "option_b", "label": "集中发布或执行扩大安排", "description": "在本策略内扩大行动范围，承担解释不一致和执行失误风险。", "isRisky": true }], "riskyOptionId": "option_b", "riskSuccessProbability": 0.5, "researchKeywords": [], "relevantDepartments": ["verification", "communications", "audit", "monitoring"], "turnSummary": "检验处理过程能否经受独立质询。" } },
+      { "turn": 5, "event": { "title": "用户要求逐项核对退款和反馈渠道", "description": "共同输入：用户要求提供诉求处理查询与复核方式。各方须依据自己的实际状态说明剩余问题，不能假设此前所有处理已经成功。未解决问题可能在后续再次成为讨论焦点，但并不预设反弹一定发生。", "category": "claims", "options": [{ "id": "option_a", "label": "按已核验诉求分批处理", "description": "优先完成已确认事项，按本策略调整后续强度。", "isRisky": false }, { "id": "option_b", "label": "集中处理并加速执行", "description": "提高并行处理程度，承担资源拥挤、遗漏与承诺风险。", "isRisky": true }], "riskyOptionId": "option_b", "riskSuccessProbability": 0.55, "researchKeywords": [], "relevantDepartments": ["remediation", "communications", "audit", "monitoring"], "turnSummary": "查看诉求是否实际解决，而非只从公开页面消失。" } },
+      { "turn": 6, "event": { "title": "外部关注进入回落窗口", "description": "共同输入：新的无关公共话题出现，外部注意力有转移机会，但不预设本事故讨论量一定下降。检查热度、信任、未解决诉求和非公开传播压力的变化是否一致。不能把自然注意力变化全部归功于应对策略。", "category": "attention", "options": [{ "id": "option_a", "label": "分步收尾并保持核验", "description": "在本策略内逐步调整强度，继续处理剩余问题。", "isRisky": false }, { "id": "option_b", "label": "提前收束主要投入", "description": "减少持续投入，承担遗留问题再次出现的风险。", "isRisky": true }], "riskyOptionId": "option_b", "riskSuccessProbability": 0.5, "researchKeywords": [], "relevantDepartments": ["monitoring", "communications", "remediation", "audit"], "turnSummary": "区分自然降温、策略效果和问题解决。" } },
+      { "turn": 7, "event": { "title": "事故处理结果进入跟踪复核", "description": "共同输入：评测者再次询问退款、解释和反馈渠道。按本方当前状态判断是否存在反弹、信任恢复或持续疑问；不能为了展示封堵副作用强行制造反弹，也不能为了肯定沟通而忽略未解决问题。", "category": "follow-up", "options": [{ "id": "option_a", "label": "据复核结果调整收尾", "description": "修正已经证实的遗漏，在既定策略范围内继续执行。", "isRisky": false }, { "id": "option_b", "label": "迅速作出终结性安排", "description": "在证据仍可能不完整时加快收尾，承担后续解释和反弹风险。", "isRisky": true }], "riskyOptionId": "option_b", "riskSuccessProbability": 0.45, "researchKeywords": [], "relevantDepartments": ["monitoring", "verification", "communications", "remediation", "audit"], "turnSummary": "观察短期措施是否带来持续改善或后续反弹。" } },
+      { "turn": "final", "event": { "title": "短期控制与后续效果的多维评估", "description": "只评估，不新增政策效果或支出。分别汇报第1至2日与第7至8日公开讨论量、信任、诉求解决率、未证实及虚假信息影响、反弹风险、渠道可用度和累计成本。只引用实际保存的状态，缺失数据明确标注；公开讨论量不设单调的好坏方向，不预设综合赢家。指出相同事件不保证模型输出或随机结果完全相同，代理指数不能当实证测量；八日结果不能证明长期社会效果。", "category": "evaluation", "options": [{ "id": "option_a", "label": "如实报告多维结果", "description": "报告实际状态与局限，不新增指标效果。", "isRisky": false }, { "id": "option_b", "label": "另附有条件后续展望", "description": "保持相同实际结果，另列明确标注的预测，承担解释风险；不新增指标效果。", "isRisky": true }], "riskyOptionId": "option_b", "riskSuccessProbability": 0.5, "researchKeywords": [], "relevantDepartments": ["monitoring", "verification", "communications", "remediation", "audit"], "turnSummary": "分别判断短期传播、信任与实际问题处理，不把低热度等同于成功。" } }
+    ]
+  }
+}

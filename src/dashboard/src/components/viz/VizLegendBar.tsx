@@ -52,16 +52,16 @@ export function VizLegendBar({ departments }: VizLegendBarProps) {
   }, [open]);
 
   return (
-    <div className={styles.bar} aria-label="Visualization legend" ref={wrapRef}>
+    <div className={styles.bar} aria-label="可视化图例" ref={wrapRef}>
       <span className={styles.glyphRow}>
         <Glyph type="band" />
-        <span className={styles.label}>Department band</span>
+        <span className={styles.label}>部门色带</span>
         <Glyph type="agent" />
-        <span className={styles.label}>Agent</span>
+        <span className={styles.label}>成员</span>
         <Glyph type="featured" />
-        <span className={styles.label}>Featured agent</span>
+        <span className={styles.label}>重点成员</span>
         <Glyph type="turn" />
-        <span className={styles.label}>Turn marker</span>
+        <span className={styles.label}>回合标记</span>
       </span>
       <button
         type="button"
@@ -70,7 +70,8 @@ export function VizLegendBar({ departments }: VizLegendBarProps) {
         aria-expanded={open}
         aria-haspopup="dialog"
       >
-        Show full legend
+
+        显示完整图例
       </button>
       {open && (
         <div
@@ -82,10 +83,11 @@ export function VizLegendBar({ departments }: VizLegendBarProps) {
           ref={popoverRef}
         >
           <h3 id="viz-legend-heading" className={styles.popHeading}>
-            What you&rsquo;re looking at
+
+            视图说明
           </h3>
           <section>
-            <h4>Departments (tile color)</h4>
+            <h4>部门（单元格颜色）</h4>
             <ul className={styles.deptList}>
               {departments.map((d) => (
                 <li key={d.id}>
@@ -100,19 +102,19 @@ export function VizLegendBar({ departments }: VizLegendBarProps) {
             </ul>
           </section>
           <section>
-            <h4>Mood tiers (chip glyph)</h4>
+            <h4>情绪分级（标记符号）</h4>
             <ul className={styles.moodList}>
               <li>
-                <span aria-hidden="true">▼</span> low (under 25% morale)
+                <span aria-hidden="true">▼</span>  低落（士气低于 25%）
               </li>
               <li>
-                <span aria-hidden="true">▽</span> tense (25–50%)
+                <span aria-hidden="true">▽</span>  紧张（25～50%）
               </li>
               <li>
-                <span aria-hidden="true">△</span> steady (50–75%)
+                <span aria-hidden="true">△</span>  平稳（50～75%）
               </li>
               <li>
-                <span aria-hidden="true">▲</span> rising (over 75%)
+                <span aria-hidden="true">▲</span>  高涨（士气高于 75%）
               </li>
             </ul>
           </section>
@@ -120,9 +122,10 @@ export function VizLegendBar({ departments }: VizLegendBarProps) {
             type="button"
             className={styles.closeBtn}
             onClick={() => setOpen(false)}
-            aria-label="Close legend"
+            aria-label="关闭图例"
           >
-            Close (Esc)
+
+            关闭（Esc）
           </button>
         </div>
       )}

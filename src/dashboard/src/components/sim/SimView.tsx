@@ -84,23 +84,23 @@ function IntroBar({ onDismiss }: { onDismiss: () => void }) {
   return (
     <div
       role="region"
-      aria-label="How to read the simulation"
+      aria-label="仿真阅读说明"
       className={styles.introBar}
     >
       <div className={styles.introBody}>
-        <b className={styles.introHeading}>How to read this:</b>{' '}
+        <b className={styles.introHeading}>如何阅读：</b>{' '}
         {expanded ? (
           <>
-            Multiple commanders with different HEXACO profiles run the same seed side by side. Each turn, departments analyze in parallel and may forge a new computational tool in a V8 sandbox or reuse an existing one. Commanders decide. The settlement diverges. Click any tile in Viz to drill into a colonist; click any forge card to inspect the generated code.
+            多位不同 HEXACO 人格的指挥官使用相同随机种子并行运行。每回合各部门并行分析，可在 V8 沙箱中生成计算工具或复用已有工具，随后指挥官作出决策，世界逐渐分叉。点击可视化中的成员查看详情，点击工具卡片检查生成代码。
           </>
         ) : (
           <>
-            multiple commanders, one seed, divergent histories. HEXACO shapes every LLM call.{' '}
+            多位指挥官、相同随机种子、不同演变历史。HEXACO 人格影响模型决策。{' '}
             <button
               onClick={() => setExpanded(true)}
               className={styles.introExpandButton}
             >
-              more
+              更多
             </button>
           </>
         )}
@@ -108,9 +108,9 @@ function IntroBar({ onDismiss }: { onDismiss: () => void }) {
       <button
         onClick={onDismiss}
         className={styles.introDismissButton}
-        aria-label="Dismiss introduction"
+        aria-label="关闭介绍"
       >
-        Got it
+        知道了
       </button>
     </div>
   );
@@ -393,7 +393,7 @@ export function SimView({ state, sseStatus, onRun, onTour, verdict, launching: l
       {state.isRunning && !state.isComplete && state.maxTurns > 0 && (
         <div className={styles.progressBar}>
           <span className={styles.progressLabel}>
-            Turn {Math.max(1, state.turn)} / {state.maxTurns}
+            回合 {Math.max(1, state.turn)} / {state.maxTurns}
           </span>
           <div className={styles.progressTrack}>
             <div className={styles.progressFill} style={{ width: `${progressPercent}%` }} />
@@ -422,9 +422,9 @@ export function SimView({ state, sseStatus, onRun, onTour, verdict, launching: l
       {showLoading && !hasEvents && !state.isComplete && state.turn === 0 && (
         <div className={styles.centerState} role="status" aria-live="polite">
           <span className={`spinner ${styles.centerStateSpinnerSmall}`} aria-hidden="true" />
-          <div className={styles.centerStateHeading}>Simulation starting...</div>
+          <div className={styles.centerStateHeading}>仿真即将开始…</div>
           <div className={styles.centerStateCopy}>
-            The Event Director is reading simulation state and generating the first event. Departments will analyze and forge tools once it arrives.
+            事件导演正在读取状态并生成首个事件，随后各部门将进行分析和工具生成。
           </div>
         </div>
       )}
@@ -433,9 +433,9 @@ export function SimView({ state, sseStatus, onRun, onTour, verdict, launching: l
       {launching && !hasEvents && !state.isRunning && (
         <div className={styles.centerState} role="status" aria-live="polite">
           <span className={`spinner ${styles.centerStateSpinnerLarge}`} aria-hidden="true" />
-          <div className={styles.centerStateHeadingAmber}>Launching Simulation...</div>
+          <div className={styles.centerStateHeadingAmber}>正在启动仿真…</div>
           <div className={styles.centerStateCopy}>
-            Initializing the Event Director, departments, and agent personalities. First events will appear shortly.
+            正在初始化事件导演、部门和成员人格，首个事件即将出现。
           </div>
         </div>
       )}
@@ -444,9 +444,9 @@ export function SimView({ state, sseStatus, onRun, onTour, verdict, launching: l
       {!hasEvents && !state.isComplete && !launching && sseStatus === 'connecting' && (
         <div className={styles.centerState} role="status" aria-live="polite">
           <span className={`spinner ${styles.centerStateSpinnerSmall}`} aria-hidden="true" />
-          <div className={styles.centerStateHeading}>Connecting...</div>
+          <div className={styles.centerStateHeading}>正在连接…</div>
           <div className={styles.centerStateCopy}>
-            Loading simulation state from the server. If a simulation is running, events will appear shortly.
+            正在从服务器加载仿真状态；若已有运行，事件即将显示。
           </div>
         </div>
       )}
@@ -459,9 +459,9 @@ export function SimView({ state, sseStatus, onRun, onTour, verdict, launching: l
       {!state.isRunning && !state.isComplete && !hasEvents && sseStatus === 'connected' && !launching && typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('replay') && (
         <div className={styles.centerState} role="status" aria-live="polite">
           <span className={`spinner ${styles.centerStateSpinnerSmall}`} aria-hidden="true" />
-          <div className={styles.centerStateHeading}>Loading replay…</div>
+          <div className={styles.centerStateHeading}>正在加载回放…</div>
           <div className={styles.centerStateCopy}>
-            Streaming the cached run back from the server. Turns and events will populate as they arrive.
+            正在接收服务器上的缓存运行，回合和事件将逐步显示。
           </div>
         </div>
       )}
@@ -469,9 +469,9 @@ export function SimView({ state, sseStatus, onRun, onTour, verdict, launching: l
       {/* Empty state: connected but no events and no sim running */}
       {!state.isRunning && !state.isComplete && !hasEvents && sseStatus === 'connected' && !launching && !(typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('replay')) && (
         <div className={styles.centerState}>
-          <div className={styles.centerStateHeadingLarger}>No simulation running</div>
+          <div className={styles.centerStateHeadingLarger}>尚未运行仿真</div>
           <div className={styles.centerStateCopyWide}>
-            Configure your commanders with different HEXACO personality profiles, choose a scenario, and launch from the Settings tab. Or load a previously saved simulation.
+            为决策者配置不同的 HEXACO 人格，选择场景后在“设置”中启动，也可以加载已保存的仿真。
           </div>
           <div className={styles.emptyStateActions}>
             {onRun && (
@@ -480,23 +480,23 @@ export function SimView({ state, sseStatus, onRun, onTour, verdict, launching: l
                 disabled={launching || !scenarioReady}
                 className={styles.buttonRun}
               >
-                {launching ? 'Launching…' : scenarioReady ? 'Run Simulation' : 'Loading scenario…'}
+                {launching ? "正在启动…" : scenarioReady ? "运行仿真" : "正在加载场景…"}
               </button>
             )}
             <button onClick={handleScrollToReplayCta} className={styles.buttonLoad}>
-              Load Prior Run
+              加载历史运行
             </button>
             <button onClick={handleGoToSettings} className={styles.buttonSettings}>
-              Settings
+              设置
             </button>
           </div>
           {onTour && (
             <div className={styles.tourHint}>
-              First time here?{' '}
+              第一次使用？{' '}
               <button type="button" onClick={onTour} className={styles.tourLink}>
-                Take the guided tour →
+                开始交互导览 →
               </button>
-              <span className={styles.tourAside}>(canned demo, no LLM cost)</span>
+              <span className={styles.tourAside}>（预置演示，不产生模型费用）</span>
             </div>
           )}
           {/* Surface saved-run replays right in the empty state so users

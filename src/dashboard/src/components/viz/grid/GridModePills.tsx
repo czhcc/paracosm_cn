@@ -5,11 +5,11 @@ export type GridMode = 'living' | 'mood' | 'forge' | 'ecology' | 'divergence';
 /** Hints are scenario-templated. `{people}` = plural population noun,
  *  `{person}` = singular, both lower-case. Resolved at render time. */
 const MODES: { key: GridMode; label: string; hint: string }[] = [
-  { key: 'living', label: 'LIVING', hint: 'Full field + {person} seeds + family lines + all events' },
-  { key: 'mood', label: 'MOOD', hint: '{Person} mood cloud emphasized; births / deaths / partner arcs' },
-  { key: 'forge', label: 'FORGE', hint: 'Field dimmed; tool forge attempts + reuse arcs between departments' },
-  { key: 'ecology', label: 'ECOLOGY', hint: 'Glyphs hidden; metrics strip + crisis shockwaves lead' },
-  { key: 'divergence', label: 'DIVERGENCE', hint: 'Only {people} alive here but dead on the other side' },
+  { key: 'living', label: "存活", hint: "完整场景、{person}标记、亲属连线及全部事件" },
+  { key: 'mood', label: "情绪", hint: "突出{Person}情绪云，显示出生、死亡与伴侣连线" },
+  { key: 'forge', label: "工具创建", hint: "弱化背景，突出工具创建尝试及跨部门复用弧线" },
+  { key: 'ecology', label: "生态", hint: "隐藏人员符号，突出指标及危机冲击波" },
+  { key: 'divergence', label: "分歧", hint: "仅显示此侧存活、另一侧已故的{people}" },
 ];
 
 function interpolate(
@@ -60,7 +60,7 @@ export function GridModePills({
   if (isPhone) {
     return (
       <select
-        aria-label="Grid viz mode"
+        aria-label="网格可视化模式"
         value={mode}
         onChange={(e) => onChange(e.target.value as GridMode)}
         title={interpolate(MODES.find(m => m.key === mode)?.hint ?? '', labels)}
@@ -96,7 +96,7 @@ export function GridModePills({
   return (
     <div
       role="tablist"
-      aria-label="Grid viz mode"
+      aria-label="网格可视化模式"
       style={{
         display: 'flex',
         gap: 0,

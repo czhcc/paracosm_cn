@@ -45,7 +45,7 @@ export function TrajectoryStrip(props: TrajectoryStripProps): JSX.Element {
   if (timepoints.length === 0) {
     return (
       <div className={[styles.strip, className].filter(Boolean).join(' ')}>
-        <span className={styles.empty}>No trajectory data.</span>
+        <span className={styles.empty}>暂无轨迹数据。</span>
       </div>
     );
   }

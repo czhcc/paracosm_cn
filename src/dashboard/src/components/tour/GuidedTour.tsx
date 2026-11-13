@@ -22,86 +22,86 @@ export const TOUR_STEPS: TourStep[] = [
   {
     target: '[data-quickstart-seed]',
     tab: 'quickstart',
-    title: 'Quickstart — author from a brief',
-    description: 'Paste a brief, drop a PDF, or supply a URL. Paracosm grounds the prompt with web research, generates three distinct actors with HEXACO personalities, and runs them against the same scenario in parallel. The Twin demo card below runs a single subject against a single intervention if that\'s your use case.',
+    title: "快速开始 — 从描述创建场景",
+    description: "粘贴描述、拖入 PDF 或提供网页链接。Paracosm 将结合网络研究，生成具有 HEXACO 人格的不同决策者，在同一场景中并行运行。下方数字孪生卡片可对单个对象执行单项干预。",
   },
   {
-    target: '[role="tablist"][aria-label="Studio sub-navigation"]',
+    target: '[role="tablist"][aria-label="工作室子导航"]',
     tab: 'studio',
-    title: 'Studio — author + branches',
-    description: 'Drop any saved Paracosm artifact or bundle here to inspect, fork, and re-run. The Branches sub-tab forks an actor at any turn N and re-runs from that checkpoint with a new HEXACO profile, so you can probe alternate histories from a shared starting state.',
+    title: "工作室 — 编写与分支",
+    description: "拖入已保存的运行记录或运行组，即可查看、创建分支和重新运行。分支页可从任一回合的检查点出发，替换 HEXACO 人格，探索不同决策带来的后续演变。",
   },
   {
     target: '.topbar',
     tab: 'sim',
-    title: 'Top Bar',
-    description: 'Scenario name on the left. RUN, status, theme toggle, and HOW IT WORKS (replay this tour) on the right. The T / Y / S tokens in the center show turn, in-sim time, and deterministic seed — hover each for what they mean. A "⋯" menu reveals Save / Copy / Clear once a run has started.',
+    title: "顶部工具栏",
+    description: "左侧显示场景名称，右侧提供运行、连接状态、主题切换和工作原理导览。中间显示回合、仿真时间与随机种子，悬停可查看说明。运行开始后可在 ⋯ 菜单中保存、复制和清除数据。",
   },
   {
     target: '.tab-bar',
     tab: 'sim',
-    title: 'Navigation',
-    description: 'Quickstart and Studio for authoring. Sim, Viz, Chat for the live run. Reports and Library for analysis. Settings holds config (Event Log lives there as a sub-tab). Labels collapse to icons below 900px so the row never wraps onto two lines.',
+    title: "页面导航",
+    description: "快速开始与工作室用于创建场景；仿真、可视化与聊天用于观察运行；报告与资料库用于分析。设置页包含配置和事件日志。窄屏下标签收为图标，避免导航换行。",
   },
   {
-    target: '[role="group"][aria-label="Sim layout"]',
+    target: '[role="group"][aria-label="仿真布局"]',
     tab: 'sim',
-    title: 'Sim layout',
-    description: 'Side-by-side for 2 actors, Constellation for 3+. Constellation auto-engages above 3 actors because two columns physically can\'t fit them. Click any node in the Constellation graph to drill into one actor\'s decisions, departments, and tools. The tour pins side-by-side so you can see leader cards and event streams as they\'d render for a 2-actor run.',
+    title: "仿真布局",
+    description: "双人场景可并排显示，多人场景可使用星座布局。点击星座中的节点可查看对应决策者的决策、部门和工具。此导览使用并排布局展示双人运行的卡片与事件流。",
   },
   {
     target: '.leaders-row',
     tab: 'sim',
-    title: 'Leader cards',
-    description: 'Each actor renders with its name, archetype, HEXACO profile, and a population + morale sparkline. Left is amber, right is teal. Glyph color, Conway tiles, and chronicle pills downstream all pick up these same colors so you always know which side you\'re looking at.',
+    title: "决策者卡片",
+    description: "每位决策者显示姓名、人格类型、HEXACO 参数，以及人口与士气迷你图。左侧使用琥珀色，右侧使用青色；后续符号、网格与事件标签沿用对应颜色，帮助辨认时间线。",
   },
   {
     target: '.sim-columns',
     tab: 'sim',
-    title: 'Event streams',
-    description: 'Each turn, both leaders face events the Director generated based on accumulated state. Departments analyze in parallel and may forge new tools. Commanders decide. Tools tint by side. Every forged tool card gets a "↗ LOG" button that jumps to the Event Log filtered to that tool.',
+    title: "事件流",
+    description: "每回合，事件导演根据累计状态生成事件。各部门并行分析，必要时创建工具，随后由决策者作出决定。工具卡上的日志入口可打开已按该工具筛选的事件日志。",
   },
   {
-    target: '[aria-label="Divergence rail"]',
+    target: '[aria-label="逐回合分歧图"]',
     tab: 'sim',
-    title: 'Divergence rail',
-    description: 'How far the actors have diverged at the current turn. Shows decision texts and outcomes side by side in plain language. Same seed, different histories — because HEXACO shaped every LLM call.',
+    title: "分歧对比",
+    description: "并排展示当前回合的决策与结果，观察不同决策者的分歧。相同起点和随机种子下，HEXACO 人格会影响模型调用，从而产生不同的演变路径。",
   },
   {
     target: '.viz-content',
     tab: 'viz',
-    title: 'Viz — living canvas',
-    description: 'Mirrored canvases, one per actor. Conway-style cellular tiles render underneath to encode mood (BLOCK = calm, GLIDER = agitated) while colonist glyphs sit on top as the primary signal. Hover a tile or a glyph for a tooltip; click either to drill into the colonist. Use the mode pills (LIVING / MOOD / FORGE / ECOLOGY / DIVERGENCE) and event filters above the canvas to reshape the read.',
+    title: "可视化 — 群体画布",
+    description: "每位决策者拥有独立画布。底层元胞图案编码情绪，上层人员符号展示个体。悬停可查看提示，点击可打开成员详情。上方可切换存活、情绪、工具创建、生态和分歧模式，并按事件筛选。",
   },
   {
     target: '.chat-layout',
     tab: 'chat',
-    title: 'Character chat',
-    description: 'Talk to any colonist from the run. Each carries their HEXACO profile, the memories they formed during the sim, and their relationships. The Viz drilldown popover has a direct Chat handoff that preselects the colonist here.',
+    title: "角色聊天",
+    description: "可与运行中的居民聊天。每人都带有 HEXACO 人格、仿真经历、记忆与关系。可视化详情中的聊天入口会直接选中对应成员。",
   },
   {
     target: '.reports-content',
     tab: 'reports',
-    title: 'Reports',
-    description: 'Turn-by-turn rollup: commander decisions, department analyses, forged toolbox across both sides, agent reactions, verdict comparison. Every forged tool has a "↗ LOG" button that scopes the Event Log sub-tab to just that tool\'s history.',
+    title: "报告",
+    description: "逐回合汇总决策、部门分析、动态工具、成员反应和最终结论。工具上的日志入口会跳转到该工具的创建与使用历史。",
   },
   {
-    target: '[role="group"][aria-label="View mode"]',
+    target: '[role="group"][aria-label="显示方式"]',
     tab: 'library',
-    title: 'Library — saved runs',
-    description: 'Every run you launch is saved here. Filter by scenario, leader configuration, or free-text search. Gallery view shows hero stats; Table view shows everything. Open any run to inspect, or promote it into Studio to fork a new branch.',
+    title: "资料库 — 已保存运行",
+    description: "已启动的运行保存在此处，可按场景、决策者配置或文字筛选。画廊展示关键指标，表格展示详细记录。打开运行可查看详情，也可送入工作室创建分支。",
   },
   {
-    target: '[role="tablist"][aria-label="Settings sub-navigation"]',
+    target: '[role="tablist"][aria-label="设置子导航"]',
     tab: 'settings',
-    title: 'Settings + event log',
-    description: 'Configure actors with HEXACO sliders, pick a scenario, set turns and population, and drop in your own OpenAI or Anthropic key to bypass the hosted-demo caps. The Event Log sub-tab shows the raw SSE stream (status, turn_start, specialist_done, decision_made, outcome, reaction, forge_attempt) and is what the "↗ LOG" buttons elsewhere link into.',
+    title: "设置与事件日志",
+    description: "使用 HEXACO 滑块配置决策者，选择场景、回合与人口，并填写模型服务密钥。事件日志展示状态、回合、部门分析、决策、结果、反应和工具创建等原始事件，是各处日志入口的目标。",
   },
   {
     target: '.topbar',
     tab: 'sim',
-    title: 'Ready to launch',
-    description: 'That was demo data. Hit RUN in the top bar to launch a live simulation against the host caps, or paste your own API key in Settings for full-scope runs. When the run finishes, a "Run Complete" banner lands at the top with the verdict and a jump to the Reports tab.',
+    title: "准备开始",
+    description: "以上使用演示数据。点击顶部运行按钮启动实际仿真，也可先在设置中填写自己的 API 密钥。运行结束后，顶部会显示结论横幅，并提供报告入口。",
   },
 ];
 
@@ -394,15 +394,15 @@ export function GuidedTour({ activeTab, chatEnabled = true, onTabChange, onClose
        * underneath, so navigating away mid-tour just works. */}
 
       {/* Tour card */}
-      <div data-tour-overlay className={cardCls} style={cardVars} onClick={e => e.stopPropagation()} role="dialog" aria-label="Guided tour">
+      <div data-tour-overlay className={cardCls} style={cardVars} onClick={e => e.stopPropagation()} role="dialog" aria-label="操作导览">
         <div className={styles.cardHeader}>
           <span className={styles.stepCount}>
             {step + 1} / {steps.length}
           </span>
-          <span aria-label={`Active tab: ${current.tab}`} className={styles.tabBadge}>
-            {current.tab}
+          <span aria-label="当前页面" className={styles.tabBadge}>
+            {({ quickstart: '快速开始', studio: '工作室', sim: '仿真', viz: '可视化', chat: '聊天', reports: '报告', library: '资料库', settings: '设置' })[current.tab]}
           </span>
-          <button onClick={handleClose} className={styles.closeBtn} aria-label="Close tour">&times;</button>
+          <button onClick={handleClose} className={styles.closeBtn} aria-label="关闭导览">&times;</button>
         </div>
 
         <h3 className={[styles.title, isMobile ? styles.mobile : ''].filter(Boolean).join(' ')}>
@@ -413,11 +413,11 @@ export function GuidedTour({ activeTab, chatEnabled = true, onTabChange, onClose
         </p>
 
         <div className={styles.actions}>
-          <button onClick={handleClose} className={[styles.skipBtn, isMobile ? styles.compact : ''].filter(Boolean).join(' ')}>Skip</button>
+          <button onClick={handleClose} className={[styles.skipBtn, isMobile ? styles.compact : ''].filter(Boolean).join(' ')}>跳过</button>
           <div className={styles.actionsRight}>
             {step > 0 && (
               <button onClick={() => setStep(s => s - 1)} className={[styles.navBtn, isMobile ? styles.compact : ''].filter(Boolean).join(' ')}>
-                Back
+                返回
               </button>
             )}
             <button
@@ -435,7 +435,7 @@ export function GuidedTour({ activeTab, chatEnabled = true, onTabChange, onClose
                 !isMobile && step === steps.length - 1 ? styles.final : '',
               ].filter(Boolean).join(' ')}
             >
-              {step < steps.length - 1 ? 'Next' : isMobile ? 'Start →' : 'Start Your Simulation'}
+              {step < steps.length - 1 ? '下一步' : isMobile ? '开始 →' : '开始仿真'}
             </button>
           </div>
         </div>
@@ -450,7 +450,7 @@ export function GuidedTour({ activeTab, chatEnabled = true, onTabChange, onClose
               aria-valuenow={step + 1}
               aria-valuemin={1}
               aria-valuemax={steps.length}
-              aria-label={`Step ${step + 1} of ${steps.length}`}
+              aria-label={`第 ${step + 1} / ${steps.length} 步`}
             />
           </div>
         ) : (
@@ -463,14 +463,14 @@ export function GuidedTour({ activeTab, chatEnabled = true, onTabChange, onClose
                   '--dot-width': i === step ? '16px' : '6px',
                   '--dot-bg': i === step ? 'var(--amber)' : i < step ? 'var(--text-3)' : 'var(--border)',
                 } as CSSProperties}
-                aria-label={`Step ${i + 1}`}
+                aria-label={`第 ${i + 1} 步`}
               />
             ))}
           </div>
         )}
 
         {!isMobile && (
-          <div className={styles.kbHint}>Arrow keys / Esc</div>
+          <div className={styles.kbHint}>方向键 / Esc</div>
         )}
       </div>
     </>

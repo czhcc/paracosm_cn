@@ -1,3 +1,4 @@
+import { localizeTemplate } from '../../template-localization';
 import * as React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { useScenarioContext, useScenarioReady } from '../../App';
@@ -36,18 +37,18 @@ function formatCompiledAge(iso: string): string {
   const then = Date.parse(iso);
   if (!Number.isFinite(then)) return '';
   const diffMs = Date.now() - then;
-  if (diffMs < 0) return 'just now';
+  if (diffMs < 0) return "刚刚";
   const minutes = Math.floor(diffMs / 60_000);
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) return "刚刚";
+  if (minutes < 60) return `${minutes} 分钟前`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return `${hours} 小时前`;
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days < 7) return `${days} 天前`;
   const weeks = Math.floor(days / 7);
-  if (weeks < 5) return `${weeks}w ago`;
+  if (weeks < 5) return `${weeks} 周前`;
   const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
+  if (months < 12) return `${months} 个月前`;
   return new Date(iso).getFullYear().toString();
 }
 
@@ -102,7 +103,7 @@ export function LoadedScenarioCTA({
       .then(r => r.ok ? r.json() as Promise<{ scenarios?: CatalogScenario[] }> : null)
       .then(body => {
         if (cancelled) return;
-        setScenarios(body?.scenarios ?? []);
+        setScenarios(localizeTemplate(body?.scenarios ?? []));
       })
       .catch(() => { /* picker hides on fetch failure; CTA still works for the active scenario */ });
     return () => {
@@ -164,8 +165,8 @@ export function LoadedScenarioCTA({
   const tagline = scenario.labels.tagline?.trim();
 
   const leaderLine = hasPreset
-    ? `${presetActors[0].name} (${presetActors[0].archetype}) vs ${presetActors[1].name} (${presetActors[1].archetype})`
-    : 'Auto-generated leaders (no preset)';
+    ? `${presetActors[0].name} (${presetActors[0].archetype}) 对比 ${presetActors[1].name} (${presetActors[1].archetype})`
+    : "自动生成决策者（无预设）";
 
   const headingId = 'loaded-scenario-cta-heading';
   const sliderId = 'loaded-scenario-actor-count';
@@ -178,17 +179,17 @@ export function LoadedScenarioCTA({
     // for the duration of the run, which keeps this button gated.
   };
 
-  const actorLabel = `${actorCount} ${actorCount === 1 ? 'actor' : 'actors'}`;
-  const accessibleRunLabel = launching ? 'Launching...' : `Run ${actorLabel} against ${scenarioName}`;
-  const fullRunLabel = launching ? 'Launching...' : `${accessibleRunLabel} ->`;
-  const compactRunLabel = launching ? 'Launching...' : `Run ${actorLabel}`;
+  const actorLabel = `${actorCount} 位决策者`;
+  const accessibleRunLabel = launching ? '正在启动…' : `在“${scenarioName}”中运行 ${actorLabel}`;
+  const fullRunLabel = launching ? '正在启动…' : `${accessibleRunLabel} ->`;
+  const compactRunLabel = launching ? '正在启动…' : `运行 ${actorLabel}`;
 
   const scenarioPickerId = 'loaded-scenario-cta-picker';
 
   return (
     <section className={styles.card} aria-labelledby={headingId}>
       <h2 className={styles.heading} id={headingId}>
-        ▶ Run with the loaded scenario: {scenarioName}
+        ▶ 运行当前场景： {scenarioName}
       </h2>
       {tagline && <p className={styles.tagline}>{tagline}</p>}
       <div className={styles.subline}>{leaderLine}</div>
@@ -215,7 +216,7 @@ export function LoadedScenarioCTA({
         return (
           <div className={styles.scenarioPickerRow}>
             <label className={styles.scenarioPickerLabel} htmlFor={scenarioPickerId}>
-              Scenario
+              场景
             </label>
             <select
               id={scenarioPickerId}
@@ -223,13 +224,13 @@ export function LoadedScenarioCTA({
               value={scenario.id}
               onChange={(e) => handleSwitchScenario(e.target.value)}
               disabled={disabled || launching || switchingScenario}
-              aria-label="Switch active scenario"
+              aria-label="切换当前场景"
             >
               {renderedScenarios.map(s => {
-                const tag = s.source === 'builtin' ? '[builtin]'
-                  : s.source === 'disk' ? '[disk]'
-                  : s.source === 'compiled' ? '[compiled]'
-                  : s.source === 'active' ? '[active]'
+                const tag = s.source === 'builtin' ? "[内置]"
+                  : s.source === 'disk' ? "[已保存]"
+                  : s.source === 'compiled' ? "[已编译]"
+                  : s.source === 'active' ? "[当前]"
                   : '';
                 // Suffix shape: "[source] · 12 runs · 3d ago" — only
                 // the parts with real values render so a fresh-install
@@ -238,7 +239,7 @@ export function LoadedScenarioCTA({
                 const parts: string[] = [];
                 if (tag) parts.push(tag);
                 if (typeof s.runCount === 'number' && s.runCount > 0) {
-                  parts.push(`${s.runCount} run${s.runCount === 1 ? '' : 's'}`);
+                  parts.push(`${s.runCount} 次运行`);
                 }
                 if (s.compiledAt) {
                   const age = formatCompiledAge(s.compiledAt);
@@ -253,13 +254,13 @@ export function LoadedScenarioCTA({
               })}
             </select>
             {switchingScenario && (
-              <span className={styles.scenarioPickerHint}>Switching…</span>
+              <span className={styles.scenarioPickerHint}>正在切换…</span>
             )}
           </div>
         );
       })()}
       <div className={styles.actorRow}>
-        <label className={styles.actorLabel} htmlFor={sliderId}>Actors</label>
+        <label className={styles.actorLabel} htmlFor={sliderId}>决策者</label>
         <input
           id={sliderId}
           type="range"
@@ -269,7 +270,7 @@ export function LoadedScenarioCTA({
           onChange={(e) => setActorCount(parseInt(e.target.value, 10))}
           disabled={disabled || launching}
           className={styles.actorSlider}
-          aria-label="Number of parallel actors"
+          aria-label="并行决策者数量"
         />
         <span className={styles.actorValue}>{actorCount}</span>
       </div>
@@ -285,9 +286,9 @@ export function LoadedScenarioCTA({
         <span className={styles.runButtonCompact} aria-hidden="true">{compactRunLabel}</span>
       </button>
       <div className={styles.tradeoff}>
-        {hasPreset && !exceedsPreset && 'Same scenario, fresh seed: skips the compile step.'}
-        {hasPreset && exceedsPreset && `Same scenario; ${actorCount} LLM-generated actors replace the preset leaders for this run (~30s for generation).`}
-        {!hasPreset && 'Same scenario; ~30s for actor generation since no preset is defined.'}
+        {hasPreset && !exceedsPreset && "复用当前场景，以新随机种子运行，跳过编译。"}
+        {hasPreset && exceedsPreset && `复用场景，本次将生成 ${actorCount} 位决策者替代预设人物（约需 30 秒）。`}
+        {!hasPreset && "复用当前场景；未定义预设，生成决策者约需 30 秒。"}
       </div>
     </section>
   );

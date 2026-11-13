@@ -36,6 +36,8 @@ import type { SimulateOptions, InterveneOptions, BatchOptions, ActorRun } from '
 import { runBatch, type BatchConfig, type BatchManifest } from '../batch.js';
 import { canonicalJson } from '../io/canonical-json.js';
 import { compileScenario } from '../../engine/compiler/index.js';
+import { configuredModel } from '../../engine/provider/model-config.js';
+import { resolveProviderFromCredentials } from '../../engine/provider/credentials.js';
 import { compileFromSeed, type CompileFromSeedInput, type CompileFromSeedOptions } from '../../engine/compiler/compile-from-seed.js';
 import type { CompileOptions } from '../../engine/compiler/types.js';
 import type { KeyPersonnel } from '../../engine/core/agent-generator.js';
@@ -488,8 +490,8 @@ export class WorldModel {
       seed = this.scenario.setup.defaultSeed ?? 42,
       maxTurns = this.scenario.setup.defaultTurns,
       captureSnapshots = true,
-      provider = 'anthropic',
-      model = 'claude-sonnet-4-6',
+      provider = resolveProviderFromCredentials(undefined, {}, 'anthropic'),
+      model = configuredModel(provider) ?? (provider === 'openai' ? 'gpt-5.4-mini' : 'claude-sonnet-4-6'),
     } = options;
 
     if (actorCount < 2 || actorCount > 6) {
@@ -738,8 +740,9 @@ export async function generateQuickstartActors(
   count: number,
   opts: { provider?: string; model?: string } = {},
 ): Promise<ActorConfig[]> {
-  const provider = opts.provider ?? 'anthropic';
-  const model = opts.model ?? 'claude-sonnet-4-6';
+  const provider = resolveProviderFromCredentials(opts.provider as CompileOptions['provider'], {}, 'anthropic');
+  const model = opts.model ?? configuredModel(provider)
+    ?? (provider === 'openai' ? 'gpt-5.4-mini' : 'claude-sonnet-4-6');
   const deptRoles = scenario.departments.map(d => `${d.label} (${d.role})`).join(', ');
   const systemPrompt = `You generate archetypal decision-maker profiles for paracosm simulation runs.
 Every actor must have a distinct HEXACO profile designed to diverge from the others on at least one high-impact trait (openness, conscientiousness, emotionality).

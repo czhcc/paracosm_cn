@@ -16,21 +16,16 @@ import styles from './TraitModelNotice.module.scss';
 
 export function TraitModelNotice() {
   return (
-    <div className={styles.notice} role="note" aria-label="Pluggable trait models">
-      <span className={styles.badge} aria-hidden="true">NEW</span>
+    <div className={styles.notice} role="note" aria-label="可扩展人格模型">
+      <span className={styles.badge} aria-hidden="true">新增</span>
       <div className={styles.body}>
         <div className={styles.headline}>
-          Leaders accept pluggable trait models.
+          决策者支持可扩展的人格模型。
         </div>
         <p className={styles.copy}>
-          The dashboard form below configures HEXACO leaders today. The
-          API also accepts <code>ai-agent</code> leaders (six axes for
-          AI-system decision-makers: exploration, verification-rigor,
-          deference, risk-tolerance, transparency,
-          instruction-following). Slider generalization for non-HEXACO
-          models is queued; in the meantime, supply a{' '}
-          <code>traitProfile</code> field via{' '}
-          <code>runSimulation(leader, ...)</code> directly.
+          下方表单配置 HEXACO 人格，API 也支持 <code>ai-agent</code> 类型的决策者，其六个维度为探索、验证严谨度、服从、风险容忍、透明度及指令遵循。其他人格模型的滑块界面尚未提供，目前可以通过{' '}
+          <code>traitProfile</code> 字段调用{' '}
+          <code>runSimulation(leader, ...)</code> 直接使用。
         </p>
         <div className={styles.links}>
           <a
@@ -39,7 +34,7 @@ export function TraitModelNotice() {
             rel="noopener"
             className={styles.link}
           >
-            Captured ai-agent end-to-end run
+            AI 智能体完整运行示例
           </a>
           <a
             href="https://github.com/framerslab/paracosm/blob/master/docs/COOKBOOK.md#pluggable-traits-ai-agent-end-to-end"
@@ -47,7 +42,7 @@ export function TraitModelNotice() {
             rel="noopener"
             className={styles.link}
           >
-            Trait-model cookbook
+            人格模型使用指南
           </a>
         </div>
       </div>

@@ -63,9 +63,9 @@ export function useLoadFromUrl(opts: UseLoadFromUrlOptions): void {
     (async () => {
       const { openFromFile, onInfo, onError } = optsRef.current;
       if (isCrossOrigin(url, window.location.href)) {
-        onInfo?.('Loading remote run', `Fetching from ${url.host}...`);
+        onInfo?.("正在加载远程运行", `Fetching from ${url.host}...`);
       } else {
-        onInfo?.('Loading run', `Fetching ${url.pathname}...`);
+        onInfo?.("正在加载运行", `Fetching ${url.pathname}...`);
       }
       try {
         const fetchImpl = optsRef.current._fetchImpl ?? fetch;
@@ -87,7 +87,7 @@ export function useLoadFromUrl(opts: UseLoadFromUrlOptions): void {
             : err instanceof Error
               ? err.message
               : String(err);
-        onError?.('Remote load failed', message);
+        onError?.("远程加载失败", message);
       } finally {
         window.clearTimeout(timeoutId);
         stripLoadParam();

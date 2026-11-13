@@ -63,7 +63,7 @@ test('BatchArtifactView batch-point renders single TimepointCard with forecast l
     artifact: batchPointArtifact(),
     metricSpecs: { morale: moraleSpec, population: popSpec },
   }));
-  assert.ok(html.includes('Forecast'), 'must show "Forecast" label');
+  assert.ok(html.includes('预测'), '必须显示中文预测标签');
   assert.ok(html.includes('Stress event reduces morale'), 'overview must render in highlights');
   assert.ok(html.includes('Sustained morale crash'), 'risk flag must render');
 });
@@ -75,7 +75,7 @@ test('BatchArtifactView batch-trajectory with no timepoints renders empty state'
     artifact: empty,
     metricSpecs: { morale: moraleSpec, population: popSpec },
   }));
-  assert.ok(html.includes('No timepoints'), 'must show empty state');
+  assert.ok(html.includes('没有时间点数据'), 'must show empty state');
 });
 
 test('BatchArtifactView turn-loop mode falls through with explanatory message', () => {
@@ -85,7 +85,7 @@ test('BatchArtifactView turn-loop mode falls through with explanatory message', 
     artifact: a,
     metricSpecs: { morale: moraleSpec, population: popSpec },
   }));
-  assert.ok(html.includes('Use ReportView'), 'must point users to ReportView for turn-loop');
+  assert.ok(html.includes('逐回合运行请使用报告视图'), 'must point users to ReportView for turn-loop');
 });
 
 test('resolvePrimaryMetric returns first declared spec when specs are populated', () => {

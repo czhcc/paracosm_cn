@@ -33,7 +33,7 @@ export function StudioBundleView(props: StudioBundleViewProps): JSX.Element {
           className={styles.bundleDrillBack}
           onClick={() => setDrillIdx(null)}
         >
-          ← Back to bundle
+          ← 返回运行组
         </button>
         <StudioArtifactView
           artifact={drilled}
@@ -65,7 +65,7 @@ export function StudioBundleView(props: StudioBundleViewProps): JSX.Element {
           {alreadyExisted ? 'Already in Library' : promoteBusy ? 'Promoting…' : `Promote bundle (${artifacts.length})`}
         </button>
         <button type="button" className={styles.compareBtn} onClick={onCompare}>
-          Compare bundle
+          对比运行组
         </button>
       </div>
       <div className={styles.bundleGrid}>
@@ -82,7 +82,7 @@ export function StudioBundleView(props: StudioBundleViewProps): JSX.Element {
             >
               <div className={styles.bundleCardTitle}>{actor?.name ?? '<unnamed>'}</div>
               <div className={styles.bundleCardMeta}>
-                {actor?.archetype ?? ''} · {turns} turn{turns === 1 ? '' : 's'}
+                {actor?.archetype ?? ''} · {turns}  回合{turns === 1 ? '' : 's'}
                 {typeof cost === 'number' ? ` · $${cost.toFixed(3)}` : ''}
               </div>
             </button>

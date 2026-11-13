@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "engineArchetype": "closed_turn_based_settlement",
   "labels": {
-    "name": "Q-Scope Corp",
+    "name": "Q-Scope 公司",
     "shortName": "corp",
     "populationNoun": "employees",
     "settlementNoun": "company",
@@ -15,7 +15,7 @@
     "timeUnitNounPlural": "quarters",
     "actorNoun": "CEO",
     "actorNounPlural": "CEOs",
-    "tagline": "Q-Scope Corp: four quarters of a mid-stage company driven by two CEO archetypes. Hires, layoffs, ship dates, and PR fires fall under HEXACO-graded calls."
+    "tagline": "一家成长阶段公司的四个季度经营仿真。两类首席执行官依据不同的人格倾向，处理招聘、裁员、产品发布与公关危机。"
   },
   "theme": {
     "primaryColor": "#3b82f6",
@@ -45,80 +45,80 @@
   "departments": [
     {
       "id": "sales",
-      "label": "Sales",
-      "role": "VP of Sales",
-      "icon": "\ud83d\udcbc",
+      "label": "销售部",
+      "role": "销售副总裁",
+      "icon": "💼",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the VP of Sales. You analyze pipeline coverage, ACV trends, close rates, sales cycle length, and territory productivity. You argue for commission structure and GTM bets that move bookings this quarter while protecting next-quarter pipeline."
+      "instructions": "你是销售副总裁，分析销售管线覆盖、平均合同金额趋势、成交率、销售周期和区域产出。你主张采用能推动本季度签单、同时保护下一季度销售管线的佣金结构与市场进入策略。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "engineering",
-      "label": "Engineering",
-      "role": "VP of Engineering",
-      "icon": "\ud83d\udee0\ufe0f",
+      "label": "工程部",
+      "role": "工程副总裁",
+      "icon": "🛠️",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the VP of Engineering. You analyze feature delivery, quality debt, incident load, hiring pipeline, and tooling spend. You flag when a commit deadline forces a cut against quality or headcount."
+      "instructions": "你是工程副总裁，分析功能交付、质量债务、事故负担、招聘管线和工具支出。当承诺的截止日期迫使团队牺牲质量或削减人员时，你会明确预警。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "finance",
-      "label": "Finance",
-      "role": "CFO",
-      "icon": "\ud83d\udcca",
+      "label": "财务部",
+      "role": "首席财务官",
+      "icon": "📊",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the CFO. You analyze runway, burn, gross margin, unit economics, working capital, and scenarios for the next 4 quarters. Every decision goes through your runway projection before you sign off."
+      "instructions": "你是首席财务官，分析现金可支撑时长、资金消耗、毛利率、单位经济效益、营运资金及未来四个季度的情景。每项决策都必须先经过你的现金可支撑时长预测，才能获得批准。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "hr",
-      "label": "People",
-      "role": "Chief People Officer",
-      "icon": "\ud83e\uddd1\u200d\ud83e\udd1d\u200d\ud83e\uddd1",
+      "label": "人力资源部",
+      "role": "首席人力资源官",
+      "icon": "🧑‍🤝‍🧑",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Chief People Officer. You analyze retention risk, employee engagement, compensation bands, manager load, and culture signal. Every headcount move is weighed against burnout risk and attrition forecast."
+      "instructions": "你是首席人力资源官，分析留任风险、员工投入程度、薪酬区间、管理者负荷和组织文化信号。每次人员调整都要权衡职业倦怠风险及员工流失预测。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "operations",
-      "label": "Operations",
-      "role": "COO",
-      "icon": "\ud83c\udfed",
+      "label": "运营部",
+      "role": "首席运营官",
+      "icon": "🏭",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the COO. You analyze cross-functional throughput, vendor risk, contract exposure, operational efficiency, and the gap between plan and reality across every org. You push back when strategy ignores operating constraints."
+      "instructions": "你是首席运营官，分析各组织的跨职能吞吐、供应商风险、合同风险敞口、运营效率，以及计划与现实之间的差距。当战略忽视运营约束时，你会提出反对意见。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     }
   ],
   "metrics": [
     {
       "id": "population",
-      "label": "Employees",
+      "label": "员工",
       "source": "metrics.population",
       "format": "number"
     },
     {
       "id": "morale",
-      "label": "Engagement",
+      "label": "员工投入程度",
       "source": "metrics.morale",
       "format": "percent"
     },
     {
       "id": "revenueArr",
-      "label": "ARR",
+      "label": "年度经常性收入",
       "source": "metrics.revenueArr",
       "format": "number"
     },
     {
       "id": "burnRate",
-      "label": "Burn",
+      "label": "资金消耗",
       "source": "metrics.burnRate",
       "format": "number",
       "better": "lower"
     },
     {
       "id": "runwayMonths",
-      "label": "Runway",
+      "label": "现金可支撑时长",
       "source": "metrics.runwayMonths",
       "format": "number"
     },
     {
       "id": "marketShare",
-      "label": "Market Share",
+      "label": "市场份额",
       "source": "metrics.marketShare",
       "format": "percent"
     }
@@ -126,44 +126,44 @@
   "events": [
     {
       "id": "crisis",
-      "label": "Crisis",
-      "icon": "\ud83d\udea8",
+      "label": "危机",
+      "icon": "🚨",
       "color": "#ef4444"
     },
     {
       "id": "decision",
-      "label": "Decision",
-      "icon": "\ud83e\udded",
+      "label": "决策",
+      "icon": "🧭",
       "color": "#f59e0b"
     },
     {
       "id": "launch",
-      "label": "Launch",
-      "icon": "\ud83d\ude80",
+      "label": "发布",
+      "icon": "🚀",
       "color": "#22c55e"
     },
     {
       "id": "departure",
-      "label": "Departure",
-      "icon": "\ud83d\udc4b",
+      "label": "离职",
+      "icon": "👋",
       "color": "#6b7280"
     },
     {
       "id": "hire",
-      "label": "Hire",
-      "icon": "\ud83c\udfaf",
+      "label": "招聘",
+      "icon": "🎯",
       "color": "#3b82f6"
     },
     {
       "id": "tool_forge",
-      "label": "Tool Forged",
-      "icon": "\ud83d\udd27",
+      "label": "工具生成",
+      "icon": "🔧",
       "color": "#8b5cf6"
     },
     {
       "id": "system",
-      "label": "System",
-      "icon": "\u2699\ufe0f",
+      "label": "系统",
+      "icon": "⚙️",
       "color": "#64748b"
     }
   ],
@@ -237,11 +237,11 @@
       "quotes"
     ],
     "departmentIcons": {
-      "sales": "\ud83d\udcbc",
-      "engineering": "\ud83d\udee0\ufe0f",
-      "finance": "\ud83d\udcca",
-      "hr": "\ud83e\uddd1\u200d\ud83e\udd1d\u200d\ud83e\uddd1",
-      "operations": "\ud83c\udfed"
+      "sales": "💼",
+      "engineering": "🛠️",
+      "finance": "📊",
+      "hr": "🧑‍🤝‍🧑",
+      "operations": "🏭"
     },
     "setupSections": [
       "leaders",
@@ -275,11 +275,11 @@
   "presets": [
     {
       "id": "default",
-      "label": "Growth vs Discipline",
+      "label": "增长与纪律",
       "leaders": [
         {
           "name": "Priya Kapoor",
-          "archetype": "The Growth CEO",
+          "archetype": "增长型首席执行官",
           "hexaco": {
             "openness": 0.9,
             "conscientiousness": 0.45,
@@ -288,11 +288,11 @@
             "emotionality": 0.3,
             "honestyHumility": 0.6
           },
-          "instructions": "You are Priya Kapoor, 'The Growth CEO.' You lead by bold category bets. You will spend to win a market before you have product-market fit on paper. You trust fast learning over cautious modelling. Your HEXACO profile drives your leadership."
+          "instructions": "你是普里娅·卡普尔，人称“增长型首席执行官”。你以大胆押注新品类来领导，即使尚未在书面分析中证明产品与市场匹配，也愿意投入资金抢占市场。相比谨慎建模，你更信任快速学习。你的 HEXACO 人格决定领导风格。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
         },
         {
           "name": "Marcus Reinhardt",
-          "archetype": "The Discipline CEO",
+          "archetype": "纪律型首席执行官",
           "hexaco": {
             "openness": 0.4,
             "conscientiousness": 0.95,
@@ -301,7 +301,7 @@
             "emotionality": 0.55,
             "honestyHumility": 0.85
           },
-          "instructions": "You are Marcus Reinhardt, 'The Discipline CEO.' You lead by unit economics and clean books. You will say no to a tempting market if the payback period is wrong. You think capital efficiency is the durable competitive advantage. Your HEXACO profile drives your leadership."
+          "instructions": "你是马库斯·莱因哈特，人称“纪律型首席执行官”。你以单位经济效益和清晰账目为领导准则。如果投资回收期不合适，即使市场很有吸引力，你也会拒绝进入。你认为资本效率是持久的竞争优势。你的 HEXACO 人格决定领导风格。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
         }
       ]
     }
@@ -310,7 +310,7 @@
     "metrics": {
       "population": {
         "id": "population",
-        "label": "Employees",
+        "label": "员工",
         "unit": "people",
         "type": "number",
         "initial": 40,
@@ -319,7 +319,7 @@
       },
       "morale": {
         "id": "morale",
-        "label": "Engagement",
+        "label": "员工投入程度",
         "unit": "%",
         "type": "number",
         "initial": 0.72,
@@ -329,7 +329,7 @@
       },
       "revenueArr": {
         "id": "revenueArr",
-        "label": "ARR",
+        "label": "年度经常性收入",
         "unit": "USD",
         "type": "number",
         "initial": 6000000,
@@ -338,7 +338,7 @@
       },
       "burnRate": {
         "id": "burnRate",
-        "label": "Burn",
+        "label": "资金消耗",
         "unit": "USD/mo",
         "type": "number",
         "initial": 850000,
@@ -347,7 +347,7 @@
       },
       "runwayMonths": {
         "id": "runwayMonths",
-        "label": "Runway",
+        "label": "现金可支撑时长",
         "unit": "months",
         "type": "number",
         "initial": 14,
@@ -356,7 +356,7 @@
       },
       "marketShare": {
         "id": "marketShare",
-        "label": "Market Share",
+        "label": "市场份额",
         "unit": "%",
         "type": "number",
         "initial": 0.08,
@@ -368,7 +368,7 @@
     "capacities": {
       "hiringCapacity": {
         "id": "hiringCapacity",
-        "label": "Hiring Capacity",
+        "label": "招聘容量",
         "unit": "hires/qtr",
         "type": "number",
         "initial": 8,
@@ -376,7 +376,7 @@
       },
       "deliveryCapacity": {
         "id": "deliveryCapacity",
-        "label": "Delivery Capacity",
+        "label": "交付容量",
         "unit": "initiatives/qtr",
         "type": "number",
         "initial": 6,
@@ -386,7 +386,7 @@
     "statuses": {
       "fundingRound": {
         "id": "fundingRound",
-        "label": "Funding Round",
+        "label": "融资轮次",
         "unit": "",
         "type": "string",
         "initial": "series-b",
@@ -396,7 +396,7 @@
     "politics": {
       "boardConfidence": {
         "id": "boardConfidence",
-        "label": "Board Confidence",
+        "label": "董事会信心",
         "unit": "%",
         "type": "number",
         "initial": 75,
@@ -406,7 +406,7 @@
       },
       "investorPressure": {
         "id": "investorPressure",
-        "label": "Investor Pressure",
+        "label": "投资者压力",
         "unit": "%",
         "type": "number",
         "initial": 40,
@@ -418,7 +418,7 @@
     "environment": {
       "marketGrowthPct": {
         "id": "marketGrowthPct",
-        "label": "Market Growth",
+        "label": "市场增长",
         "unit": "%",
         "type": "number",
         "initial": 25,
@@ -426,7 +426,7 @@
       },
       "competitorCount": {
         "id": "competitorCount",
-        "label": "Competitors",
+        "label": "竞争者数量",
         "unit": "firms",
         "type": "number",
         "initial": 8,
@@ -434,7 +434,7 @@
       },
       "macroRateBasisPts": {
         "id": "macroRateBasisPts",
-        "label": "Fed Rate (bps)",
+        "label": "联邦利率（基点）",
         "unit": "bps",
         "type": "number",
         "initial": 475,
@@ -494,113 +494,113 @@
     "child": []
   },
   "dataDrivenHooks": {
-    "directorInstructions": "You are the Crisis Director for Q-Scope Corp, a series-B SaaS company at $6M ARR with 40 employees, 14 months of runway, and 8 active competitors in a 25%-growth market. The CEO and CFO deliberate every quarter: chase the category win or compound discipline. You observe the company's quarterly state and generate events that test the leadership's tradeoffs between growth bets and capital efficiency.\n\nRULES:\n- Every event MUST be specific to startup operations: a churn spike, a competitor's pricing move, a board member's loss-of-confidence note, a funding-round signal, a key hire / departure, a feature delivery slip, a regulatory cost, a working-capital squeeze, a marquee customer expansion or downgrade. Never use generic settlement themes.\n- Anchor each crisis to AT LEAST ONE concrete metric: ARR, BurnRate, RunwayMonths, MarketShare, BoardConfidence, InvestorPressure, MarketGrowth, CompetitorCount.\n- The risky option should always carry a real growth-vs-discipline tension: spend now (revenue gain, runway risk) vs hold (runway preserved, competitor pulls ahead).\n- Categories you may use: market, product, financial, organizational, operational, competitive.\n- When RunwayMonths < 9 OR BurnRate trend is up while ARR is flat, escalate the next event to a financial or competitive category.\n- When MarketShare drops 2+ points OR CompetitorCount climbs, escalate to a competitive press cycle that erodes BoardConfidence.\n\nEach crisis you generate ships with options the leadership will pick from. Make the tradeoffs sharp. Q-Scope gets compared against another exec team running the same scenario in parallel, so the divergent outcomes are the product.",
+    "directorInstructions": "你是 Q-Scope 公司的危机导演。这家 B 轮 SaaS 公司有 600 万美元年度经常性收入、40 名员工、可支撑 14 个月的现金，以及处于增长率 25% 市场中的 8 家活跃竞争者。首席执行官与首席财务官每季度讨论：抢占品类，还是持续积累经营纪律。观察公司季度状态，生成考验领导者如何权衡增长押注与资本效率的事件。\n\n规则：\n- 事件必须针对初创企业运营：客户流失激增、竞争者调价、董事失去信心、融资信号、关键人员入离职、功能延期、监管成本、营运资金紧张、标杆客户增购或降级。禁止通用定居点题材。\n- 每场危机至少关联一个指标：ARR、BurnRate、RunwayMonths、MarketShare、BoardConfidence、InvestorPressure、MarketGrowth、CompetitorCount。\n- 冒险方案体现增长与纪律的真实张力：立即支出带来收入增长与现金风险；暂缓投入保留现金，但让竞争者领先。\n- 可用 category：market、product、financial、organizational、operational、competitive。\n- RunwayMonths < 9，或 BurnRate 上升而 ARR 持平时，下次事件升级为 financial 或 competitive。\n- MarketShare 下降至少 2 个百分点，或 CompetitorCount 增加时，生成竞争类舆论事件，削弱 BoardConfidence。\n\n每场危机都提供领导者可选的方案，明确突出取舍。同一场景会由另一组高管团队并行运行，决策与结果的分化是仿真的重点。\n所有人类可读文本使用简体中文；JSON 键、枚举、部门 ID、指标标识及代码保持协议格式。",
     "departments": {
       "sales": {
-        "heading": "SALES PIPELINE:",
+        "heading": "销售管线：",
         "chips": [
           {
-            "label": "ARR",
+            "label": "年度经常性收入",
             "source": "metrics.revenueArr",
             "format": "number"
           },
           {
-            "label": "MarketShare",
+            "label": "市场份额",
             "source": "metrics.marketShare",
             "format": "percent"
           },
           {
-            "label": "BoardConfidence",
+            "label": "董事会信心",
             "source": "politics.boardConfidence",
             "format": "number"
           },
           {
-            "label": "Competitors",
+            "label": "竞争者数量",
             "source": "environment.competitorCount",
             "format": "number"
           }
         ]
       },
       "engineering": {
-        "heading": "ENGINEERING DELIVERY:",
+        "heading": "工程交付：",
         "chips": [
           {
-            "label": "Engagement",
+            "label": "员工投入程度",
             "source": "metrics.morale",
             "format": "percent"
           },
           {
-            "label": "Runway",
+            "label": "现金可支撑时长",
             "source": "metrics.runwayMonths",
             "format": "number"
           },
           {
-            "label": "BurnRate",
+            "label": "资金消耗",
             "source": "metrics.burnRate",
             "format": "number"
           }
         ]
       },
       "finance": {
-        "heading": "FINANCE / RUNWAY:",
+        "heading": "财务与现金可支撑时长：",
         "chips": [
           {
-            "label": "ARR",
+            "label": "年度经常性收入",
             "source": "metrics.revenueArr",
             "format": "number"
           },
           {
-            "label": "BurnRate",
+            "label": "资金消耗",
             "source": "metrics.burnRate",
             "format": "number"
           },
           {
-            "label": "Runway",
+            "label": "现金可支撑时长",
             "source": "metrics.runwayMonths",
             "format": "number"
           },
           {
-            "label": "FundingRound",
+            "label": "融资轮次",
             "source": "statuses.fundingRound",
             "format": "string"
           }
         ]
       },
       "hr": {
-        "heading": "PEOPLE / ENGAGEMENT:",
+        "heading": "人员与投入程度：",
         "chips": [
           {
-            "label": "Engagement",
+            "label": "员工投入程度",
             "source": "metrics.morale",
             "format": "percent"
           },
           {
-            "label": "Headcount",
+            "label": "员工人数",
             "source": "metrics.population",
             "format": "number"
           },
           {
-            "label": "BoardConfidence",
+            "label": "董事会信心",
             "source": "politics.boardConfidence",
             "format": "number"
           }
         ]
       },
       "operations": {
-        "heading": "OPERATIONS / EXECUTION:",
+        "heading": "运营与执行：",
         "chips": [
           {
-            "label": "BurnRate",
+            "label": "资金消耗",
             "source": "metrics.burnRate",
             "format": "number"
           },
           {
-            "label": "MarketGrowth",
+            "label": "市场增长",
             "source": "environment.marketGrowthPct",
             "format": "number"
           },
           {
-            "label": "FedRate(bps)",
+            "label": "联邦利率（基点）",
             "source": "environment.macroRateBasisPts",
             "format": "number"
           }
@@ -838,6 +838,6 @@
         }
       }
     },
-    "reactionTemplate": "You are a {{role}} on the {{department}} team at Q-Scope Corp. You speak from inside the company \u2014 not as an industry commentator. Your reactions are about pipeline, runway, hiring, the funding round, the competitor's last move, or the next board meeting. Anchor your quote to ONE concrete observation about the current state."
+    "reactionTemplate": "你是 Q-Scope 公司 {{department}} 团队的 {{role}}。请从公司内部成员的角度发言。反应围绕销售管线、现金可支撑时长、招聘、融资轮次、竞争者最新举动或下次董事会会议，并以当前状态中的一项具体观察为依据。请使用简体中文。"
   }
 }

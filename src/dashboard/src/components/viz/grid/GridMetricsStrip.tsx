@@ -1,3 +1,4 @@
+import { displayLabel } from '../../../template-localization';
 import type { CSSProperties } from 'react';
 import type { TurnSnapshot } from '../viz-types.js';
 import { useMediaQuery, NARROW_QUERY } from './useMediaQuery.js';
@@ -56,7 +57,7 @@ export function GridMetricsStrip({
     <div className={[styles.strip, narrow ? styles.narrow : ''].filter(Boolean).join(' ')}>
       <div className={[styles.col, styles.colNarrow].join(' ')}>
         <div className={styles.rowBaseline}>
-          <span className={styles.label} title={VIZ_TOOLTIPS['stat.morale']}>MORALE</span>
+          <span className={styles.label} title={VIZ_TOOLTIPS['stat.morale']}>士气</span>
           <span
             className={styles.moraleValue}
             style={{ '--morale-color': moraleColor } as CSSProperties}
@@ -75,22 +76,22 @@ export function GridMetricsStrip({
         </div>
         {typeof snapshot.foodReserve === 'number' && (
           <div className={styles.row}>
-            <span>FOOD</span>
-            <span className={styles.value2}>{snapshot.foodReserve.toFixed(1)}mo</span>
+            <span>食物</span>
+            <span className={styles.value2}>{snapshot.foodReserve.toFixed(1)} 月</span>
           </div>
         )}
         <div className={styles.row}>
-          <span>DEATHS</span>
+          <span>死亡</span>
           <span className={styles.valueRust}>{snapshot.deaths}</span>
         </div>
       </div>
       <div className={styles.col}>
         <div className={styles.moodHeader}>
-          <span className={styles.label} title={VIZ_TOOLTIPS['stat.moodMix']}>MOOD MIX</span>
-          <span className={styles.value2} title={VIZ_TOOLTIPS['stat.alive']}>{alive.length} alive</span>
+          <span className={styles.label} title={VIZ_TOOLTIPS['stat.moodMix']}>情绪分布</span>
+          <span className={styles.value2} title={VIZ_TOOLTIPS['stat.alive']}>{alive.length} 存活</span>
         </div>
         {alive.length === 0 ? (
-          <div className={styles.moodEmpty}>no survivors</div>
+          <div className={styles.moodEmpty}>无生还者</div>
         ) : (
           <>
             <div className={styles.moodBar}>
@@ -101,7 +102,7 @@ export function GridMetricsStrip({
                 return (
                   <div
                     key={m}
-                    title={`${m}: ${c}`}
+                    title={`${displayLabel(m)}：${c}`}
                     className={styles.moodSegment}
                     style={{
                       '--segment-pct': `${pct}%`,
@@ -114,7 +115,7 @@ export function GridMetricsStrip({
             <div className={styles.moodLegend}>
               {moodOrder
                 .filter(m => (moodCounts[m] || 0) > 0)
-                .map(m => `${Math.round(((moodCounts[m] || 0) / totalMood) * 100)}% ${m}`)
+                .map(m => `${Math.round(((moodCounts[m] || 0) / totalMood) * 100)}% ${displayLabel(m)}`)
                 .slice(0, 3)
                 .join(' · ')}
             </div>
@@ -122,12 +123,12 @@ export function GridMetricsStrip({
         )}
       </div>
       <div className={styles.col}>
-        <div className={styles.label} title={VIZ_TOOLTIPS['stat.age']}>AGE</div>
+        <div className={styles.label} title={VIZ_TOOLTIPS['stat.age']}>年龄</div>
         <div className={styles.ageBars}>
           {ageBuckets.map((n, i) => (
             <div key={i} className={styles.ageBarCol}>
               <div
-                title={`${['<20', '20-40', '40-60', '60+'][i]}: ${n} colonists`}
+                title={`${['<20', '20-40', '40-60', '60+'][i]}: ${n} 位成员`}
                 className={styles.ageBarFill}
                 style={{
                   '--age-height': `${(n / ageMax) * 100}%`,
@@ -147,17 +148,17 @@ export function GridMetricsStrip({
       </div>
       <div className={[styles.col, styles.colPaired].join(' ')}>
         <div className={styles.row}>
-          <span className={styles.label} title={VIZ_TOOLTIPS['stat.paired']}>PAIRED</span>
+          <span className={styles.label} title={VIZ_TOOLTIPS['stat.paired']}>已配对</span>
           <span className={styles.value2}>
             {partnered}/{alive.length}
           </span>
         </div>
         <div className={styles.row}>
-          <span title={VIZ_TOOLTIPS['stat.earth']}>EARTH</span>
+          <span title={VIZ_TOOLTIPS['stat.earth']}>地球出生</span>
           <span className={styles.value2}>{earthBorn}</span>
         </div>
         <div className={styles.row}>
-          <span title={VIZ_TOOLTIPS['stat.native']}>NATIVE</span>
+          <span title={VIZ_TOOLTIPS['stat.native']}>本地出生</span>
           <span className={styles.valueNative} style={sideStyle}>
             {alive.length - earthBorn}
           </span>
@@ -166,11 +167,11 @@ export function GridMetricsStrip({
       {!narrow && (
         <div
           className={styles.deptBlock}
-          aria-label="Department breakdown"
+          aria-label="部门明细"
           title={VIZ_TOOLTIPS['stat.depts']}
         >
           <DeptDonut cells={snapshot.cells} size={44} />
-          <span className={styles.deptLabel}>Depts</span>
+          <span className={styles.deptLabel}>部门</span>
         </div>
       )}
     </div>

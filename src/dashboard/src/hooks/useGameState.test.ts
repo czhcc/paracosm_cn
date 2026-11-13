@@ -188,3 +188,14 @@ test('computeGameState: terminal state (isComplete) clears every actor\'s linger
   assert.equal(state.actors.Alice.pendingDecision, '', 'Alice cleared via outcome');
   assert.equal(state.actors.Bob.pendingDecision, '', 'Bob cleared via isComplete reconciliation');
 });
+
+
+test('director progress in either language stays a pending status, not a crisis', () => {
+  for (const title of ['Director generating...', '事件导演正在生成…']) {
+    const start = mkTurnStart('Alice', 1);
+    start.data = { ...start.data, title };
+    const state = computeGameState([start], false);
+    assert.equal(state.actors.Alice.event, null);
+    assert.equal(state.turn, 1);
+  }
+});

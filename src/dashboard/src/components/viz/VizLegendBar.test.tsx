@@ -12,13 +12,13 @@ const fakeDepts = [
 ];
 
 describe('VizLegendBar', () => {
-  it('renders the four glyphs + Show full legend trigger', () => {
+  it('renders the four glyphs + 显示完整图例 trigger', () => {
     const html = renderToString(<VizLegendBar departments={fakeDepts} />);
-    assert.match(html, /Department band/);
-    assert.match(html, /Agent/);
-    assert.match(html, /Featured agent/);
-    assert.match(html, /Turn marker/);
-    assert.match(html, /Show full legend/);
+    assert.match(html, /部门色带/);
+    assert.match(html, /成员/);
+    assert.match(html, /重点成员/);
+    assert.match(html, /回合标记/);
+    assert.match(html, /显示完整图例/);
   });
 
   it('does not render the popover until clicked (initial state)', () => {

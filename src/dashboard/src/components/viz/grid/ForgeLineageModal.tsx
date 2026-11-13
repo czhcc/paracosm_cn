@@ -1,3 +1,4 @@
+import { departmentLabel } from '../../../template-localization';
 import { useEffect, useMemo, type CSSProperties } from 'react';
 import { useFocusTrap } from '../../../hooks/useFocusTrap';
 import type { ForgeAttempt, ReuseCall } from './useGridState.js';
@@ -82,14 +83,15 @@ export function ForgeLineageModal({
         <div className={styles.headerRow}>
           <div>
             <div className={styles.kicker}>
-              Forge Lineage · {payload.side.toUpperCase()}
+
+              工具创建沿革 · {payload.side.toUpperCase()}
             </div>
             <div className={styles.title}>{payload.toolName}</div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close lineage"
+            aria-label="关闭创建沿革"
             className={styles.closeBtn}
           >
             ×
@@ -98,9 +100,10 @@ export function ForgeLineageModal({
 
         {data.firstApproved && (
           <div className={styles.firstForged}>
-            First forged in{' '}
+
+            首次创建于{' '}
             <span className={styles.firstDept}>
-              {data.firstApproved.department.toUpperCase()}
+              {departmentLabel(data.firstApproved.department)}
             </span>{' '}
             on T{data.firstApproved.turn}
             {typeof data.firstApproved.confidence === 'number'
@@ -111,10 +114,11 @@ export function ForgeLineageModal({
 
         <div className={styles.section}>
           <div className={styles.sectionLabel}>
-            Attempts ({data.mine.length})
+
+            尝试（{data.mine.length})
           </div>
           {data.mine.length === 0 ? (
-            <div className={styles.empty}>no forge records</div>
+            <div className={styles.empty}>没有创建记录</div>
           ) : (
             <ul className={styles.list}>
               {data.mine.map((att, i) => {
@@ -140,7 +144,7 @@ export function ForgeLineageModal({
                     <span className={styles.deptLabel}>{att.department}</span>
                     {typeof att.confidence === 'number' && (
                       <span className={styles.confLabel}>
-                        conf {att.confidence.toFixed(2)}
+                        置信度 {att.confidence.toFixed(2)}
                       </span>
                     )}
                   </li>
@@ -152,10 +156,11 @@ export function ForgeLineageModal({
 
         <div>
           <div className={styles.sectionLabel}>
-            Cross-dept reuses ({data.mineReuses.length})
+
+            跨部门复用（{data.mineReuses.length})
           </div>
           {data.mineReuses.length === 0 ? (
-            <div className={styles.empty}>never reused across departments</div>
+            <div className={styles.empty}>尚未跨部门复用</div>
           ) : (
             <ul className={styles.list}>
               {data.mineReuses.map((r, i) => (

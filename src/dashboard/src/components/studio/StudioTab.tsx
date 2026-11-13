@@ -22,8 +22,8 @@ import type { RunArtifact } from '../../../../engine/schema/index.js';
 type StudioSubTab = 'author' | 'branches';
 
 const STUDIO_SUB_TABS = [
-  { id: 'author' as const, label: 'Author' },
-  { id: 'branches' as const, label: 'Branches' },
+  { id: 'author' as const, label: "创建与导入" },
+  { id: 'branches' as const, label: "分支" },
 ];
 
 interface LoadedState {
@@ -100,7 +100,7 @@ export function StudioTab({ initialSubTab = 'author' }: StudioTabProps = {}): JS
         options={STUDIO_SUB_TABS}
         active={subTab}
         onChange={handleSubTabChange}
-        ariaLabel="Studio sub-navigation"
+        ariaLabel="工作室子导航"
       />
       {subTab === 'branches' && <BranchesTab />}
       {subTab === 'author' && !loaded && (
@@ -123,7 +123,7 @@ export function StudioTab({ initialSubTab = 'author' }: StudioTabProps = {}): JS
                 : ` · added to Library (${loaded.promote.runIds.length} runs)`)}
             </span>
             <button type="button" className={styles.bundleDrillBack} onClick={reset}>
-              Drop another
+              导入其他记录
             </button>
           </div>
           {promote.error && (

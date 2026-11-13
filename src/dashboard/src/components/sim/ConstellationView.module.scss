@@ -56,21 +56,21 @@
 
 .statLine {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12px;
   fill: var(--text-2);
   pointer-events: none;
 }
 
 .statBadge {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 12px;
   fill: var(--text-3);
   pointer-events: none;
 }
 
 .outcomeGlyph {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   pointer-events: none;
 }
@@ -85,7 +85,7 @@
 
 .edgeLabel {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 12px;
   fill: var(--text-3);
   pointer-events: none;
 }
@@ -106,7 +106,7 @@
 
 .centerChipScenario {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 12px;
   fill: var(--text-3);
   letter-spacing: 0.04em;
 }

@@ -16,8 +16,8 @@ export function RecentlyViewedStrip(props: RecentlyViewedStripProps): JSX.Elemen
   return (
     <section className={styles.strip}>
       <header className={styles.head}>
-        <span className={styles.title}>Recently viewed</span>
-        <button className={styles.toggle} onClick={() => setOpen(o => !o)} aria-expanded={open} aria-label={open ? 'Collapse recently viewed' : 'Expand recently viewed'}>
+        <span className={styles.title}>最近查看</span>
+        <button className={styles.toggle} onClick={() => setOpen(o => !o)} aria-expanded={open} aria-label={open ? "收起最近查看" : "展开最近查看"}>
           {open ? '−' : '+'}
         </button>
       </header>
@@ -35,7 +35,7 @@ function CompactCard(props: { record: RunRecord; onClick: () => void }): JSX.Ele
   return (
     <button className={styles.card} onClick={onClick}>
       <span className={styles.cardScenario}>{record.scenarioId}</span>
-      <span className={styles.cardLeader}>{record.actorName ?? 'Unknown leader'}</span>
+      <span className={styles.cardLeader}>{record.actorName ?? "未知决策者"}</span>
       <span className={styles.cardMode} data-mode={record.mode ?? 'unknown'}>{record.mode ?? 'unknown'}</span>
     </button>
   );

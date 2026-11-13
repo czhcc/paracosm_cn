@@ -115,19 +115,19 @@ export function RunSummaryDrawer(props: RunSummaryDrawerProps) {
       <div className={styles.sideName}>{name}</div>
       {s ? (
         <div className={styles.statsGrid}>
-          {cell('Turns', `${s.turns}`)}
-          {cell('Final pop', `${s.finalPop}`, color)}
-          {cell('Peak pop', `${s.peakPop}`)}
-          {cell('Total births', `${s.totalBirths}`, 'rgba(106, 173, 72, 0.95)')}
-          {cell('Total deaths', `${s.totalDeaths}`, 'rgba(200, 95, 80, 0.95)')}
-          {cell('Avg morale', `${Math.round(s.avgMorale * 100)}%`)}
-          {cell('Min morale', `${Math.round(s.minMorale * 100)}%`, s.minMorale < 0.3 ? 'var(--rust)' : 'var(--text-1)')}
-          {s.minFood !== undefined && cell('Min food', `${s.minFood.toFixed(1)}mo`, s.minFood < 3 ? 'var(--rust)' : 'var(--text-1)')}
-          {cell('Tools forged', `${forgeCount}`, 'var(--amber)')}
-          {cell('Tool reuses', `${reuseCount}`, 'var(--amber)')}
+          {cell("回合数", `${s.turns}`)}
+          {cell("最终人口", `${s.finalPop}`, color)}
+          {cell("峰值人口", `${s.peakPop}`)}
+          {cell("出生总数", `${s.totalBirths}`, 'rgba(106, 173, 72, 0.95)')}
+          {cell("死亡总数", `${s.totalDeaths}`, 'rgba(200, 95, 80, 0.95)')}
+          {cell("平均士气", `${Math.round(s.avgMorale * 100)}%`)}
+          {cell("最低士气", `${Math.round(s.minMorale * 100)}%`, s.minMorale < 0.3 ? 'var(--rust)' : 'var(--text-1)')}
+          {s.minFood !== undefined && cell("最低食物储备", `${s.minFood.toFixed(1)}mo`, s.minFood < 3 ? 'var(--rust)' : 'var(--text-1)')}
+          {cell("生成工具", `${forgeCount}`, 'var(--amber)')}
+          {cell("工具复用次数", `${reuseCount}`, 'var(--amber)')}
         </div>
       ) : (
-        <div className={styles.empty}>No snapshots yet.</div>
+        <div className={styles.empty}>暂无快照。</div>
       )}
     </div>
   );
@@ -136,19 +136,20 @@ export function RunSummaryDrawer(props: RunSummaryDrawerProps) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Run summary"
+      aria-label="运行总结"
       onClick={onClose}
       className={styles.backdrop}
     >
       <div onClick={e => e.stopPropagation()} className={styles.dialog}>
         <div className={styles.header}>
           <h2 className={styles.title}>
-            Run Summary · {props.snapsA.length || props.snapsB.length} turns
+
+            运行总结 · {props.snapsA.length || props.snapsB.length} 回合
           </h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close run summary"
+            aria-label="关闭运行总结"
             className={styles.closeBtn}
           >
             ×
@@ -162,12 +163,11 @@ export function RunSummaryDrawer(props: RunSummaryDrawerProps) {
 
         <div className={styles.divergenceBox}>
           <div>
-            <div className={styles.divergenceLabel}>Divergence</div>
+            <div className={styles.divergenceLabel}>分歧</div>
             <div className={styles.divergenceCount}>{props.divergedCount}</div>
           </div>
           <div className={styles.divergenceCopy}>
-            {labels.People} alive on one side but dead on the other at the final snapshot — a measure
-            of how much the two leaders' decisions diverged the outcomes.
+            {labels.People}  在最终快照中仅在一侧存活，用于衡量两位决策者造成的结果差异。
           </div>
         </div>
       </div>

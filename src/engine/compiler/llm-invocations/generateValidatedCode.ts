@@ -1,3 +1,4 @@
+import { chinesePrompt } from '../../../llm/chinese.js';
 /**
  * Shared wrapper for TS-code-producing compile hooks (progression,
  * prompts, fingerprint, politics, reactions). Encapsulates the parse +
@@ -71,7 +72,7 @@ export async function generateValidatedCode<Fn>(
       : buildRetryPrompt(opts.prompt, lastRawText, lastReason);
 
     const text = await opts.generateText({
-      system: [{ text: opts.systemCacheable, cacheBreakpoint: true }],
+      system: [{ text: chinesePrompt(opts.systemCacheable), cacheBreakpoint: true }],
       prompt,
       maxTokens: opts.maxTokens,
     });

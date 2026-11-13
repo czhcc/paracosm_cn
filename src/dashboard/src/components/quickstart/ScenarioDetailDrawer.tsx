@@ -1,3 +1,4 @@
+import { localizeTemplate } from '../../template-localization';
 /**
  * Right-side drawer that opens when the user clicks a scenario card
  * body in {@link ScenarioCatalogGrid}. Shows full meta, complete seed
@@ -102,9 +103,9 @@ function formatAge(iso: string): string {
   const then = Date.parse(iso);
   if (!Number.isFinite(then)) return '';
   const diffMs = Date.now() - then;
-  if (diffMs < 0) return 'just now';
+  if (diffMs < 0) return "刚刚";
   const minutes = Math.floor(diffMs / 60_000);
-  if (minutes < 1) return 'just now';
+  if (minutes < 1) return "刚刚";
   if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h ago`;
@@ -236,7 +237,7 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
       })
       .then((body) => {
         if (cancelled) return;
-        setDetail(body);
+        setDetail(localizeTemplate(body));
       })
       .catch(() => {
         if (cancelled) return;
@@ -320,7 +321,7 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
     if (!scenario || renaming) return;
     const trimmed = editingName.trim();
     if (trimmed.length === 0) {
-      setRenameError('Name cannot be empty.');
+      setRenameError("名称不能为空。");
       return;
     }
     if (trimmed === (displayName ?? scenario.name)) {
@@ -359,8 +360,8 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
     const confirmed = typeof window !== 'undefined'
       ? window.confirm(
           `Delete this scenario?\n\n"${scenario.name}"\n\n` +
-          'Removes the scenario from disk + the live catalog. Past runs ' +
-          'are kept (they live in run-history). Cannot be undone.',
+          "将从磁盘与场景目录中移除此场景，历史运行 " +
+          "将保留在运行历史中。删除不可撤销。",
         )
       : false;
     if (!confirmed) return;
@@ -373,7 +374,7 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
       });
       if (res.status === 401) {
         clearAdminToken(adminToken);
-        setDeleteError(`Admin token refused and cleared. ${ADMIN_TOKEN_WHERE}`);
+        setDeleteError(`管理员令牌被拒绝，已清除该令牌。${ADMIN_TOKEN_WHERE}`);
         setAdminToken(null);
         return;
       }
@@ -406,7 +407,7 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
             type="button"
             onClick={onClose}
             className={styles.closeBtn}
-            aria-label="Close scenario detail"
+            aria-label="关闭场景详情"
           >
             ×
           </button>
@@ -443,7 +444,7 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
                 maxLength={100}
                 autoFocus
                 className={styles.nameEditInput}
-                aria-label="New scenario name"
+                aria-label="新场景名称"
               />
               <div className={styles.nameEditActions}>
                 <button
@@ -459,7 +460,7 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
                   onClick={handleCancelRename}
                   disabled={renaming}
                 >
-                  Cancel
+                  取消
                 </button>
               </div>
               {renameError && (
@@ -475,7 +476,7 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
                   className={styles.nameEditBtn}
                   onClick={handleStartRename}
                   aria-label={`Rename ${displayName ?? scenario.name}`}
-                  title="Rename scenario"
+                  title="重命名场景"
                 >
                   ✎
                 </button>
@@ -488,24 +489,24 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
           <dl className={styles.metaGrid}>
             {typeof scenario.runCount === 'number' && (
               <div className={styles.meta}>
-                <dt>Total runs</dt>
+                <dt>运行总数</dt>
                 <dd>{scenario.runCount.toLocaleString()}</dd>
               </div>
             )}
             {typeof scenario.departments === 'number' && (
               <div className={styles.meta}>
-                <dt>Departments</dt>
+                <dt>部门</dt>
                 <dd>{scenario.departments}</dd>
               </div>
             )}
             {scenario.compiledAt && (
               <div className={styles.meta}>
-                <dt>Compiled</dt>
+                <dt>编译时间</dt>
                 <dd title={scenario.compiledAt}>{formatAge(scenario.compiledAt)}</dd>
               </div>
             )}
             <div className={styles.meta}>
-              <dt>Source</dt>
+              <dt>来源</dt>
               <dd>{sourceLabel(scenario.source)}</dd>
             </div>
           </dl>
@@ -514,11 +515,11 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
         {scenario.seedText && (
           <section className={styles.seedSection} aria-labelledby="scenario-detail-seed-heading">
             <h3 className={styles.sectionHeading} id="scenario-detail-seed-heading">
-              Seed prompt
+              场景背景
             </h3>
             <p className={styles.seedHint}>
-              Original brief that compile-from-seed turned into this scenario. Truncated to 1KB at
-              persist time so very long sources read as their leading section.
+
+              编译此场景所用的原始描述。保存时最多保留 1KB，较长材料仅显示开头。
             </p>
             <pre className={styles.seedBody}>{scenario.seedText}</pre>
           </section>
@@ -531,11 +532,11 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
         {detail && detail.presets.length > 0 && detail.presets[0].leaders.length > 0 && (
           <section className={styles.presetsSection} aria-labelledby="scenario-detail-presets-heading">
             <h3 className={styles.sectionHeading} id="scenario-detail-presets-heading">
-              Leader presets
+              决策者预设
             </h3>
             <p className={styles.sectionHint}>
-              Default leader pair the scenario ships with. Picking Run with the slot count below
-              fills these in first; extra slots beyond the preset get LLM-generated.
+
+              场景自带的默认决策者。运行时优先使用这些预设，超出预设数量的席位由模型生成。
             </p>
             <ul className={styles.presetList} role="list">
               {detail.presets[0].leaders.map((leader, idx) => (
@@ -593,7 +594,7 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
         {detail && detail.departments.length > 0 && (
           <section className={styles.departmentsSection} aria-labelledby="scenario-detail-depts-heading">
             <h3 className={styles.sectionHeading} id="scenario-detail-depts-heading">
-              Departments <span className={styles.sectionCount}>· {detail.departments.length}</span>
+              部门 <span className={styles.sectionCount}>· {detail.departments.length}</span>
             </h3>
             <ul className={styles.deptChips} role="list">
               {detail.departments.map((d) => (
@@ -608,28 +609,28 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
         )}
 
         {detailLoading && !detail && (
-          <p className={styles.statusLine} style={{ padding: '0 18px' }}>Loading scenario detail…</p>
+          <p className={styles.statusLine} style={{ padding: '0 18px' }}>正在加载场景详情…</p>
         )}
 
         <section className={styles.recentSection} aria-labelledby="scenario-detail-recent-heading">
           <h3 className={styles.sectionHeading} id="scenario-detail-recent-heading">
-            Recent runs
+            近期运行
           </h3>
-          {recentLoading && <p className={styles.statusLine}>Loading recent runs…</p>}
+          {recentLoading && <p className={styles.statusLine}>正在加载近期运行…</p>}
           {recentError && !recentLoading && (
             <p className={`${styles.statusLine} ${styles.error}`} role="alert">
-              Failed to load recent runs: {recentError}
+              近期运行加载失败： {recentError}
             </p>
           )}
           {!recentLoading && !recentError && recentRuns.length === 0 && (
-            <p className={styles.statusLine}>No runs yet on this scenario.</p>
+            <p className={styles.statusLine}>此场景尚无运行记录。</p>
           )}
           {recentRuns.length > 0 && (
             <ul className={styles.recentList} role="list">
               {recentRuns.map((r) => (
                 <li key={r.runId} className={styles.recentRow}>
                   <span className={styles.recentTitle}>
-                    {r.actorName ?? 'Unknown leader'}
+                    {r.actorName ?? "未知决策者"}
                     {r.actorArchetype && (
                       <span className={styles.recentArchetype}> · {r.actorArchetype}</span>
                     )}
@@ -646,7 +647,7 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
         <footer className={styles.footer}>
           <div className={styles.actorRow}>
             <label htmlFor={sliderId} className={styles.actorLabel}>
-              Actors
+              决策者
             </label>
             <input
               id={sliderId}
@@ -657,7 +658,7 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
               onChange={(e) => setActorCount(parseInt(e.target.value, 10))}
               disabled={disabled}
               className={styles.actorSlider}
-              aria-label="Number of parallel actors"
+              aria-label="并行决策者数量"
             />
             <span className={styles.actorValue}>{actorCount}</span>
           </div>
@@ -668,7 +669,7 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
             disabled={disabled || deleting}
             aria-label={`Run ${actorCount} actor${actorCount === 1 ? '' : 's'} against ${scenario.name}`}
           >
-            Run {actorCount} {actorCount === 1 ? 'actor' : 'actors'} →
+            运行 {actorCount} {actorCount === 1 ? 'actor' : 'actors'} →
           </button>
           {canDelete && (
             <button
@@ -693,8 +694,8 @@ export function ScenarioDetailDrawer(props: ScenarioDetailDrawerProps): JSX.Elem
 }
 
 function sourceLabel(source?: string): string {
-  if (source === 'builtin') return 'Built-in';
-  if (source === 'disk') return 'Saved';
+  if (source === 'builtin') return "内置";
+  if (source === 'disk') return "已保存";
   if (source === 'compiled') return 'Custom';
   if (source === 'memory') return 'Memory';
   return source ?? 'Unknown';

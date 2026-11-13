@@ -39,15 +39,15 @@ export function DivergenceDetail({ diff, departmentLabels }: DivergenceDetailPro
   if (sorted.length === 0) {
     return (
       <div className={styles.panel} role="status" aria-live="polite">
-        <span className={styles.eyebrow}>Divergence detail</span>
-        <span className={styles.empty}>No department-level divergence at this turn.</span>
+        <span className={styles.eyebrow}>分歧详情</span>
+        <span className={styles.empty}>此回合没有部门层面的分歧。</span>
       </div>
     );
   }
 
   return (
     <div className={styles.panel} role="status" aria-live="polite">
-      <span className={styles.eyebrow}>Divergence detail</span>
+      <span className={styles.eyebrow}>分歧详情</span>
       <ul className={styles.chipRow}>
         {sorted.map(([key, entry]) => {
           const label = departmentLabels[key] ?? key;

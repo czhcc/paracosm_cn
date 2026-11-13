@@ -1,3 +1,4 @@
+import { departmentLabel, displayLabel } from '../../../template-localization';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { CellSnapshot } from '../viz-types.js';
 import { useScenarioLabels } from '../../../hooks/useScenarioLabels.js';
@@ -44,8 +45,8 @@ export function ColonistSearch({ value, onChange, matches, onPick }: ColonistSea
 
   return (
     <div className={styles.bar}>
-      <span aria-hidden="true" className={styles.icon} title="Search agents">🔍</span>
-      <span className={styles.label}>Find</span>
+      <span aria-hidden="true" className={styles.icon} title="搜索成员">🔍</span>
+      <span className={styles.label}>查找</span>
       <input
         ref={inputRef}
         type="text"
@@ -53,8 +54,8 @@ export function ColonistSearch({ value, onChange, matches, onPick }: ColonistSea
         onChange={e => onChange(e.target.value)}
         onFocus={() => setFocused(true)}
         onBlur={() => setTimeout(() => setFocused(false), 120)}
-        placeholder={`${labels.person} name, dept, mood… (space-separate to AND-match; / to focus)`}
-        aria-label={`Search ${labels.people} by name, department, role, or mood`}
+        placeholder={`${labels.person} 姓名、部门、情绪…（空格分隔组合匹配，按 / 聚焦）`}
+        aria-label={`搜索${labels.people} 按姓名、部门、角色或情绪查找`}
         className={styles.input}
       />
       {showDropdown && (
@@ -75,16 +76,16 @@ export function ColonistSearch({ value, onChange, matches, onPick }: ColonistSea
               <span className={styles.sidePill}>{m.side.toUpperCase()}</span>
               <span className={styles.optionName}>{m.cell.name}</span>
               <span className={styles.optionMeta}>
-                {m.cell.department?.toUpperCase?.() || ''} · {m.cell.mood}
+                {departmentLabel(m.cell.department || '')} · {displayLabel(m.cell.mood)}
                 {typeof m.cell.age === 'number' ? ` · age ${m.cell.age}` : ''}
               </span>
               {m.cell.featured && (
-                <span className={styles.featuredPill}>FEATURED</span>
+                <span className={styles.featuredPill}>重点成员</span>
               )}
             </button>
           ))}
           {matches.length > 10 && (
-            <div className={styles.moreNote}>+ {matches.length - 10} more…</div>
+            <div className={styles.moreNote}>+ {matches.length - 10}  更多…</div>
           )}
         </div>
       )}
@@ -94,15 +95,16 @@ export function ColonistSearch({ value, onChange, matches, onPick }: ColonistSea
             className={styles.matchCount}
             style={{ '--count-color': matchCount > 0 ? 'var(--amber)' : 'var(--rust)' } as CSSProperties}
           >
-            {matchCount} match{matchCount === 1 ? '' : 'es'}
+            {matchCount}  匹配{matchCount === 1 ? '' : 'es'}
           </span>
           <button
             type="button"
             onClick={() => onChange('')}
-            aria-label="Clear search"
+            aria-label="清除搜索"
             className={styles.clearBtn}
           >
-            clear
+
+            清除
           </button>
         </>
       )}

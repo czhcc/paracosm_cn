@@ -239,7 +239,7 @@ function CohortColumn(props: CohortColumnProps) {
       ref={ref}
       className={styles.column}
       style={{ ['--actor-color' as string]: sideColor } as CSSProperties}
-      aria-label={`Living swarm grid for actor ${actorIndex + 1}: ${fallbackName}`}
+      aria-label={`决策者的存活群体网格： ${actorIndex + 1}: ${fallbackName}`}
     >
       <header className={styles.columnHeader}>
         <span className={styles.columnHeaderSlot}>A{actorIndex + 1}</span>
@@ -249,7 +249,7 @@ function CohortColumn(props: CohortColumnProps) {
             <span className={styles.columnHeaderArchetype}>{leader.archetype}</span>
           )}
         </div>
-        <span className={styles.columnHeaderPop} title="Population alive · morale">
+        <span className={styles.columnHeaderPop} title="存活人口 · 士气">
           {snap?.population ?? '—'} · {snap ? Math.round(snap.morale * 100) : '—'}%
         </span>
       </header>
@@ -287,7 +287,7 @@ function CohortColumn(props: CohortColumnProps) {
         ) : (
           <div className={styles.columnPlaceholder} aria-hidden="true">
             <div className={styles.columnPlaceholderShimmer} />
-            <span className={styles.columnPlaceholderLabel}>Loading swarm…</span>
+            <span className={styles.columnPlaceholderLabel}>正在加载群体数据…</span>
           </div>
         )}
       </div>

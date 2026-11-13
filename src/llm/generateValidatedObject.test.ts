@@ -6,14 +6,19 @@ import { generateValidatedObject } from './generateValidatedObject.js';
 const TestSchema = z.object({ value: z.string() });
 
 test('generateValidatedObject returns validated object on success', async () => {
-  const mockGenerateObject = async () => ({
+  const mockGenerateObject = async (options: any) => {
+    assert.match(options.system.at(-1).text, /简体中文/);
+    assert.match(options.system.at(-1).text, /保留 JSON 字段名/);
+    assert.equal(options.prompt, 'test');
+    return ({
     object: { value: 'ok' },
     text: '{"value":"ok"}',
     usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
     finishReason: 'stop',
     provider: 'mock',
     model: 'mock-model',
-  });
+    });
+  };
   const result = await generateValidatedObject({
     provider: 'mock',
     model: 'mock-model',

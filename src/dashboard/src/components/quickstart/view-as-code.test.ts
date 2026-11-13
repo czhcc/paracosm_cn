@@ -63,7 +63,7 @@ test('renderTsRecipe: emits count for any value (always shown in v0.9)', () => {
 
 test('renderTsRecipe: empty seedText falls back to placeholder, recipe still copies as a recipe', () => {
   const out = renderTsRecipe({ seedText: '', actorCount: 3 });
-  assert.match(out, /`<paste your scenario above>`/);
+  assert.match(out, /`<在上方粘贴场景描述>`/);
 });
 
 test('renderCurlRecipe: base case — POSTs to compile-from-seed with seedText only', () => {
@@ -99,5 +99,5 @@ test('renderCurlRecipe: omits domainHint when blank, actorCount when default', (
 
 test('renderCurlRecipe: empty seedText falls back to placeholder', () => {
   const out = renderCurlRecipe({ seedText: '', actorCount: 3 });
-  assert.match(out, /"seedText":"<paste your scenario above>"/);
+  assert.match(out, /"seedText":"<在上方粘贴场景描述>"/);
 });

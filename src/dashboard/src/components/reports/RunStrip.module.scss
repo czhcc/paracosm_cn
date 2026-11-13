@@ -64,7 +64,7 @@
   // --side-color, --outcome-color, --badge-size, --badge-spacing set inline.
   border-left: 2px solid var(--side-color, var(--amber));
   color: var(--outcome-color, var(--text-3));
-  font-size: var(--badge-size, 9px);
+  font-size: var(--badge-size, 12px);
   letter-spacing: var(--badge-spacing, 0.04em);
   white-space: nowrap;
   overflow: hidden;

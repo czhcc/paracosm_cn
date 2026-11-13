@@ -120,7 +120,7 @@ function eventToLogLine(e: SimEvent): LogLine | null {
   const turn = e.turn ?? (e.data as { turn?: number } | null | undefined)?.turn;
   const actor = e.leader || (e.data as { actor?: string } | null | undefined)?.actor;
   const summary = summarizeEventData(e);
-  const body = summary || `${e.type} fired`;
+  const body = summary || `收到事件：${e.type}`;
   // Use the in-sim turn number as the leftmost mono "timestamp" column.
   // Falls back to "—" for events that aren't turn-scoped (e.g. validation
   // fallbacks emitted between turns).
@@ -131,7 +131,7 @@ function eventToLogLine(e: SimEvent): LogLine | null {
     // A salvage kept the model's own reply with its unheld keys dropped; only
     // a fallback replaced it with the skeleton.
     tag: e.type === 'validation_fallback' && (e.data as { salvaged?: unknown } | null | undefined)?.salvaged === true
-      ? 'SALVAGE'
+      ? '修复保留'
       : tagForEventType(e.type),
     body,
     tone: toneForEventType(e.type),
@@ -194,7 +194,7 @@ export function buildCompileLog(ctx: BuildLogContext): LogLine[] {
       ts: formatTs(researchAt - startMs),
       glyph: '✓',
       tag: 'OK',
-      body: 'ScenarioPackage validated · departments + crisis templates derived',
+      body: '场景结构校验通过 · 已生成部门与危机模板',
       tone: 'done',
     });
   }
@@ -223,7 +223,7 @@ export function buildResearchLog(ctx: BuildLogContext): LogLine[] {
       ts: baseTs,
       glyph: '⚠',
       tag: 'SKIP',
-      body: `Deep research skipped: ${groundingSummary.reason ?? 'unknown'}`,
+      body: `已跳过深入研究：${groundingSummary.reason ?? '原因未知'}`,
       tone: 'warn',
     });
     return lines;
@@ -231,13 +231,13 @@ export function buildResearchLog(ctx: BuildLogContext): LogLine[] {
 
   if (groundingSummary?.citations && groundingSummary.citations.length > 0) {
     const providerList = groundingSummary.providersUsed?.length
-      ? ` · providers: ${groundingSummary.providersUsed.join(' + ')}`
+      ? ` · 服务商：${groundingSummary.providersUsed.join(' + ')}`
       : '';
     lines.push({
       ts: baseTs,
       glyph: '→',
       tag: 'POST',
-      body: `/api/quickstart/ground-scenario · ${groundingSummary.citations.length} queries${providerList}`,
+      body: `/api/quickstart/ground-scenario · ${groundingSummary.citations.length} 条查询${providerList}`,
       tone: stage === 'research' ? 'active' : 'info',
     });
     // Surface failed providers as warn lines (e.g. Firecrawl 402) so
@@ -248,7 +248,7 @@ export function buildResearchLog(ctx: BuildLogContext): LogLine[] {
         ts: baseTs,
         glyph: '⚠',
         tag: fail.provider.toUpperCase().slice(0, 8),
-        body: `provider unavailable: ${fail.reason.slice(0, 120)}`,
+        body: `服务商不可用：${fail.reason.slice(0, 120)}`,
         tone: 'warn',
       });
     }
@@ -257,7 +257,7 @@ export function buildResearchLog(ctx: BuildLogContext): LogLine[] {
         ts: baseTs,
         glyph: '·',
         tag: 'QUERY',
-        body: `"${bucket.query}" → ${bucket.sources.length} source${bucket.sources.length === 1 ? '' : 's'}`,
+        body: `“${bucket.query}” → ${bucket.sources.length} 个来源`,
         tone: 'info',
       });
       for (const src of bucket.sources.slice(0, 3)) {
@@ -283,7 +283,7 @@ export function buildResearchLog(ctx: BuildLogContext): LogLine[] {
         ts: baseTs,
         glyph: '✓',
         tag: 'OK',
-        body: `${groundingSummary.totalSources} unique sources attached to ScenarioPackage${dur}`,
+        body: `已为场景补充 ${groundingSummary.totalSources} 个独立来源${dur}`,
         tone: 'done',
       });
     }
@@ -297,7 +297,7 @@ export function buildResearchLog(ctx: BuildLogContext): LogLine[] {
     ts: baseTs,
     glyph: '·',
     tag: 'NOTE',
-    body: 'Grounding scenario with web research…',
+    body: '正在检索网络资料，为场景补充依据…',
     tone: stage === 'research' ? 'active' : 'info',
   });
   const actorsAt = phaseTransitionMs?.actors;
@@ -306,7 +306,7 @@ export function buildResearchLog(ctx: BuildLogContext): LogLine[] {
       ts: formatTs(actorsAt - startMs),
       glyph: '✓',
       tag: 'OK',
-      body: 'Citations attached to ScenarioPackage',
+      body: '已为场景补充引用',
       tone: 'done',
     });
   }
@@ -335,7 +335,7 @@ export function buildActorsLog(ctx: BuildLogContext): LogLine[] {
       ts: formatTs(runningAt - startMs),
       glyph: '✓',
       tag: 'OK',
-      body: `${actorCount} actor${actorCount === 1 ? '' : 's'} generated · HEXACO traits + archetypes validated`,
+      body: `已生成 ${actorCount} 位决策者 · HEXACO 人格与人物类型校验通过`,
       tone: 'done',
     });
   }

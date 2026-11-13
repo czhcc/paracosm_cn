@@ -32,9 +32,9 @@ export interface TimepointCardProps {
  */
 export function timepointLabel(mode: SimulationMode, timepoint: number): string {
   switch (mode) {
-    case 'turn-loop':         return `Turn ${timepoint}`;
+    case 'turn-loop':         return `第 ${timepoint} 回合`;
     case 'batch-trajectory':  return `T+${timepoint}`;
-    case 'batch-point':       return `Forecast`;
+    case 'batch-point':       return `预测`;
   }
 }
 

@@ -180,19 +180,19 @@ export function drawEcologyResourceMap(
   ctx.fillStyle = labelColor;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  if (food != null) ctx.fillText(`FOOD ${food.toFixed(1)}mo`, 8, 8);
+  if (food != null) ctx.fillText(`食物 ${food.toFixed(1)} 月`, 8, 8);
   if (water != null) {
     ctx.textAlign = 'right';
-    ctx.fillText(`WATER ${Math.round(water)}L/d`, width - 8, 8);
+    ctx.fillText(`供水 ${Math.round(water)}L/d`, width - 8, 8);
   }
   if (power != null) {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'bottom';
-    ctx.fillText(`POWER ${Math.round(power)}kW`, 8, height - 8);
+    ctx.fillText(`电力 ${Math.round(power)}kW`, 8, height - 8);
   }
   if (volume != null) {
     ctx.textAlign = 'right';
-    ctx.fillText(`VOL ${Math.round(volume)}m³`, width - 8, height - 8);
+    ctx.fillText(`容积 ${Math.round(volume)}m³`, width - 8, height - 8);
   }
   // Reset baseline for downstream layers.
   ctx.textBaseline = 'alphabetic';

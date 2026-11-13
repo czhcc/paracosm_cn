@@ -58,8 +58,8 @@ export function EventLogFilterBar({
           <span aria-hidden="true" className={styles.searchIcon}>🔍</span>
           <input
             type="search"
-            aria-label="Filter log by text (type, leader, department, title, summary)"
-            placeholder="Search type, leader, department, title, summary..."
+            aria-label="按类型、决策者、部门、标题或摘要搜索日志"
+            placeholder="搜索类型、决策者、部门、标题、摘要…"
             value={filters.query}
             onChange={(e) => setFilters({ query: e.target.value })}
             className={styles.searchInput}
@@ -67,10 +67,11 @@ export function EventLogFilterBar({
         </div>
         {filters.toolHash && (
           <span className={styles.toolChip}>
-            tool: {filters.toolHash}
+
+            工具： {filters.toolHash}
             <button
               type="button"
-              aria-label="Clear tool filter"
+              aria-label="清除工具筛选"
               className={styles.chipClear}
               onClick={() => setFilters({ toolHash: '' })}
             >
@@ -84,13 +85,13 @@ export function EventLogFilterBar({
           disabled={!active}
           onClick={() => onFiltersChange(emptyFilters())}
         >
-          Reset filters
+          重置筛选
         </button>
       </div>
 
       {facets.types.length > 0 && (
         <div className={styles.facetsRow}>
-          <span className={styles.facetLabel}>types</span>
+          <span className={styles.facetLabel}>类型</span>
           <div className={styles.checkboxGroup}>
             {facets.types.map((t) => {
               const checked = showTypeChecked(t);
@@ -119,14 +120,14 @@ export function EventLogFilterBar({
         <div className={styles.facetsRow}>
           {facets.actors.length > 1 && (
             <>
-              <span className={styles.facetLabel}>leader</span>
+              <span className={styles.facetLabel}>决策者</span>
               <select
-                aria-label="Filter by leader"
+                aria-label="按决策者筛选"
                 className={styles.leaderSelect}
                 value={filters.leader ?? ''}
                 onChange={(e) => setFilters({ leader: e.target.value || null })}
               >
-                <option value="">all</option>
+                <option value="">全部</option>
                 {facets.actors.map((l) => (
                   <option key={l} value={l}>{l}</option>
                 ))}
@@ -135,11 +136,11 @@ export function EventLogFilterBar({
           )}
           {facets.maxTurn > 3 && (
             <>
-              <span className={styles.facetLabel}>turns</span>
+              <span className={styles.facetLabel}>回合</span>
               <div className={styles.rangeWrap}>
                 <input
                   type="number"
-                  aria-label="Min turn"
+                  aria-label="起始回合"
                   min={0}
                   max={facets.maxTurn}
                   value={filters.turnRange ? filters.turnRange[0] : 0}
@@ -154,7 +155,7 @@ export function EventLogFilterBar({
                 <span>to</span>
                 <input
                   type="number"
-                  aria-label="Max turn"
+                  aria-label="结束回合"
                   min={0}
                   max={facets.maxTurn}
                   value={filters.turnRange ? filters.turnRange[1] : facets.maxTurn}
@@ -170,7 +171,7 @@ export function EventLogFilterBar({
                   <button
                     type="button"
                     className={styles.chipClear}
-                    aria-label="Clear turn range"
+                    aria-label="清除回合范围"
                     onClick={() => setFilters({ turnRange: null })}
                   >
                     ×
@@ -184,7 +185,8 @@ export function EventLogFilterBar({
 
       {filters.types.size > 0 && filters.types.size === facets.types.length && (
         <div className={styles.emptyHint}>
-          All types selected — filter is a no-op on this axis.
+
+          已选择全部类型，此项不限制结果。
         </div>
       )}
     </div>

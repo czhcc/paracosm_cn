@@ -1,3 +1,4 @@
+import { displayLabel } from '../../template-localization';
 import { type CSSProperties, memo } from 'react';
 import type { LayoutTile } from './viz-types.js';
 import { DEPARTMENT_COLORS, DEFAULT_DEPT_COLOR } from './viz-types.js';
@@ -79,7 +80,7 @@ function TileImpl(props: TileProps) {
           <div className={styles.xlRole}>{tile.role || ''}</div>
           <div className={styles.flexFill} />
           <div className={styles.xlBottom}>
-            <span aria-hidden="true">{mood}</span>
+            <span aria-hidden="true">{displayLabel(mood)}</span>
             <span className={styles.xlAge}>{tile.age ?? ''}</span>
           </div>
         </>
@@ -89,7 +90,7 @@ function TileImpl(props: TileProps) {
           <div className={styles.mdName}>{firstName}</div>
           <div className={styles.flexFill} />
           <div className={styles.mdBottom}>
-            <span aria-hidden="true">{mood}</span>
+            <span aria-hidden="true">{displayLabel(mood)}</span>
             <span className={styles.mdAge}>{tile.age ?? ''}</span>
           </div>
         </>

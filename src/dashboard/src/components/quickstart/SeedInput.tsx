@@ -75,9 +75,9 @@ export function SeedInput({ onSeedReady, onLoadedScenarioRunStart, onCatalogRunS
     const validation = validateSeedText(trimmedSeed);
     if (!validation.ok) {
       setError(
-        validation.reason === 'too-short' ? 'Paste at least 200 characters of source material.' :
-        validation.reason === 'too-long' ? 'Source material exceeds 50 000 characters.' :
-        'Source material is empty.',
+        validation.reason === 'too-short' ? "请输入至少 200 个字符的场景资料。" :
+        validation.reason === 'too-long' ? "场景资料不能超过 50,000 个字符。" :
+        "场景资料为空。",
       );
       return;
     }
@@ -116,7 +116,7 @@ export function SeedInput({ onSeedReady, onLoadedScenarioRunStart, onCatalogRunS
       // path above, so anything here is a transport problem.
       const raw = (err as Error)?.message ?? String(err);
       const msg = /Failed to fetch|NetworkError|ERR_/i.test(raw)
-        ? "Couldn't reach the server. Check your connection and try again."
+        ? "无法连接服务器，请检查网络后重试。"
         : `URL fetch failed: ${raw}`;
       setError(msg);
     } finally {
@@ -127,7 +127,7 @@ export function SeedInput({ onSeedReady, onLoadedScenarioRunStart, onCatalogRunS
   const handlePdfUpload = useCallback(async (file: File) => {
     const MAX_PDF_BYTES = 10 * 1024 * 1024;
     if (file.size > MAX_PDF_BYTES) {
-      setError('PDF exceeds 10 MB limit.');
+      setError("PDF 文件不能超过 10 MB。");
       return;
     }
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
@@ -151,13 +151,13 @@ export function SeedInput({ onSeedReady, onLoadedScenarioRunStart, onCatalogRunS
       const raw = String((err as Error)?.message ?? err);
       let msg: string;
       if (code === 'PDF_NO_TEXT') {
-        msg = 'No text found in this PDF. It looks like a scanned image — try a text-based PDF, or paste the content into WRITE.';
+        msg = "未在 PDF 中找到文字，可能是扫描件。请使用包含文本的 PDF，或在“文字输入”中粘贴内容。";
       } else if (/InvalidPDFException|invalid pdf|corrupt/i.test(raw)) {
-        msg = 'This PDF appears to be corrupted or password-protected. Try a different file or paste the text directly.';
+        msg = "此 PDF 可能已损坏或受到密码保护，请更换文件或直接粘贴文字。";
       } else if (/worker|GlobalWorkerOptions/i.test(raw)) {
-        msg = `Couldn't load the PDF parser (${raw}). Try a different file, or paste the text into WRITE.`;
+        msg = `无法加载 PDF 解析器（${raw}）。请更换文件，或在文字输入页粘贴内容。`;
       } else {
-        msg = `Couldn't read this PDF (${raw}). Try paste-text or a different file.`;
+        msg = `无法读取此 PDF（${raw}）。请粘贴文字或更换文件。`;
       }
       setError(msg);
     } finally {
@@ -170,7 +170,7 @@ export function SeedInput({ onSeedReady, onLoadedScenarioRunStart, onCatalogRunS
   // an invitation to type, not just paste. Multiple users called this
   // out as confusing — "Paste" implied the only valid input was
   // pre-existing text from a clipboard.
-  const TAB_LABELS: Record<Tab, string> = { paste: 'WRITE', url: 'URL', pdf: 'PDF' };
+  const TAB_LABELS: Record<Tab, string> = { paste: "文字输入", url: "网页链接", pdf: "PDF 文档" };
   // True once the textarea (or a fetched URL / extracted PDF) has
   // enough content that submitting it would actually compile a new
   // scenario. We use this to demote the loaded-scenario CTA so the
@@ -186,7 +186,7 @@ export function SeedInput({ onSeedReady, onLoadedScenarioRunStart, onCatalogRunS
         <>
           {hasPendingSeed && (
             <p className={styles.pendingSeedNotice} role="status" aria-live="polite">
-              You have draft seed text below. Submit it to compile a new scenario, or clear it to run the loaded one.
+              下方存在场景草稿。提交可编译新场景，清空后可运行当前已加载场景。
             </p>
           )}
           <LoadedScenarioCTA
@@ -208,13 +208,13 @@ export function SeedInput({ onSeedReady, onLoadedScenarioRunStart, onCatalogRunS
           )}
           <div className={styles.dividerWrap}>
             <span className={styles.dividerLine} aria-hidden="true" />
-            <span>or paste a new scenario</span>
+            <span>或输入新场景</span>
             <span className={styles.dividerLine} aria-hidden="true" />
           </div>
         </>
       )}
       <label className={styles.templatePicker}>
-        <span className={styles.templatePickerLabel}>Try a template</span>
+        <span className={styles.templatePickerLabel}>使用模板</span>
         <select
           className={styles.templatePickerSelect}
           value=""
@@ -233,7 +233,7 @@ export function SeedInput({ onSeedReady, onLoadedScenarioRunStart, onCatalogRunS
             e.target.value = '';
           }}
         >
-          <option value="">Pick a sample scenario…</option>
+          <option value="">选择一个示例场景…</option>
           {QUICKSTART_TEMPLATES.map(t => (
             <option key={t.id} value={t.id}>{t.label}</option>
           ))}
@@ -259,7 +259,7 @@ export function SeedInput({ onSeedReady, onLoadedScenarioRunStart, onCatalogRunS
         <textarea
           data-quickstart-seed
           className={styles.textarea}
-          placeholder="Type or paste a brief, article, meeting notes, or any domain-specific source material (at least 200 characters)."
+          placeholder="输入或粘贴背景介绍、文章、会议记录或领域资料（至少 200 个字符）。"
           value={seedText}
           onChange={e => setSeedText(e.target.value)}
           rows={6}
@@ -283,7 +283,7 @@ export function SeedInput({ onSeedReady, onLoadedScenarioRunStart, onCatalogRunS
             onClick={fetchUrl}
             disabled={disabled || fetching || !urlInput}
           >
-            {fetching ? 'Fetching...' : 'Fetch'}
+            {fetching ? "正在获取…" : "获取内容"}
           </button>
         </div>
       )}
@@ -328,17 +328,17 @@ export function SeedInput({ onSeedReady, onLoadedScenarioRunStart, onCatalogRunS
             }}
             hidden
           />
-          {fetching ? 'Extracting text...' : 'Drop a PDF or click to upload (max 10 MB, first 50 KB of text used)'}
+          {fetching ? "正在提取文字…" : "拖入 PDF 或点击上传（最大 10 MB，使用前 50 KB 文本）"}
         </div>
       )}
 
       <div className={styles.hint}>
-        <label htmlFor="quickstart-domain-hint">Domain hint (optional)</label>
+        <label htmlFor="quickstart-domain-hint">领域提示（可选）</label>
         <input
           id="quickstart-domain-hint"
           className={styles.input}
           type="text"
-          placeholder='e.g., "clinical trial decision" or "startup growth"'
+          placeholder="例如：“临床试验决策”或“初创企业增长”"
           value={domainHint}
           onChange={e => setDomainHint(e.target.value)}
           maxLength={80}
@@ -349,12 +349,12 @@ export function SeedInput({ onSeedReady, onLoadedScenarioRunStart, onCatalogRunS
       {error && <p className={styles.error} role="alert">{error}</p>}
 
       <div className={styles.charCount}>
-        {seedText.length.toLocaleString()} / 50,000 characters
+        {seedText.length.toLocaleString()} / 50,000 个字符
       </div>
 
       <div className={styles.actorCountRow}>
         <label htmlFor="quickstart-actor-count" className={styles.actorCountLabel}>
-          Actors: <strong>{actorCount}</strong>
+          决策者数量： <strong>{actorCount}</strong>
         </label>
         <input
           id="quickstart-actor-count"
@@ -365,7 +365,7 @@ export function SeedInput({ onSeedReady, onLoadedScenarioRunStart, onCatalogRunS
           onChange={(e) => setActorCount(parseInt(e.target.value, 10))}
           disabled={disabled}
           className={styles.actorCountSlider}
-          aria-label="Number of parallel actors to run"
+          aria-label="运行的并行决策者数量"
         />
         <span className={styles.actorCountPreview} aria-live="polite">
           ~${estimateQuickstartCostUSD(actorCount).toFixed(2)} · {wallTimeEstimate(actorCount)}
@@ -386,7 +386,7 @@ export function SeedInput({ onSeedReady, onLoadedScenarioRunStart, onCatalogRunS
         onClick={submit}
         disabled={disabled || seedText.trim().length < 200}
       >
-        Generate + Run {actorCount} {actorCount === 1 ? 'Actor' : 'Actors'} (~${estimateQuickstartCostUSD(actorCount).toFixed(2)})
+        生成并运行 {actorCount} {actorCount === 1 ? "决策者" : "位决策者"} (~${estimateQuickstartCostUSD(actorCount).toFixed(2)})
       </button>
     </div>
   );
@@ -406,5 +406,5 @@ function wallTimeEstimate(count: number): string {
   const batches = Math.max(1, Math.ceil(count / batchSize));
   const lo = baselineMin + perBatchMin * batches;
   const hi = Math.ceil(lo * 1.5);
-  return `${lo}–${hi} min`;
+  return `${lo}～${hi} 分钟`;
 }

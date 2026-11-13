@@ -8,17 +8,17 @@ interface Shortcut {
 }
 
 const SHORTCUTS: Shortcut[] = [
-  { keys: ['?'], description: 'Open this shortcuts overlay', scope: 'Global' },
-  { keys: ['Esc'], description: 'Close overlays / drilldown panel', scope: 'Global' },
+  { keys: ['?'], description: "打开快捷键说明", scope: 'Global' },
+  { keys: ['Esc'], description: "关闭浮层／详情面板", scope: 'Global' },
   { keys: ['←'], description: 'Previous turn', scope: 'Visualization' },
   { keys: ['→'], description: 'Next turn', scope: 'Visualization' },
   { keys: ['Space'], description: 'Play / pause playback', scope: 'Visualization' },
-  { keys: ['M'], description: 'Cycle cluster mode (families · departments · mood · age)', scope: 'Visualization' },
-  { keys: ['D'], description: 'Toggle divergence tint overlay', scope: 'Visualization' },
-  { keys: ['A'], description: 'Collapse / expand the automaton band', scope: 'Visualization' },
-  { keys: ['1'], description: 'Automaton: mood propagation', scope: 'Visualization' },
+  { keys: ['M'], description: "切换聚类模式（家庭／部门／情绪／年龄）", scope: 'Visualization' },
+  { keys: ['D'], description: "显示／隐藏分歧颜色叠层", scope: 'Visualization' },
+  { keys: ['A'], description: "收起／展开元胞区域", scope: 'Visualization' },
+  { keys: ['1'], description: "元胞：情绪传播", scope: 'Visualization' },
   { keys: ['2'], description: 'Automaton: forge flow', scope: 'Visualization' },
-  { keys: ['3'], description: 'Automaton: ecology grid', scope: 'Visualization' },
+  { keys: ['3'], description: "元胞：生态网格", scope: 'Visualization' },
   { keys: ['Enter'], description: 'Send chat message', scope: 'Chat' },
 ];
 
@@ -61,7 +61,7 @@ export function ShortcutsOverlay() {
     >
       <div onClick={e => e.stopPropagation()} className={styles.dialog}>
         <div className={styles.header}>
-          <h2 className={styles.title}>Keyboard Shortcuts</h2>
+          <h2 className={styles.title}>键盘快捷键</h2>
           <button
             onClick={() => setOpen(false)}
             aria-label="Close shortcuts"
@@ -94,7 +94,7 @@ export function ShortcutsOverlay() {
         })}
 
         <div className={styles.footer}>
-          press <kbd className={styles.kbdInline}>?</kbd> anywhere · <kbd className={styles.kbdInline}>Esc</kbd> to close
+          按下 <kbd className={styles.kbdInline}>?</kbd> 即可打开 · <kbd className={styles.kbdInline}>Esc</kbd> 关闭
         </div>
       </div>
     </div>

@@ -95,22 +95,22 @@ export function CompareModal({ bundleId, extraArtifacts, open, onClose }: Compar
       >
         <header className={styles.head}>
           <h2 id="compare-modal-title" className={styles.title}>
-            {loading ? 'Loading bundle…' : (
+            {loading ? "正在加载运行组…" : (
               bundle ? (
                 <>
-                  Compare bundle
+                  对比运行组
                   <span className={styles.titleAccent}>
-                    {' '}{bundle.scenarioId} · {bundle.memberCount} actors
+                    {' '}{bundle.scenarioId} · {bundle.memberCount} 位决策者
                   </span>
                 </>
               ) : 'Bundle'
             )}
           </h2>
-          <button onClick={onClose} className={styles.closeBtn} aria-label="Close compare">×</button>
+          <button onClick={onClose} className={styles.closeBtn} aria-label="关闭对比">×</button>
         </header>
         <section className={styles.body}>
-          {error && <p className={styles.error}>Failed to load bundle: {error}</p>}
-          {loading && <p className={styles.placeholder}>Loading bundle metadata…</p>}
+          {error && <p className={styles.error}>运行组加载失败： {error}</p>}
+          {loading && <p className={styles.placeholder}>正在加载运行组信息…</p>}
           {bundle && aggregate && (
             <AggregateStrip aggregate={aggregate} members={bundle.members} />
           )}
@@ -126,15 +126,15 @@ export function CompareModal({ bundleId, extraArtifacts, open, onClose }: Compar
             <PinnedDiffPanel pinnedIds={pinning.pinned} members={bundle.members} />
           )}
           {extraArtifacts && extraArtifacts.length > 0 && (
-            <section className={styles.extras} aria-label="Uploaded artifacts">
-              <h3>Uploaded ({extraArtifacts.length})</h3>
+            <section className={styles.extras} aria-label="已上传的运行记录">
+              <h3>已上传（{extraArtifacts.length})</h3>
               <ul>
                 {extraArtifacts.map((a) => {
                   const actor = (a as { leader?: { name?: string } }).leader?.name ?? '<unnamed>';
                   return (
                     <li key={a.metadata.runId}>
                       {actor}{' '}
-                      <span className={styles.extrasBadge}>(uploaded)</span>
+                      <span className={styles.extrasBadge}>（已上传）</span>
                     </li>
                   );
                 })}

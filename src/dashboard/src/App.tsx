@@ -170,15 +170,15 @@ function useReplaySessionId(): string | null {
  */
 function tabHeadingFor(tab: DashboardTab): string {
   switch (tab) {
-    case 'quickstart': return 'Paracosm — Quickstart';
-    case 'studio':     return 'Paracosm — Studio';
-    case 'sim':        return 'Paracosm — Simulation';
-    case 'viz':        return 'Paracosm — Visualization';
-    case 'chat':       return 'Paracosm — Chat';
-    case 'reports':    return 'Paracosm — Reports';
-    case 'library':    return 'Paracosm — Library';
-    case 'settings':   return 'Paracosm — Settings';
-    case 'about':      return 'Paracosm — About';
+    case 'quickstart': return 'Paracosm — 快速开始';
+    case 'studio':     return 'Paracosm — 场景工作室';
+    case 'sim':        return 'Paracosm — 仿真';
+    case 'viz':        return 'Paracosm — 可视化';
+    case 'chat':       return 'Paracosm — 聊天';
+    case 'reports':    return 'Paracosm — 报告';
+    case 'library':    return 'Paracosm — 资料库';
+    case 'settings':   return 'Paracosm — 设置';
+    case 'about':      return 'Paracosm — 关于';
     default:           return 'Paracosm';
   }
 }
@@ -220,7 +220,7 @@ function AppContent() {
   useEffect(() => {
     const isFallbackName = scenario.id === 'mars-genesis' && scenario.labels.name === 'Mars Genesis';
     document.title = isFallbackName
-      ? 'Paracosm \u2014 Structured World Model for AI Agents'
+      ? "Paracosm — 面向 AI 智能体的结构化世界模型"
       : `${scenario.labels.name} \u2014 Paracosm`;
   }, [scenario.id, scenario.labels.name]);
 
@@ -297,7 +297,7 @@ function AppContent() {
     // Include verdict in the export so reload restores the end-of-sim
     // judgment (previously dropped — saves looked incomplete on load).
     persistence.save(sse.events, sse.results, sse.verdict);
-    toast('success', 'Saved', `${sse.events.length} events${sse.verdict ? ' + verdict' : ''} saved to file.`);
+    toast('success', "已保存", `已将 ${sse.events.length} 个事件${sse.verdict ? '及结论' : ''}保存到文件。`);
   }, [sse.events, sse.results, sse.verdict, persistence, toast]);
 
   // Deep-link intent captured once at mount via useState lazy init.
@@ -364,7 +364,7 @@ function AppContent() {
     onConfirm: ({ events, results, verdict }) => {
       leaveDigitalTwin();
       sse.loadEvents(events, results, verdict);
-      toast('info', 'Loaded', `${events.length} events loaded.`);
+      toast('info', "已加载", `已加载 ${events.length} 个事件。`);
       // Respect the share-link's `?tab=` when it was specified alongside
       // `?load=` — falls back to 'sim' for picker / DnD loads and for
       // share links that didn't pin a tab. 'about' is excluded because
@@ -373,7 +373,7 @@ function AppContent() {
       setActiveTab(target && target !== 'about' ? target : 'sim');
     },
     onError: (reason) => {
-      toast('error', 'Load Failed', reason);
+      toast('error', "加载失败", reason);
     },
   });
   const handleLoad = loadPreview.openPicker;
@@ -406,10 +406,10 @@ function AppContent() {
   const dropZone = useDashboardDropZone({
     onFile: (file) => loadPreview.openFromFile(file),
     onError: () => {
-      toast('error', 'Unsupported file', 'Only .json simulation files supported.');
+      toast('error', "不支持的文件", "仅支持 .json 仿真文件。");
     },
     onMultipleFiles: (totalCount) => {
-      toast('info', 'Multi-file drop', `Loaded first of ${totalCount} files; ignoring the rest.`);
+      toast('info', "拖入多个文件", `Loaded first of ${totalCount} 个文件，其余已忽略。`);
     },
   });
 
@@ -432,11 +432,11 @@ function AppContent() {
     // this click does: with a token saved, the server wipe below runs too.
     const adminToken = readAdminToken();
     if (!confirm(
-      'Clear local data? This wipes the in-browser simulation buffer + cached events for this dashboard.\n\n' +
+      '清除本地数据？这将清除此控制台的浏览器仿真缓冲与事件缓存。\n\n' +
       (adminToken
-        ? 'An admin token is saved in this browser, so this also asks the server to delete its stored runs, saved sessions and run output files, for every visitor.\n\n'
-        : 'Server-stored runs, sessions, and on-disk artifact files are kept.\n\n') +
-      'Cannot be undone.',
+        ? '此浏览器已保存管理员令牌，因此还会请求服务器删除所有访客的运行记录、已保存会话和运行输出文件。\n\n'
+        : '服务器保存的运行、会话和磁盘记录将保留。\n\n') +
+      '此操作无法撤销。',
     )) return;
     persistence.clearCache();
     leaveDigitalTwin();
@@ -447,7 +447,7 @@ function AppContent() {
       // No admin context. Tell the user what we did + did NOT do, and
       // route them to Settings where the rest of the cleanup options
       // live (per-scenario reset, key-only wipe, etc.).
-      toast('info', 'Local data cleared', 'In-browser caches wiped. Server-stored runs are unchanged.');
+      toast('info', "已清除本地数据", "浏览器缓存已清除，服务器运行记录已保留。");
       setActiveTab('settings');
       return;
     }
@@ -463,8 +463,8 @@ function AppContent() {
         const body = await res.json() as { wiped: { runs: number; sessions: number; outputFiles: number } };
         toast(
           'info',
-          'Wiped',
-          `Local + ${body.wiped.runs} runs + ${body.wiped.sessions} sessions + ${body.wiped.outputFiles} files cleared.`,
+          '已清除',
+          `已清除本地数据及服务器上的 ${body.wiped.runs} 次运行、${body.wiped.sessions} 个会话和 ${body.wiped.outputFiles} 个文件。`,
         );
       } else if (res.status === 401) {
         // Stored token no longer matches the server's ADMIN_TOKEN.
@@ -473,18 +473,18 @@ function AppContent() {
         // where the token is entered. A token entered since the request
         // went out is not the refused one, and stays.
         clearAdminToken(adminToken);
-        toast('info', 'Local data cleared', `Server-side wipe skipped: the admin token was refused and has been cleared. ${ADMIN_TOKEN_WHERE}`);
+        toast('info', '已清除本地数据', `未执行服务器清除：管理员令牌被拒绝，已清除该令牌。${ADMIN_TOKEN_WHERE}`);
       } else if (res.status === 403) {
         // Server has admin-write disabled. Local clear stands.
-        toast('info', 'Local data cleared', 'Server-side wipe disabled on this deployment.');
+        toast('info', "已清除本地数据", "此部署未启用服务器数据清除。");
       } else if (res.status === 503) {
-        toast('info', 'Local data cleared', 'Server-side wipe configured but no ADMIN_TOKEN set on the server.');
+        toast('info', "已清除本地数据", "服务器已配置清除功能，但尚未设置 ADMIN_TOKEN。");
       } else {
         const err = await res.json().catch(() => ({} as { error?: string }));
-        toast('info', 'Local data cleared', `Server-side wipe failed: ${err.error ?? `HTTP ${res.status}`}`);
+        toast('info', "已清除本地数据", `服务器数据清除失败： ${err.error ?? `HTTP ${res.status}`}`);
       }
     } catch (err) {
-      toast('info', 'Local data cleared', `Server-side wipe failed: ${err instanceof Error ? err.message : String(err)}`);
+      toast('info', "已清除本地数据", `服务器数据清除失败： ${err instanceof Error ? err.message : String(err)}`);
     }
     setActiveTab('settings');
   }, [persistence, sse, toast, leaveDigitalTwin]);
@@ -526,7 +526,7 @@ function AppContent() {
         continue;
       }
       const short = err.length > 120 ? err.slice(0, 120) + '...' : err;
-      toast('error', 'Simulation Error', short);
+      toast('error', "仿真错误", short);
     }
   }, [sse.errors, sse.providerError, toast]);
 
@@ -665,12 +665,12 @@ function AppContent() {
       }
     }
 
-    lines.push('', `Generated by Paracosm (paracosm.sh)`);
+    lines.push('', "由 Paracosm（paracosm.sh）生成");
 
     navigator.clipboard.writeText(lines.join('\n')).then(() => {
-      toast('success', 'Copied', 'Simulation summary copied to clipboard.');
+      toast('success', 'Copied', "仿真摘要已复制。");
     }).catch(() => {
-      toast('error', 'Copy Failed', 'Clipboard access denied.');
+      toast('error', "复制失败", "无法访问剪贴板。");
     });
   }, [gameState, scenario, toast]);
 
@@ -690,9 +690,9 @@ function AppContent() {
     if (!currentSessionId) return;
     const url = buildReplayShareUrl(window.location.origin, currentSessionId, 'viz');
     navigator.clipboard.writeText(url).then(() => {
-      toast('success', 'Share link copied', 'Anyone with the link opens this run on the viz tab.');
+      toast('success', "已复制分享链接", "获得链接的人可在可视化页打开此运行。");
     }).catch(() => {
-      toast('error', 'Copy Failed', 'Clipboard access denied.');
+      toast('error', "复制失败", "无法访问剪贴板。");
     });
   }, [currentSessionId, toast]);
 
@@ -815,7 +815,7 @@ function AppContent() {
     twinRunKeyRef.current = null;
     setInterventionRunning(null);
     sse.leaveOwnRun();
-    toast('error', 'Digital twin failed', message);
+    toast('error', "数字孪生运行失败", message);
     return true;
   }, [sse, toast]);
   useTerminalToast({
@@ -875,11 +875,11 @@ function AppContent() {
     // between render ticks, or a kbd shortcut, could still slip
     // through. An early return here is the authoritative gate.
     if (!scenarioReady) {
-      toast('info', 'Loading scenario', 'The scenario is still loading. Run again in a moment.');
+      toast('info', "正在加载场景", "场景仍在加载，请稍后运行。");
       return;
     }
     if (launching || gameState.isRunning) {
-      toast('info', 'Already running', 'A simulation is in progress — wait for it to finish or hit Clear to reset.');
+      toast('info', "正在运行", "仿真正在运行，请等待完成或点击清空重置。");
       return;
     }
     try {
@@ -904,7 +904,7 @@ function AppContent() {
       // spinner there (the Run button on the empty state still works
       // from any tab via the topbar).
       setActiveTab('sim');
-      toast('info', 'Launching', 'Starting simulation with default settings...');
+      toast('info', 'Launching', "正在使用默认设置启动仿真…");
       const res = await fetch('/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -913,10 +913,10 @@ function AppContent() {
       const data = await res.json();
       if (res.status === 429) {
         setLaunching(false);
-        toast('error', 'Rate Limited', data.error || 'Too many simulations');
+        toast('error', "请求过于频繁", data.error || "仿真请求过多");
       } else if (!data.redirect) {
         setLaunching(false);
-        toast('error', 'Launch Failed', data.error || 'Unknown error');
+        toast('error', "启动失败", data.error || "未知错误");
       } else {
         emitLaunched(window, data.visitorId);
         // The server took the run: it replaces the Digital Twin views.
@@ -926,7 +926,7 @@ function AppContent() {
       // when the first SSE event arrives.
     } catch (err) {
       setLaunching(false);
-      toast('error', 'Launch Failed', String(err));
+      toast('error', "启动失败", String(err));
     }
   }, [scenario, scenarioReady, toast, setActiveTab, launching, gameState.isRunning, sse, leaveDigitalTwin, interventionArtifact]);
 
@@ -943,7 +943,7 @@ function AppContent() {
             the long tab/header chrome to the active tabpanel. The CSS
             visually hides it until :focus per the .skip-to-content
             class in theme/tokens.css. */}
-        <a className="skip-to-content" href="#main-content">Skip to main content</a>
+        <a className="skip-to-content" href="#main-content">跳到主要内容</a>
         <div className={`scanline-overlay ${styles.shell}`}>
           {sse.providerError && !bannerDismissed ? (
             <ProviderErrorBanner
@@ -1013,7 +1013,7 @@ function AppContent() {
             tabIndex={-1}
             className={`flex-1 overflow-hidden ${styles.main}`}
             role="main"
-            aria-label={`${activeTab} view`}
+            aria-label={`${({ quickstart: '快速开始', studio: '场景工作室', sim: '仿真', viz: '可视化', chat: '聊天', reports: '报告', library: '资料库', settings: '设置', about: '关于' } as Record<string, string>)[activeTab] ?? activeTab}页面`}
           >
             {/* SR-only h1 anchors the heading hierarchy per tab. Sighted
                 users see the visible TabBar + view chrome; AT users
@@ -1282,13 +1282,13 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
     if (this.state.error) {
       return (
         <div className={styles.errorBoundary}>
-          <div className={styles.errorTitle}>SIMULATION ERROR</div>
+          <div className={styles.errorTitle}>仿真错误</div>
           <div className={styles.errorMessage}>{this.state.error.message}</div>
           <button
             onClick={() => { this.setState({ error: null }); window.location.reload(); }}
             className={styles.errorReload}
           >
-            Reload Dashboard
+            重新加载控制台
           </button>
         </div>
       );

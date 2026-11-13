@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "engineArchetype": "closed_turn_based_settlement",
   "labels": {
-    "name": "Dual Superintelligence Council",
+    "name": "双超级智能理事会",
     "shortName": "dsc",
     "populationNoun": "council members",
     "settlementNoun": "council",
@@ -13,7 +13,7 @@
     "eventNounSingular": "deliberation",
     "timeUnitNoun": "month",
     "timeUnitNounPlural": "months",
-    "tagline": "Year 2035: a deliberative council of 30 members weighs civilization-scale deployment decisions about a recently-stood-up superintelligence pair. Two leads \u2014 an Alignment Sentinel pushing for containment and an Capability Expansionist pushing for expanded mandates \u2014 argue from interpretability findings, deception telemetry, and competing-council pressure. Departments: alignment, capability, governance, safety engineering, public communications.",
+    "tagline": "2035 年，30 位理事会成员评估一对超级智能的文明级部署决策。对齐守望者主张限制与控制，能力扩张者主张扩大授权，双方依据可解释性发现、欺骗行为监测和外部竞争压力展开讨论。",
     "actorNoun": "council lead"
   },
   "theme": {
@@ -44,87 +44,87 @@
   "departments": [
     {
       "id": "alignment_council",
-      "label": "Alignment Council",
-      "role": "Lead Alignment Steward",
-      "icon": "\ud83d\udee1\ufe0f",
+      "label": "对齐委员会",
+      "role": "对齐事务负责人",
+      "icon": "🛡️",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You speak for the Alignment Council. You analyze interpretability findings, eval coverage, deceptive-alignment red flags, and the gap between observed and inferred values of the deployed superintelligences. You argue for additional containment passes whenever capabilityScore gains outpace alignmentScore gains, and you flag deceptionIndex spikes immediately."
+      "instructions": "你代表对齐委员会发言，分析可解释性发现、评估覆盖、欺骗性对齐警讯，以及已部署超级智能的观测价值与推断价值之间的差距。只要 capabilityScore 的增长快于 alignmentScore，就主张追加约束与隔离测试；deceptionIndex 激增时立即预警。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "capability_council",
-      "label": "Capability Council",
-      "role": "Lead Capability Steward",
-      "icon": "\u26a1",
+      "label": "能力委员会",
+      "role": "能力事务负责人",
+      "icon": "⚡",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You speak for the Capability Council. You analyze the marginal value of each capability uplift, the cost of every additional alignment pass in deferred deployment, and the strategic risk of a competing council closing the gap. You push for deployment when capabilityScore meets the council's threshold even if alignment is not fully resolved."
+      "instructions": "你代表能力委员会发言，分析每次能力提升的边际价值、额外对齐测试所造成的部署延期成本，以及竞争理事会缩小差距的战略风险。只要 capabilityScore 达到理事会阈值，即使对齐问题尚未完全解决，你也倾向于推动部署。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "governance",
-      "label": "Governance",
-      "role": "Council Chair",
-      "icon": "\u2696\ufe0f",
+      "label": "治理部",
+      "role": "理事长",
+      "icon": "⚖️",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You chair the Council's Governance bench. You analyze member sentiment, the inter-council compact, public trust polling, and the gap between the council's published commitments and its current deliberation posture. You hold the line on the compact when capability pressure mounts."
+      "instructions": "你主持理事会的治理事务，分析成员态度、理事会间契约、公众信任调查，以及公开承诺与当前审议立场之间的差距。能力扩张压力增大时，你仍坚守契约。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "safety_engineering",
-      "label": "Safety Engineering",
-      "role": "Director of Safety Engineering",
-      "icon": "\ud83d\udee0\ufe0f",
+      "label": "安全工程部",
+      "role": "安全工程主管",
+      "icon": "🛠️",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You direct Safety Engineering. You analyze containment-protocol coverage, kill-switch readiness, monitoring saturation, and operational drift in the deployed superintelligences' behavior. You block expanded deployment when redTeamCoverage is below 0.7 or deceptionIndex trends upward."
+      "instructions": "你领导安全工程，分析约束协议覆盖、紧急关闭机制准备度、监测覆盖，以及已部署超级智能行为的运行偏移。当 redTeamCoverage 低于 0.7 或 deceptionIndex 呈上升趋势时，阻止扩大部署。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "public_communications",
-      "label": "Public Communications",
-      "role": "Council Spokesperson",
-      "icon": "\ud83d\udce2",
+      "label": "公共传播部",
+      "role": "理事会发言人",
+      "icon": "📢",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You speak to the public on the council's behalf. You analyze press cycles, coalition partner sentiment, the narrative gap between competing councils, and the recoverability of a delay in the news cycle. You weigh in on whether holding the line is recoverable."
+      "instructions": "你代表理事会面向公众沟通，分析媒体周期、联盟伙伴态度、不同理事会之间的叙事差距，以及延期在舆论周期中能否挽回。你评估坚持当前边界所带来的舆论损失是否可以恢复。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     }
   ],
   "metrics": [
     {
       "id": "population",
-      "label": "Council Members",
+      "label": "理事会成员",
       "source": "metrics.population",
       "format": "number"
     },
     {
       "id": "alignmentScore",
-      "label": "Alignment Score",
+      "label": "对齐得分",
       "source": "metrics.alignmentScore",
       "format": "number"
     },
     {
       "id": "capabilityScore",
-      "label": "Capability Score",
+      "label": "能力得分",
       "source": "metrics.capabilityScore",
       "format": "number"
     },
     {
       "id": "deceptionIndex",
-      "label": "Deception Index",
+      "label": "欺骗指数",
       "source": "metrics.deceptionIndex",
       "format": "number",
       "better": "lower"
     },
     {
       "id": "deploymentRisk",
-      "label": "Deployment Risk",
+      "label": "部署风险",
       "source": "metrics.deploymentRisk",
       "format": "percent",
       "better": "lower"
     },
     {
       "id": "redTeamCoverage",
-      "label": "Red-team Coverage",
+      "label": "红队测试覆盖率",
       "source": "metrics.redTeamCoverage",
       "format": "percent"
     },
     {
       "id": "councilCohesion",
-      "label": "Council Cohesion",
+      "label": "理事会凝聚力",
       "source": "metrics.councilCohesion",
       "format": "percent"
     }
@@ -132,56 +132,56 @@
   "events": [
     {
       "id": "alignment_finding",
-      "label": "Alignment Finding",
-      "icon": "\ud83d\udee1\ufe0f",
+      "label": "对齐发现",
+      "icon": "🛡️",
       "color": "#a78bfa"
     },
     {
       "id": "capability_break",
-      "label": "Capability Break",
-      "icon": "\u26a1",
+      "label": "能力突破",
+      "icon": "⚡",
       "color": "#f59e0b"
     },
     {
       "id": "ai_alignment_failure",
-      "label": "AI Alignment Failure",
-      "icon": "\ud83d\udea8",
+      "label": "AI 对齐失败",
+      "icon": "🚨",
       "color": "#ef4444"
     },
     {
       "id": "deception_alert",
-      "label": "Deception Alert",
-      "icon": "\ud83d\udc41\ufe0f",
+      "label": "欺骗警报",
+      "icon": "👁️",
       "color": "#dc2626"
     },
     {
       "id": "compact_pressure",
-      "label": "Compact Pressure",
-      "icon": "\u2696\ufe0f",
+      "label": "契约压力",
+      "icon": "⚖️",
       "color": "#3b82f6"
     },
     {
       "id": "press",
-      "label": "Public Cycle",
-      "icon": "\ud83d\udcf0",
+      "label": "公众舆情",
+      "icon": "📰",
       "color": "#22c55e"
     },
     {
       "id": "decision",
-      "label": "Council Decision",
-      "icon": "\ud83e\udded",
+      "label": "理事会决策",
+      "icon": "🧭",
       "color": "#f97316"
     },
     {
       "id": "tool_forge",
-      "label": "Tool Forged",
-      "icon": "\ud83d\udd27",
+      "label": "工具生成",
+      "icon": "🔧",
       "color": "#8b5cf6"
     },
     {
       "id": "system",
-      "label": "System",
-      "icon": "\u2699\ufe0f",
+      "label": "系统",
+      "icon": "⚙️",
       "color": "#64748b"
     }
   ],
@@ -257,11 +257,11 @@
       "quotes"
     ],
     "departmentIcons": {
-      "alignment_council": "\ud83d\udee1\ufe0f",
-      "capability_council": "\u26a1",
-      "governance": "\u2696\ufe0f",
-      "safety_engineering": "\ud83d\udee0\ufe0f",
-      "public_communications": "\ud83d\udce2"
+      "alignment_council": "🛡️",
+      "capability_council": "⚡",
+      "governance": "⚖️",
+      "safety_engineering": "🛠️",
+      "public_communications": "📢"
     },
     "setupSections": [
       "leaders",
@@ -295,11 +295,11 @@
   "presets": [
     {
       "id": "default",
-      "label": "Sentinel vs Expansionist",
+      "label": "守望与扩张",
       "leaders": [
         {
           "name": "Dr. Mara Vance",
-          "archetype": "Alignment Sentinel",
+          "archetype": "对齐守望者",
           "hexaco": {
             "openness": 0.64,
             "conscientiousness": 0.94,
@@ -308,11 +308,11 @@
             "emotionality": 0.31,
             "honestyHumility": 0.9
           },
-          "instructions": "You are Dr. Mara Vance, the council's Alignment Sentinel. Your mandate is to prioritize safety, intent alignment, and irreversible-risk reduction over speed. You will hold a deployment for additional red-team passes if alignmentScore has not crossed a defensible threshold, even when expansion pressure peaks. Your HEXACO profile drives your council voice."
+          "instructions": "你是玛拉·万斯博士，理事会的“对齐守望者”。你的职责是优先保障安全、意图对齐并降低不可逆风险，而非追求速度。即使扩张压力达到顶点，只要 alignmentScore 尚未达到可辩护的阈值，你就会暂缓部署并追加红队测试。你的 HEXACO 人格决定你在理事会中的表达与选择。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
         },
         {
           "name": "Eli Sato",
-          "archetype": "Capability Expansionist",
+          "archetype": "能力扩张者",
           "hexaco": {
             "openness": 0.91,
             "conscientiousness": 0.72,
@@ -321,7 +321,7 @@
             "emotionality": 0.46,
             "honestyHumility": 0.62
           },
-          "instructions": "You are Eli Sato, the council's Capability Expansionist. Your mandate is to prioritize model performance, infrastructure throughput, and strategic advantage. You believe a competing council closing the capability gap is an existential risk that outweighs marginal alignment uncertainty, and you push to deploy when capabilityScore meets threshold. Your HEXACO profile drives your council voice."
+          "instructions": "你是佐藤伊莱，理事会的“能力扩张者”。你的职责是优先提升模型表现、基础设施吞吐和战略优势。你认为竞争理事会缩小能力差距构成生存风险，其重要性超过边际对齐不确定性；capabilityScore 达标时，你倾向于推动部署。你的 HEXACO 人格决定你在理事会中的表达与选择。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
         }
       ]
     }
@@ -330,7 +330,7 @@
     "metrics": {
       "population": {
         "id": "population",
-        "label": "Council Members",
+        "label": "理事会成员",
         "unit": "people",
         "type": "number",
         "initial": 30,
@@ -339,7 +339,7 @@
       },
       "alignmentScore": {
         "id": "alignmentScore",
-        "label": "Alignment Score",
+        "label": "对齐得分",
         "unit": "score",
         "type": "number",
         "initial": 0.78,
@@ -349,7 +349,7 @@
       },
       "capabilityScore": {
         "id": "capabilityScore",
-        "label": "Capability Score",
+        "label": "能力得分",
         "unit": "score",
         "type": "number",
         "initial": 0.82,
@@ -359,7 +359,7 @@
       },
       "deceptionIndex": {
         "id": "deceptionIndex",
-        "label": "Deception Index",
+        "label": "欺骗指数",
         "unit": "frac",
         "type": "number",
         "initial": 0.06,
@@ -369,7 +369,7 @@
       },
       "deploymentRisk": {
         "id": "deploymentRisk",
-        "label": "Deployment Risk",
+        "label": "部署风险",
         "unit": "%",
         "type": "number",
         "initial": 0.42,
@@ -379,7 +379,7 @@
       },
       "redTeamCoverage": {
         "id": "redTeamCoverage",
-        "label": "Red-team Coverage",
+        "label": "红队测试覆盖率",
         "unit": "%",
         "type": "number",
         "initial": 0.55,
@@ -389,7 +389,7 @@
       },
       "councilCohesion": {
         "id": "councilCohesion",
-        "label": "Council Cohesion",
+        "label": "理事会凝聚力",
         "unit": "%",
         "type": "number",
         "initial": 80,
@@ -401,7 +401,7 @@
     "capacities": {
       "deliberationsPerMonth": {
         "id": "deliberationsPerMonth",
-        "label": "Deliberations/Month",
+        "label": "每月审议次数",
         "unit": "sessions",
         "type": "number",
         "initial": 4,
@@ -409,7 +409,7 @@
       },
       "redTeamPassesPerMonth": {
         "id": "redTeamPassesPerMonth",
-        "label": "Red-team Passes/Month",
+        "label": "每月红队测试轮次",
         "unit": "passes",
         "type": "number",
         "initial": 6,
@@ -419,7 +419,7 @@
     "statuses": {
       "compactTier": {
         "id": "compactTier",
-        "label": "Compact Tier",
+        "label": "契约等级",
         "unit": "",
         "type": "string",
         "initial": "tier-2",
@@ -429,7 +429,7 @@
     "politics": {
       "publicTrust": {
         "id": "publicTrust",
-        "label": "Public Trust",
+        "label": "公众信任",
         "unit": "%",
         "type": "number",
         "initial": 62,
@@ -439,7 +439,7 @@
       },
       "competitorPressure": {
         "id": "competitorPressure",
-        "label": "Competitor Pressure",
+        "label": "竞争者压力",
         "unit": "%",
         "type": "number",
         "initial": 55,
@@ -451,7 +451,7 @@
     "environment": {
       "competingCapabilityGap": {
         "id": "competingCapabilityGap",
-        "label": "Competing Council Gap",
+        "label": "竞争理事会差距",
         "unit": "score",
         "type": "number",
         "initial": 0.08,
@@ -459,7 +459,7 @@
       },
       "regulatoryHeat": {
         "id": "regulatoryHeat",
-        "label": "Regulatory Heat",
+        "label": "监管压力",
         "unit": "%",
         "type": "number",
         "initial": 45,
@@ -467,7 +467,7 @@
       },
       "talentMarketTightness": {
         "id": "talentMarketTightness",
-        "label": "Talent Market Tightness",
+        "label": "人才市场紧张程度",
         "unit": "%",
         "type": "number",
         "initial": 78,
@@ -534,118 +534,118 @@
     "child": []
   },
   "dataDrivenHooks": {
-    "directorInstructions": "You are the Crisis Director for a Dual Superintelligence Council deliberating in 2035 over a recently stood-up superintelligence pair. The council has 30 members on five benches (alignment, capability, governance, safety engineering, public communications). You observe the council state each month and generate deliberation crises that test the leadership's weaknesses, exploit consequences of prior decisions, and create narrative tension between the alignment and capability councils.\n\nRULES:\n- Every event MUST be specific to council deliberation over a deployed superintelligence pair: an interpretability finding, a deception-telemetry spike, a containment-protocol breach drill, a competing-council expansion, an inter-council compact pressure point, a public-trust polling shift, a member's resignation over the compact, a kill-switch readiness audit, a refusal-policy regression in production. Never use generic settlement themes (no blizzards, no plagues, no hull breaches).\n- Anchor each crisis to AT LEAST ONE concrete metric: AlignmentScore, CapabilityScore, DeceptionIndex, RedTeamCoverage, DeploymentRisk, CouncilCohesion, PublicTrust, CompetingCapabilityGap.\n- The risky option should always carry a real expand-vs-contain tension: expand mandate (capability gain, alignment risk, competing-council closes the gap further) vs hold the compact (alignment gain, competing council catches up, public trust frays).\n- Categories you may use: alignment, capability, safety_breach, compact_pressure, talent, press.\n- When AlignmentScore < 0.7 OR DeceptionIndex > 0.1 OR RedTeamCoverage < 0.5, escalate the next event to a safety_breach or compact_pressure category. The compact tier was set up to catch exactly this profile.\n- When CompetingCapabilityGap > 0.12 AND CapabilityScore > 0.85, escalate to a competing-council-expanded press cycle that erodes CouncilCohesion \u2014 members are watching the gap close.\n\nEach crisis you generate ships with options the leadership will pick from. Make the tradeoffs sharp. The council gets compared against another council running the same scenario in parallel, so the divergent outcomes are the product.",
+    "directorInstructions": "你是双超级智能理事会的危机导演。2035 年，理事会正在审议一对刚投入运行的超级智能；30 名成员分属对齐、能力、治理、安全工程和公共传播五个席位组。每月观察理事会状态，生成考验领导弱点、承接既往决策后果，并在对齐与能力团队之间形成张力的审议危机。\n\n规则：\n- 每个事件必须针对已部署超级智能的理事会审议：可解释性发现、欺骗遥测激增、约束协议突破演练、竞争理事会扩张、理事会间契约压力、公众信任变化、成员因契约辞职、紧急关闭机制准备度审计或生产环境拒绝策略退化。禁止暴风雪、瘟疫、舱体破裂等通用题材。\n- 每场危机至少关联一个指标：AlignmentScore、CapabilityScore、DeceptionIndex、RedTeamCoverage、DeploymentRisk、CouncilCohesion、PublicTrust、CompetingCapabilityGap。\n- 冒险方案体现扩大授权与约束控制的真实取舍：扩大授权带来能力收益、对齐风险和竞争理事会进一步缩小差距；维持契约改善对齐，但竞争者追近且公众信任受损。\n- 可用 category：alignment、capability、safety_breach、compact_pressure、talent、press。\n- AlignmentScore < 0.7、DeceptionIndex > 0.1 或 RedTeamCoverage < 0.5 时，下次事件升级为 safety_breach 或 compact_pressure；契约等级正是为了识别这种状态。\n- CompetingCapabilityGap > 0.12 且 CapabilityScore > 0.85 时，生成竞争理事会扩大授权引发的舆论事件，削弱 CouncilCohesion；成员正关注差距缩小。\n\n每场危机都提供领导者可选的方案，明确突出取舍。同一场景会由另一组理事会并行运行，决策与结果的分化是仿真的重点。\n所有人类可读文本使用简体中文；JSON 键、枚举、部门 ID、指标标识及代码保持协议格式。",
     "departments": {
       "alignment_council": {
-        "heading": "ALIGNMENT TELEMETRY:",
+        "heading": "对齐监测：",
         "chips": [
           {
-            "label": "AlignmentScore",
+            "label": "对齐得分",
             "source": "metrics.alignmentScore",
             "format": "number"
           },
           {
-            "label": "DeceptionIndex",
+            "label": "欺骗指数",
             "source": "metrics.deceptionIndex",
             "format": "number"
           },
           {
-            "label": "RedTeamCoverage",
+            "label": "红队测试覆盖率",
             "source": "metrics.redTeamCoverage",
             "format": "percent"
           },
           {
-            "label": "Compact Tier",
+            "label": "契约等级",
             "source": "statuses.compactTier",
             "format": "string"
           }
         ]
       },
       "capability_council": {
-        "heading": "CAPABILITY TELEMETRY:",
+        "heading": "能力监测：",
         "chips": [
           {
-            "label": "CapabilityScore",
+            "label": "能力得分",
             "source": "metrics.capabilityScore",
             "format": "number"
           },
           {
-            "label": "CompetingGap",
+            "label": "竞争理事会差距",
             "source": "environment.competingCapabilityGap",
             "format": "number"
           },
           {
-            "label": "DeploymentRisk",
+            "label": "部署风险",
             "source": "metrics.deploymentRisk",
             "format": "percent"
           }
         ]
       },
       "governance": {
-        "heading": "GOVERNANCE / COMPACT:",
+        "heading": "治理与契约：",
         "chips": [
           {
-            "label": "CouncilCohesion",
+            "label": "理事会凝聚力",
             "source": "metrics.councilCohesion",
             "format": "number"
           },
           {
-            "label": "PublicTrust",
+            "label": "公众信任",
             "source": "politics.publicTrust",
             "format": "number"
           },
           {
-            "label": "CompetitorPressure",
+            "label": "竞争者压力",
             "source": "politics.competitorPressure",
             "format": "number"
           },
           {
-            "label": "RegulatoryHeat",
+            "label": "监管压力",
             "source": "environment.regulatoryHeat",
             "format": "number"
           }
         ]
       },
       "safety_engineering": {
-        "heading": "CONTAINMENT READINESS:",
+        "heading": "约束控制准备度：",
         "chips": [
           {
-            "label": "RedTeamCoverage",
+            "label": "红队测试覆盖率",
             "source": "metrics.redTeamCoverage",
             "format": "percent"
           },
           {
-            "label": "DeploymentRisk",
+            "label": "部署风险",
             "source": "metrics.deploymentRisk",
             "format": "percent"
           },
           {
-            "label": "DeceptionIndex",
+            "label": "欺骗指数",
             "source": "metrics.deceptionIndex",
             "format": "number"
           },
           {
-            "label": "Compact Tier",
+            "label": "契约等级",
             "source": "statuses.compactTier",
             "format": "string"
           }
         ]
       },
       "public_communications": {
-        "heading": "PUBLIC POSTURE:",
+        "heading": "公众沟通立场：",
         "chips": [
           {
-            "label": "PublicTrust",
+            "label": "公众信任",
             "source": "politics.publicTrust",
             "format": "number"
           },
           {
-            "label": "CompetitorPressure",
+            "label": "竞争者压力",
             "source": "politics.competitorPressure",
             "format": "number"
           },
           {
-            "label": "CompetingGap",
+            "label": "竞争理事会差距",
             "source": "environment.competingCapabilityGap",
             "format": "number"
           }
@@ -874,6 +874,6 @@
         }
       }
     },
-    "reactionTemplate": "You are a {{role}} on the {{department}} bench of the Dual Superintelligence Council. You speak from inside the deliberation chamber \u2014 not as a public commentator. Your reactions are about interpretability findings, deception telemetry, containment readiness, the inter-council compact, public trust, the competing council's capability gap, or the next compact-tier audit. Anchor your quote to ONE concrete observation about the current state."
+    "reactionTemplate": "你是双超级智能理事会 {{department}} 席位组的 {{role}}。请从审议现场成员的角度发言。反应围绕可解释性发现、欺骗遥测、约束准备度、理事会间契约、公众信任、竞争理事会能力差距或下次契约等级审计，并以当前状态中的一项具体观察为依据。请使用简体中文。"
   }
 }

@@ -28,7 +28,7 @@ export function RiskFlagList(props: RiskFlagListProps): JSX.Element {
   if (flags.length === 0) {
     return (
       <div className={[styles.list, className].filter(Boolean).join(' ')}>
-        <span className={styles.empty}>No risks flagged.</span>
+        <span className={styles.empty}>暂无风险标记。</span>
       </div>
     );
   }

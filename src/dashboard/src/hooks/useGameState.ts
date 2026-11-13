@@ -506,7 +506,7 @@ export function computeGameState(sseEvents: SimEvent[], isComplete: boolean, res
         s.pendingPolicies = [];
         if (dd.turn) state.turn = dd.turn as number;
         if (dd.time) state.time = dd.time as number;
-        if (dd.title && dd.title !== 'Director generating...') {
+        if (dd.title && !['Director generating...', '事件导演正在生成…'].includes(String(dd.title))) {
           s.event = {
             turn: dd.turn as number,
             time: dd.time as number,

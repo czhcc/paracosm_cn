@@ -10,19 +10,19 @@ export function FingerprintDiff({ artifacts }: FingerprintDiffProps): JSX.Elemen
   const numericKeys = React.useMemo(() => collectNumericKeys(artifacts), [artifacts]);
   if (numericKeys.length === 0) {
     return (
-      <section className={styles.diffSection} aria-label="Fingerprint comparison">
+      <section className={styles.diffSection} aria-label="指纹对比">
         <header className={styles.diffHead}>
-          <h5 className={styles.diffTitle}>Fingerprint</h5>
+          <h5 className={styles.diffTitle}>运行特征</h5>
         </header>
-        <p className={styles.diffEmpty}>No numeric fingerprint fields available.</p>
+        <p className={styles.diffEmpty}>暂无数值特征字段。</p>
       </section>
     );
   }
   const cssVars = { gridTemplateColumns: `repeat(${artifacts.length}, 1fr)` } as React.CSSProperties;
   return (
-    <section className={styles.diffSection} aria-label="Fingerprint comparison">
+    <section className={styles.diffSection} aria-label="指纹对比">
       <header className={styles.diffHead}>
-        <h5 className={styles.diffTitle}>Fingerprint</h5>
+        <h5 className={styles.diffTitle}>运行特征</h5>
       </header>
       {numericKeys.map((key) => (
         <div key={key} className={styles.fingerprintRow}>

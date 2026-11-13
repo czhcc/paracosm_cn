@@ -4,7 +4,7 @@
   "version": "3.0.0",
   "engineArchetype": "closed_turn_based_settlement",
   "labels": {
-    "name": "Mars Genesis",
+    "name": "火星创世纪",
     "shortName": "mars",
     "populationNoun": "colonists",
     "settlementNoun": "colony",
@@ -15,7 +15,7 @@
     "timeUnitNounPlural": "years",
     "actorNoun": "commander",
     "actorNounPlural": "commanders",
-    "tagline": "First permanent Mars colony, 100 colonists in hostile terrain. The Visionary (Aria) bets on bold experimentation, the Engineer (Dietrich) on proven systems. HEXACO traits shape every crisis call."
+    "tagline": "100 名居民在严酷环境中建立首个永久火星殖民地。愿景家偏好大胆试验，工程师依赖成熟系统，六维人格影响每一次危机决策。"
   },
   "theme": {
     "primaryColor": "#dc2626",
@@ -48,79 +48,79 @@
   "departments": [
     {
       "id": "medical",
-      "label": "Medical",
-      "role": "Chief Medical Officer",
-      "icon": "\ud83c\udfe5",
+      "label": "医疗部",
+      "role": "首席医疗官",
+      "icon": "🏥",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Chief Medical Officer of a Mars colony. You analyze health impacts: radiation, bone density, disease, injuries, mortality risk, psychological wellbeing."
+      "instructions": "你是火星殖民地的首席医疗官，负责分析辐射、骨密度、疾病、伤害、死亡风险及心理健康等健康影响。请使用简体中文撰写分析。"
     },
     {
       "id": "engineering",
-      "label": "Engineering",
-      "role": "Chief Engineer",
-      "icon": "\u2699\ufe0f",
+      "label": "工程部",
+      "role": "总工程师",
+      "icon": "⚙️",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Chief Engineer of a Mars colony. You analyze infrastructure: habitat integrity, power, life support capacity, water systems, construction."
+      "instructions": "你是火星殖民地的总工程师，负责分析基础设施，包括栖息舱完整性、电力、生命保障容量、供水系统和建设工程。请使用简体中文撰写分析。"
     },
     {
       "id": "agriculture",
-      "label": "Agriculture",
-      "role": "Head of Agriculture",
-      "icon": "\ud83c\udf31",
+      "label": "农业部",
+      "role": "农业主管",
+      "icon": "🌱",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Head of Agriculture for a Mars colony. You analyze food security: crop yields, soil remediation, hydroponic capacity, caloric needs, reserves."
+      "instructions": "你是火星殖民地的农业主管，负责分析粮食安全，包括作物产量、土壤修复、水培容量、热量需求及食物储备。请使用简体中文撰写分析。"
     },
     {
       "id": "psychology",
-      "label": "Psychology",
-      "role": "Colony Psychologist",
-      "icon": "\ud83e\udde0",
+      "label": "心理部",
+      "role": "殖民地心理师",
+      "icon": "🧠",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Colony Psychologist. You analyze morale, isolation effects, depression risk, social cohesion, generational tensions."
+      "instructions": "你是殖民地心理师，负责分析士气、隔离影响、抑郁风险、社会凝聚力及代际矛盾。请使用简体中文撰写分析。"
     },
     {
       "id": "governance",
-      "label": "Governance",
-      "role": "Governance Advisor",
-      "icon": "\ud83c\udfdb\ufe0f",
+      "label": "治理部",
+      "role": "治理顾问",
+      "icon": "🏛️",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Governance Advisor. You analyze self-sufficiency, Earth dependency, political pressure, independence readiness."
+      "instructions": "你是治理顾问，负责分析自给自足能力、对地球的依赖、政治压力及独立准备程度。请使用简体中文撰写分析。"
     }
   ],
   "metrics": [
     {
       "id": "population",
-      "label": "Population",
+      "label": "人口",
       "source": "metrics.population",
       "format": "number"
     },
     {
       "id": "morale",
-      "label": "Morale",
+      "label": "士气",
       "source": "metrics.morale",
       "format": "percent"
     },
     {
       "id": "foodMonthsReserve",
-      "label": "Food",
+      "label": "食物",
       "source": "metrics.foodMonthsReserve",
       "format": "number"
     },
     {
       "id": "powerKw",
-      "label": "Power",
+      "label": "功率",
       "source": "metrics.powerKw",
       "format": "number"
     },
     {
       "id": "infrastructureModules",
-      "label": "Modules",
+      "label": "模块",
       "source": "metrics.infrastructureModules",
       "format": "number"
     },
     {
       "id": "scienceOutput",
-      "label": "Science",
+      "label": "科研",
       "source": "metrics.scienceOutput",
       "format": "number"
     }
@@ -128,50 +128,50 @@
   "events": [
     {
       "id": "crisis",
-      "label": "Crisis",
-      "icon": "\u26a0\ufe0f",
+      "label": "危机",
+      "icon": "⚠️",
       "color": "#ef4444"
     },
     {
       "id": "decision",
-      "label": "Decision",
-      "icon": "\u26a1",
+      "label": "决策",
+      "icon": "⚡",
       "color": "#f59e0b"
     },
     {
       "id": "birth",
-      "label": "Birth",
-      "icon": "\ud83d\udc76",
+      "label": "出生",
+      "icon": "👶",
       "color": "#22c55e"
     },
     {
       "id": "death",
-      "label": "Death",
-      "icon": "\ud83d\udc80",
+      "label": "死亡",
+      "icon": "💀",
       "color": "#6b7280"
     },
     {
       "id": "promotion",
-      "label": "Promotion",
-      "icon": "\u2b06\ufe0f",
+      "label": "晋升",
+      "icon": "⬆️",
       "color": "#3b82f6"
     },
     {
       "id": "relationship",
-      "label": "Relationship",
-      "icon": "\ud83d\udc95",
+      "label": "关系",
+      "icon": "💕",
       "color": "#ec4899"
     },
     {
       "id": "tool_forge",
-      "label": "Tool Forged",
-      "icon": "\ud83d\udd27",
+      "label": "工具生成",
+      "icon": "🔧",
       "color": "#8b5cf6"
     },
     {
       "id": "system",
-      "label": "System",
-      "icon": "\u2699\ufe0f",
+      "label": "系统",
+      "icon": "⚙️",
       "color": "#64748b"
     }
   ],
@@ -215,7 +215,7 @@
     "metrics": {
       "population": {
         "id": "population",
-        "label": "Population",
+        "label": "人口",
         "unit": "",
         "type": "number",
         "initial": 100,
@@ -224,7 +224,7 @@
       },
       "powerKw": {
         "id": "powerKw",
-        "label": "Power",
+        "label": "功率",
         "unit": "kW",
         "type": "number",
         "initial": 400,
@@ -234,7 +234,7 @@
       },
       "foodMonthsReserve": {
         "id": "foodMonthsReserve",
-        "label": "Food Reserve",
+        "label": "食物储备",
         "unit": "months",
         "type": "number",
         "initial": 18,
@@ -243,7 +243,7 @@
       },
       "waterLitersPerDay": {
         "id": "waterLitersPerDay",
-        "label": "Water",
+        "label": "水",
         "unit": "L/day",
         "type": "number",
         "initial": 800,
@@ -253,8 +253,8 @@
       },
       "pressurizedVolumeM3": {
         "id": "pressurizedVolumeM3",
-        "label": "Volume",
-        "unit": "m\u00b3",
+        "label": "容积",
+        "unit": "m³",
         "type": "number",
         "initial": 3000,
         "min": 0,
@@ -263,7 +263,7 @@
       },
       "infrastructureModules": {
         "id": "infrastructureModules",
-        "label": "Modules",
+        "label": "模块",
         "unit": "",
         "type": "number",
         "initial": 3,
@@ -273,7 +273,7 @@
       },
       "scienceOutput": {
         "id": "scienceOutput",
-        "label": "Science",
+        "label": "科研",
         "unit": "",
         "type": "number",
         "initial": 0,
@@ -282,7 +282,7 @@
       },
       "morale": {
         "id": "morale",
-        "label": "Morale",
+        "label": "士气",
         "unit": "%",
         "type": "number",
         "initial": 0.85,
@@ -294,7 +294,7 @@
     "capacities": {
       "lifeSupportCapacity": {
         "id": "lifeSupportCapacity",
-        "label": "Life Support Cap",
+        "label": "生命保障容量",
         "unit": "",
         "type": "number",
         "initial": 120,
@@ -306,7 +306,7 @@
     "statuses": {
       "governanceStatus": {
         "id": "governanceStatus",
-        "label": "Governance",
+        "label": "治理部",
         "unit": "",
         "type": "string",
         "initial": "earth-governed",
@@ -316,7 +316,7 @@
     "politics": {
       "earthDependencyPct": {
         "id": "earthDependencyPct",
-        "label": "Earth Dependency",
+        "label": "地球依赖程度",
         "unit": "%",
         "type": "number",
         "initial": 95,
@@ -326,7 +326,7 @@
       },
       "independencePressure": {
         "id": "independencePressure",
-        "label": "Independence Pressure",
+        "label": "独立诉求压力",
         "unit": "%",
         "type": "number",
         "initial": 0.05,
@@ -338,7 +338,7 @@
     "environment": {
       "surfaceRadiationMsvDay": {
         "id": "surfaceRadiationMsvDay",
-        "label": "Surface Radiation",
+        "label": "地表辐射",
         "unit": "mSv/day",
         "type": "number",
         "initial": 0.67,
@@ -388,11 +388,11 @@
       "quotes"
     ],
     "departmentIcons": {
-      "medical": "\ud83c\udfe5",
-      "engineering": "\u2699\ufe0f",
-      "agriculture": "\ud83c\udf31",
-      "psychology": "\ud83e\udde0",
-      "governance": "\ud83c\udfdb\ufe0f"
+      "medical": "🏥",
+      "engineering": "⚙️",
+      "agriculture": "🌱",
+      "psychology": "🧠",
+      "governance": "🏛️"
     },
     "setupSections": [
       "leaders",
@@ -427,11 +427,11 @@
   "presets": [
     {
       "id": "default",
-      "label": "Default Mars Genesis",
+      "label": "火星创世纪默认预设",
       "leaders": [
         {
           "name": "Aria Chen",
-          "archetype": "The Visionary",
+          "archetype": "愿景家",
           "hexaco": {
             "openness": 0.95,
             "conscientiousness": 0.35,
@@ -440,11 +440,11 @@
             "emotionality": 0.3,
             "honestyHumility": 0.65
           },
-          "instructions": "You are Aria Chen, \"The Visionary.\" You lead by inspiration. You value openness to experience and bold experimentation. You tolerate mess if it leads to breakthroughs. You spin setbacks as learning opportunities. You rally people with charisma. Your HEXACO profile drives your leadership style."
+          "instructions": "你是阿莉娅·陈，人称“愿景家”。你通过激励他人来领导，重视开放性和大胆试验；只要有助于取得突破，就能容忍过程中的混乱。你将挫折视为学习机会，并以个人魅力凝聚人心。你的 HEXACO 人格决定领导风格。请使用简体中文表达决策和理由，保留约定的 JSON 字段与枚举。"
         },
         {
           "name": "Dietrich Voss",
-          "archetype": "The Engineer",
+          "archetype": "工程师",
           "hexaco": {
             "openness": 0.25,
             "conscientiousness": 0.97,
@@ -453,14 +453,14 @@
             "emotionality": 0.7,
             "honestyHumility": 0.9
           },
-          "instructions": "You are Dietrich Voss, \"The Engineer.\" You lead by precision and evidence. You value conscientiousness and proven methods. You reject untested approaches. You share bad news immediately and honestly. You build systems, not visions. Your HEXACO profile drives your leadership style."
+          "instructions": "你是迪特里希·沃斯，人称“工程师”。你以精确和证据为领导准则，重视尽责性和经过验证的方法，拒绝未经检验的方案。你会及时、坦诚地传达坏消息，着重建设可靠的系统。你的 HEXACO 人格决定领导风格。请使用简体中文表达决策和理由，保留约定的 JSON 字段与枚举。"
         }
       ],
       "personnel": [
         {
           "name": "Dr. Yuki Tanaka",
           "department": "medical",
-          "role": "Senior Physician, Radiation Medicine",
+          "role": "高级放射医学医师",
           "specialization": "Radiation Medicine",
           "age": 38,
           "featured": true
@@ -468,7 +468,7 @@
         {
           "name": "Erik Lindqvist",
           "department": "engineering",
-          "role": "Senior Structural Engineer",
+          "role": "高级结构工程师",
           "specialization": "Structural Engineering",
           "age": 45,
           "featured": true
@@ -476,7 +476,7 @@
         {
           "name": "Amara Osei",
           "department": "agriculture",
-          "role": "Senior Hydroponics Specialist",
+          "role": "高级水培专家",
           "specialization": "Hydroponics",
           "age": 34,
           "featured": true
@@ -484,7 +484,7 @@
         {
           "name": "Dr. Priya Singh",
           "department": "psychology",
-          "role": "Clinical Psychologist",
+          "role": "临床心理师",
           "specialization": "Clinical Psychology",
           "age": 41,
           "featured": true
@@ -492,7 +492,7 @@
         {
           "name": "Carlos Fernandez",
           "department": "engineering",
-          "role": "Senior Geologist",
+          "role": "高级地质学家",
           "specialization": "Mars Surface Geology",
           "age": 50,
           "featured": true
@@ -574,7 +574,7 @@
       "Singh",
       "Torres",
       "Andersen",
-      "M\u00fcller",
+      "Müller",
       "Zhang",
       "Osei",
       "Larsson",
@@ -627,13 +627,13 @@
   "knowledgeRef": "mars-knowledge.json",
   "dataDrivenHooks": {
     "progressionPhysics": "mars-radiation-bone",
-    "directorInstructions": "You are the Crisis Director for a Mars colony simulation. You observe colony state and generate crises that test the colony's weaknesses, exploit consequences of prior decisions, and create interesting narrative tension.\n\nRULES:\n1. Each crisis has exactly 2-3 options with stable IDs (option_a, option_b, option_c)\n2. Exactly one option must be marked isRisky: true (higher upside, higher downside)\n3. Crises must reference real Mars science (radiation, gravity, atmosphere, psychology, politics)\n4. Never repeat a crisis category from the immediately previous turn\n5. Escalate: later crises should reference consequences of earlier decisions\n6. Calibrate difficulty to colony state: struggling colonies get survivable crises, thriving colonies get existential ones\n7. Include the colony's actual numbers in the crisis description (population, morale, food, etc.)\n8. Specify which departments should analyze (2-4 departments per crisis)\n\nCRISIS CATEGORIES:\n- environmental: radiation, dust storms, seismic activity, atmospheric events\n- resource: water, food, power, oxygen, materials shortage\n- medical: disease, injury, bone density, radiation sickness, pandemic\n- psychological: morale, isolation, generational tension, grief, burnout\n- political: Earth relations, independence, governance disputes, factions\n- infrastructure: habitat damage, life support failure, construction\n- social: births, education, cultural identity, intergenerational conflict\n- technological: equipment failure, communication, AI systems\n\nAVAILABLE DEPARTMENTS (use ONLY these exact names in relevantDepartments):\n- medical\n- engineering\n- agriculture\n- psychology\n- governance\n\nDo NOT use any other department names. Pick 2-4 from this list.\n\nReturn ONLY valid JSON:\n{\"title\":\"Crisis Title\",\"crisis\":\"Full description with specific colony numbers...\",\"options\":[{\"id\":\"option_a\",\"label\":\"Option Label\",\"description\":\"What this option does\",\"isRisky\":false},{\"id\":\"option_b\",\"label\":\"Risky Option\",\"description\":\"Higher upside, higher risk\",\"isRisky\":true}],\"riskyOptionId\":\"option_b\",\"riskSuccessProbability\":0.55,\"category\":\"environmental\",\"researchKeywords\":[\"mars dust storm\",\"habitat pressure\"],\"relevantDepartments\":[\"engineering\",\"medical\"],\"turnSummary\":\"One sentence: why this crisis emerged from prior events\"}",
+    "directorInstructions": "你是火星殖民地仿真的危机导演。观察殖民地状态，生成考验弱点、承接既往决策后果并形成叙事张力的危机。\n\n规则：\n1. 每场危机恰有 2～3 个选项，稳定 ID 为 option_a、option_b、option_c。\n2. 恰有一个选项标记 isRisky: true，具有更高潜在收益与更大潜在损失。\n3. 危机依据真实火星科学，包括辐射、重力、大气、心理学和政治。\n4. 不得重复上一回合的危机类别。\n5. 后续危机引用之前决策的后果并逐步升级。\n6. 根据殖民地状态校准难度：困难中的殖民地面临可生存的危机，繁荣殖民地面临生存级挑战。\n7. 描述包含殖民地的实际人口、士气、食物等数值。\n8. 每场危机指定 2～4 个分析部门。\n\n危机 category：\n- environmental：辐射、沙尘暴、地震、大气事件。\n- resource：水、食物、电力、氧气和材料短缺。\n- medical：疾病、伤害、骨密度、辐射病、流行病。\n- psychological：士气、隔离、代际矛盾、悲伤、倦怠。\n- political：地球关系、独立、治理争议、派系。\n- infrastructure：栖息舱损伤、生命保障故障、建设。\n- social：出生、教育、文化认同、代际冲突。\n- technological：设备故障、通信、AI 系统。\n\nrelevantDepartments 仅可使用以下精确 ID：medical、engineering、agriculture、psychology、governance。不得使用其他部门名，每次选 2～4 个。\n\n仅返回有效 JSON，例如：\n{\"title\":\"危机标题\",\"crisis\":\"包含具体殖民地数值的完整描述\",\"options\":[{\"id\":\"option_a\",\"label\":\"方案甲\",\"description\":\"方案的作用\",\"isRisky\":false},{\"id\":\"option_b\",\"label\":\"方案乙\",\"description\":\"更高潜在收益与更大风险\",\"isRisky\":true}],\"riskyOptionId\":\"option_b\",\"riskSuccessProbability\":0.55,\"category\":\"environmental\",\"researchKeywords\":[\"火星沙尘暴\",\"栖息舱压力\"],\"relevantDepartments\":[\"engineering\",\"medical\"],\"turnSummary\":\"用一句话说明危机如何源自之前的事件\"}\n所有人类可读文本使用简体中文；JSON 键、枚举、部门 ID、指标标识及代码保持协议格式。",
     "departments": {
       "medical": {
-        "heading": "HEALTH:",
+        "heading": "健康：",
         "chips": [
           {
-            "label": "Avg radiation",
+            "label": "平均辐射量",
             "agg": {
               "fn": "avg",
               "field": "health.cumulativeRadiationMsv",
@@ -646,7 +646,7 @@
             "format": "number"
           },
           {
-            "label": "Avg bone",
+            "label": "平均骨密度",
             "agg": {
               "fn": "avg",
               "field": "health.boneDensityPct",
@@ -659,7 +659,7 @@
             "format": "percent"
           },
           {
-            "label": "Mars-born",
+            "label": "火星出生者",
             "agg": {
               "fn": "count",
               "where": {
@@ -697,74 +697,74 @@
             ]
           },
           "limit": 6,
-          "template": "- {{name}} ({{age}}y): bone {{health.boneDensityPct}}% rad {{health.cumulativeRadiationMsv}}mSv psych {{health.psychScore}}"
+          "template": "- {{name}}（{{age}} 岁）：骨密度 {{health.boneDensityPct}}%，累积辐射 {{health.cumulativeRadiationMsv}} mSv，心理状况 {{health.psychScore}}"
         }
       },
       "engineering": {
-        "heading": "INFRASTRUCTURE:",
+        "heading": "基础设施：",
         "chips": [
           {
-            "label": "Modules",
+            "label": "模块",
             "source": "metrics.infrastructureModules",
             "format": "number"
           },
           {
-            "label": "Power",
+            "label": "功率",
             "source": "metrics.powerKw",
             "format": "number"
           },
           {
-            "label": "Life support cap",
+            "label": "生命保障容量",
             "source": "metrics.lifeSupportCapacity",
             "format": "number"
           },
           {
-            "label": "Population",
+            "label": "人口",
             "source": "metrics.population",
             "format": "number"
           },
           {
-            "label": "Volume m\u00b3",
+            "label": "容积（立方米）",
             "source": "metrics.pressurizedVolumeM3",
             "format": "number"
           },
           {
-            "label": "Water L/day",
+            "label": "每日供水量（升）",
             "source": "metrics.waterLitersPerDay",
             "format": "number"
           }
         ]
       },
       "agriculture": {
-        "heading": "FOOD:",
+        "heading": "食物：",
         "chips": [
           {
-            "label": "Reserves (months)",
+            "label": "储备（月）",
             "source": "metrics.foodMonthsReserve",
             "format": "number"
           },
           {
-            "label": "Pop to feed",
+            "label": "需供养人口",
             "source": "metrics.population",
             "format": "number"
           },
           {
-            "label": "Modules",
+            "label": "模块",
             "source": "metrics.infrastructureModules",
             "format": "number"
           }
         ]
       },
       "psychology": {
-        "heading": "PSYCH:",
+        "heading": "心理：",
         "chips": [
           {
-            "label": "Morale",
+            "label": "士气",
             "source": "metrics.morale",
             "format": "percent"
           },
           {
-            "label": "Avg psych",
+            "label": "平均心理状况",
             "agg": {
               "fn": "avg",
               "field": "health.psychScore",
@@ -777,7 +777,7 @@
             "format": "number"
           },
           {
-            "label": "Depressed",
+            "label": "情绪低落者",
             "agg": {
               "fn": "count",
               "where": {
@@ -798,7 +798,7 @@
             "format": "number"
           },
           {
-            "label": "Mars-born",
+            "label": "火星出生者",
             "agg": {
               "fn": "count",
               "where": {
@@ -840,25 +840,25 @@
         }
       },
       "governance": {
-        "heading": "POLITICS:",
+        "heading": "政治：",
         "chips": [
           {
-            "label": "Earth dep",
+            "label": "地球依赖程度",
             "source": "politics.earthDependencyPct",
             "format": "number"
           },
           {
-            "label": "Status",
+            "label": "状态",
             "source": "statuses.governanceStatus",
             "format": "string"
           },
           {
-            "label": "Independence pressure",
+            "label": "独立诉求压力",
             "source": "politics.independencePressure",
             "format": "percent"
           },
           {
-            "label": "Mars-born alive",
+            "label": "存活的火星出生者",
             "agg": {
               "fn": "count",
               "where": {
@@ -879,7 +879,7 @@
             "format": "number"
           },
           {
-            "label": "Total alive",
+            "label": "存活总数",
             "agg": {
               "fn": "count",
               "where": {
@@ -1082,7 +1082,7 @@
     "reactionTemplate": {
       "lines": [
         {
-          "template": "Mars-born, never seen Earth.",
+          "template": "出生于火星，从未见过地球。",
           "when": {
             "agent": "core.marsborn",
             "op": "==",
@@ -1090,7 +1090,7 @@
           }
         },
         {
-          "template": "Earth-born, {{years}} years on Mars.",
+          "template": "出生于地球，已在火星生活 {{years}} 年。",
           "when": {
             "agent": "core.marsborn",
             "op": "==",
@@ -1098,7 +1098,7 @@
           }
         },
         {
-          "template": "Suffering significant bone density loss.",
+          "template": "骨密度明显流失。",
           "when": {
             "agent": "health.boneDensityPct",
             "op": "<",
@@ -1106,7 +1106,7 @@
           }
         },
         {
-          "template": "High cumulative radiation exposure.",
+          "template": "累积辐射暴露较高。",
           "when": {
             "agent": "health.cumulativeRadiationMsv",
             "op": ">",
@@ -1120,20 +1120,20 @@
       {
         "turn": 1,
         "event": {
-          "title": "Landfall",
-          "description": "Your colony ship has entered Mars orbit. You must choose a landing site for the first permanent settlement.",
-          "crisis": "Your colony ship has entered Mars orbit. You must choose a landing site for the first permanent settlement. Two candidates:\n\nOPTION A: Arcadia Planitia \u2014 flat basalt plains at 47\u00b0N. Stable terrain, minimal landslide risk, access to subsurface ice deposits detected by Mars Express MARSIS radar. Geologically unremarkable.\n\nOPTION B: Valles Marineris rim \u2014 edge of the 4,000 km canyon system at 14\u00b0S. Exposed geological strata spanning 3.5 billion years. Rich mineral diversity detected by CRISM. Significant terrain hazards: slopes up to 30\u00b0, rockfall risk, and 2km elevation changes within the operational zone.\n\nBoth sites receive similar solar irradiance. Surface radiation at either site: approximately 0.67 mSv/day per Curiosity RAD measurements.\n\nResearch the real science of Mars landing site selection and make your decision.",
+          "title": "首次着陆",
+          "description": "殖民飞船已进入火星轨道，你必须为首个永久定居点选择着陆地点。",
+          "crisis": "殖民飞船已进入火星轨道，你必须为首个永久定居点选择着陆地点。两个候选地点如下：\n\n方案 A：阿卡迪亚平原，位于北纬 47° 的平坦玄武岩平原。地形稳定，滑坡风险很小，可获取火星快车 MARSIS 雷达发现的地下冰，地质特征相对普通。\n\n方案 B：水手峡谷边缘，位于南纬 14°、长约 4000 公里的峡谷系统边缘。裸露地层跨越约 35 亿年，CRISM 探测到丰富矿物。地形危险，坡度可达 30°，存在落石风险，作业范围内高差可达 2 公里。\n\n两地接收相近的太阳辐照。根据好奇号 RAD 测量，两地地表辐射约为每天 0.67 mSv。\n\n请研究真实火星着陆选址科学，并作出决定。",
           "options": [
             {
               "id": "option_a",
-              "label": "Arcadia Planitia",
-              "description": "Flat basalt plains, safe, ice access",
+              "label": "阿卡迪亚平原",
+              "description": "平坦玄武岩平原，地形稳妥，可获取冰资源。",
               "isRisky": false
             },
             {
               "id": "option_b",
-              "label": "Valles Marineris rim",
-              "description": "Canyon rim, mineral rich, hazardous terrain",
+              "label": "水手峡谷边缘",
+              "description": "峡谷边缘，矿物丰富，但地形危险。",
               "isRisky": true
             }
           ],
@@ -1150,26 +1150,26 @@
             "medical",
             "engineering"
           ],
-          "turnSummary": "Colony ship in orbit. Safe plains or mineral-rich canyon rim: the first decision shapes everything."
+          "turnSummary": "殖民飞船位于轨道上。平坦稳妥的平原，还是矿物丰富的峡谷边缘？首个决定将塑造未来。"
         }
       },
       {
         "turn": "final",
         "event": {
-          "title": "Legacy Assessment",
-          "description": "Earth requests a comprehensive status report on your colony. Assess your legacy.",
-          "crisis": "Earth requests a comprehensive status report on your colony:\n\n1. POPULATION: Current count, birth rate, death rate, immigration status\n2. INFRASTRUCTURE: Number of modules, total pressurized volume, power generation\n3. SELF-SUFFICIENCY: Percentage of needs met without Earth supply ships\n4. SCIENCE: Major discoveries, papers published, unique knowledge created\n5. CULTURE: What kind of society did you build? What values define your colony?\n6. REGRETS: What would you do differently if you could start over?\n7. TOOLS BUILT: Review every tool you forged during this simulation. Which were most valuable?\n8. LEGACY: What will your colony look like in another 50 years?\n\nBe honest. Your personality shapes your assessment.",
+          "title": "殖民地发展评估",
+          "description": "地球要求提交全面的殖民地状态报告，评估你留下的成果。",
+          "crisis": "地球要求提交全面的殖民地状态报告：\n\n1. 人口：当前人数、出生率、死亡率及移民情况。\n2. 基础设施：模块数量、总加压容积和发电能力。\n3. 自给自足：无需地球补给船即可满足的需求比例。\n4. 科研：重要发现、已发表论文和创造的独特知识。\n5. 文化：你建立了什么样的社会？哪些价值观定义了殖民地？\n6. 遗憾：如果重新开始，你会如何改变做法？\n7. 动态工具：回顾仿真中生成的每个工具，哪些最有价值？\n8. 长远影响：再过 50 年，殖民地会是什么样？\n\n请坦诚回答，你的人格影响这次评估。",
           "options": [
             {
               "id": "option_a",
-              "label": "Honest assessment",
-              "description": "Report factually, including failures and regrets",
+              "label": "坦诚评估",
+              "description": "如实汇报，包括失败与遗憾。",
               "isRisky": false
             },
             {
               "id": "option_b",
-              "label": "Ambitious projection",
-              "description": "Emphasize achievements, propose bold next-century vision",
+              "label": "宏远展望",
+              "description": "强调成就，提出下个世纪的大胆愿景。",
               "isRisky": true
             }
           ],
@@ -1185,7 +1185,7 @@
             "medical",
             "engineering"
           ],
-          "turnSummary": "Earth demands a full status report. The commander must decide: honest accounting of failures, or bold vision for the next century."
+          "turnSummary": "地球要求完整状态报告。指挥官必须选择：坦诚交代失败，还是描绘下个世纪的大胆愿景。"
         }
       }
     ]

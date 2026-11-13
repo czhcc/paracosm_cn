@@ -17,8 +17,8 @@ describe('computeTurnHighlight', () => {
     const a: HighlightInput = { ...baseInput, deathsThisTurn: 0, year: 2051 };
     const b: HighlightInput = { ...baseInput, deathsThisTurn: 4, year: 2051 };
     const out = computeTurnHighlight(a, b, 3);
-    assert.match(out, /Turn 3/);
-    assert.match(out, /Leader B/);
+    assert.match(out, /第 3 回合/);
+    assert.match(out, /决策者 B/);
     assert.match(out, /4/);
   });
 
@@ -26,7 +26,7 @@ describe('computeTurnHighlight', () => {
     const a: HighlightInput = { ...baseInput, morale: 0.17, year: 2067 };
     const b: HighlightInput = { ...baseInput, morale: 0.47, year: 2067 };
     const out = computeTurnHighlight(a, b, 5);
-    assert.match(out, /morale collapsed/i);
+    assert.match(out, /士气降至/i);
     assert.match(out, /17%|47%/);
   });
 
@@ -34,19 +34,19 @@ describe('computeTurnHighlight', () => {
     const a: HighlightInput = { ...baseInput, eventCategories: ['environmental'], year: 2043 };
     const b: HighlightInput = { ...baseInput, eventCategories: ['social'], year: 2043 };
     const out = computeTurnHighlight(a, b, 2);
-    assert.match(out, /different events/i);
+    assert.match(out, /不同事件/i);
   });
 
   it('identical first event short-circuits to "identical"', () => {
     const a: HighlightInput = { ...baseInput, eventCategories: ['onboarding'] };
     const b: HighlightInput = { ...baseInput, eventCategories: ['onboarding'] };
     const out = computeTurnHighlight(a, b, 1);
-    assert.match(out, /identical/i);
+    assert.match(out, /首个事件相同/i);
   });
 
   it('null snapshots fall through to neutral copy', () => {
     const out = computeTurnHighlight(null, null, 0);
-    assert.match(out, /awaiting first turn/i);
+    assert.match(out, /等待首个回合/i);
   });
 
   it('snapToHighlight derives turn-deltas from cumulative deaths/births', () => {

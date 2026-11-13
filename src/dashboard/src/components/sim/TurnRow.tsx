@@ -1,3 +1,4 @@
+import { departmentLabel } from '../../template-localization';
 import * as React from 'react';
 import type { CSSProperties } from 'react';
 import { EventCard } from './EventCard.js';
@@ -27,9 +28,9 @@ function summarizePending(events: ProcessedEvent[]): string {
     }
   }
   const parts: string[] = [];
-  if (depts.size > 0) parts.push(`${[...depts].join(', ')} analyzing`);
-  if (waitingDecision) parts.push('awaiting decision');
-  return parts.length > 0 ? parts.join(' · ') + '…' : 'Working on this turn…';
+  if (depts.size > 0) parts.push(`${[...depts].map(departmentLabel).join('、')}正在分析`);
+  if (waitingDecision) parts.push('等待决策');
+  return parts.length > 0 ? parts.join(' · ') + '…' : '事件导演正在生成…';
 }
 
 interface TurnRowProps {
@@ -97,40 +98,40 @@ export function TurnRow({ entry, eventsA, eventsB, runTerminal, runAborted }: Tu
               key={idx}
               className={styles.cell}
               style={{ ['--cell-color' as string]: getActorColorVar(idx) } as CSSProperties}
-              aria-label={`Leader ${idx === 0 ? 'A' : 'B'} events for this turn`}
+              aria-label={`决策者 ${idx === 0 ? 'A' : 'B'} 的本回合事件`}
             >
               <span className={styles.cellBand} aria-hidden="true" />
               {cellEvents.length === 0 ? (
                 isCatchingUp ? (
-                  <div className={styles.cellPending} aria-live="polite" title="Parallel runs can drift turn-to-turn — events arrive whenever this side's LLM calls finish.">
+                  <div className={styles.cellPending} aria-live="polite" title="并行运行的进度可能不同；模型调用完成后会显示此侧的事件。">
                     <span className={`spinner ${styles.cellPendingSpinner}`} aria-hidden="true" />
-                    Catching up to turn {entry.turn}…
+                    正在同步回合 {entry.turn}…
                   </div>
                 ) : runTerminal ? (
                   <div
                     className={styles.cellEmpty}
                     title={runAborted
-                      ? 'Run was interrupted before this side reached this turn.'
-                      : 'No event recorded for this side on this turn.'}
+                      ? "运行在此侧到达该回合前中断。"
+                      : "此回合未记录此侧事件。"}
                   >
                     {runAborted
-                      ? `Stopped before T${entry.turn}`
-                      : `No event for T${entry.turn}`}
+                      ? `在第 ${entry.turn} 回合开始前中断`
+                      : `第 ${entry.turn} 回合没有事件`}
                   </div>
                 ) : (
-                  <div className={styles.cellEmpty}>(no events yet)</div>
+                  <div className={styles.cellEmpty}>（暂无事件）</div>
                 )
               ) : allPending ? (
                 runTerminal ? (
                   <div
                     className={styles.cellEmpty}
                     title={runAborted
-                      ? 'Run was interrupted while this turn was still processing.'
-                      : 'No outcome recorded for this side on this turn.'}
+                      ? "此回合处理过程中运行中断。"
+                      : "此回合未记录此侧结果。"}
                   >
                     {runAborted
-                      ? `Stopped during T${entry.turn}`
-                      : `T${entry.turn} ended without an outcome`}
+                      ? `在第 ${entry.turn} 回合处理中中断`
+                      : `T${entry.turn} 结束时未产生结果`}
                   </div>
                 ) : (
                   <div className={styles.cellPending} aria-live="polite">

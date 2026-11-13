@@ -64,14 +64,9 @@ export function ToolboxSection({ registry, title = 'Forged Toolbox', collapsible
                 <Tooltip
                   content={
                     <div>
-                      <div className={styles.tooltipTitle}>Open in sim log</div>
+                      <div className={styles.tooltipTitle}>在事件日志中查看</div>
                       <div>
-                        Jumps to the Log tab and filters the event stream
-                        to <code>{entry.name}</code> — showing every
-                        forge_attempt, specialist_done, and reuse event this
-                        tool fired in. Useful for tracing the exact
-                        moment a tool was created and every downstream
-                        department that reused it.
+                        打开事件日志并筛选 <code>{entry.name}</code> ，查看此工具的生成尝试、部门完成和复用事件，以追溯创建时间及后续使用部门。
                       </div>
                     </div>
                   }
@@ -83,7 +78,7 @@ export function ToolboxSection({ registry, title = 'Forged Toolbox', collapsible
                     className={styles.logBtn}
                   >
                     <span aria-hidden="true">↗</span>
-                    log
+                    日志
                   </button>
                 </Tooltip>
               </div>
@@ -91,20 +86,20 @@ export function ToolboxSection({ registry, title = 'Forged Toolbox', collapsible
                 <div className={styles.itemDescription}>{entry.description}</div>
               )}
               <div className={styles.metaRow}>
-                <span>first forged T{entry.firstForgedTurn} · {entry.firstForgedDepartment}</span>
-                {entry.reuseCount > 0 && <span className={styles.metaReuse}>reused {entry.reuseCount}×</span>}
+                <span>首次生成于回合{entry.firstForgedTurn} · {entry.firstForgedDepartment}</span>
+                {entry.reuseCount > 0 && <span className={styles.metaReuse}>次复用 {entry.reuseCount}×</span>}
                 {entry.reforgeCount > 0 && (
                   <span className={styles.metaReforge}>
-                    {entry.reforgeCount} re-forge{entry.reforgeCount === 1 ? '' : 's'}
+                    {entry.reforgeCount} 重新生成{entry.reforgeCount === 1 ? '' : 's'}
                     {entry.rejectedReforges > 0 && (
-                      <span className={styles.metaRejected}> ({entry.rejectedReforges} rejected)</span>
+                      <span className={styles.metaRejected}> ({entry.rejectedReforges} 次拒绝）</span>
                     )}
                   </span>
                 )}
-                {depts && <span>used by {depts}</span>}
-                <span>leader {sidesLabel}</span>
-                {inputCount > 0 && <span className={styles.metaInput}>{inputCount} input field{inputCount === 1 ? '' : 's'}</span>}
-                {outputCount > 0 && <span className={styles.metaOutput}>{outputCount} output field{outputCount === 1 ? '' : 's'}</span>}
+                {depts && <span>使用方 {depts}</span>}
+                <span>决策者 {sidesLabel}</span>
+                {inputCount > 0 && <span className={styles.metaInput}>{inputCount} 输入字段{inputCount === 1 ? '' : 's'}</span>}
+                {outputCount > 0 && <span className={styles.metaOutput}>{outputCount} 输出字段{outputCount === 1 ? '' : 's'}</span>}
               </div>
               {/* Expandable judge-verdict explanation. Replaces the old
                   hover-popover with inline details that stays open as
@@ -123,7 +118,7 @@ export function ToolboxSection({ registry, title = 'Forged Toolbox', collapsible
               {entry.history.length > 0 && (
                 <details className={styles.detailsBlockTight}>
                   <summary className={[styles.detailsSummary, styles.history].join(' ')}>
-                    USE HISTORY · {entry.history.length}
+                    使用历史 · {entry.history.length}
                   </summary>
                   <ol className={styles.historyList}>
                     {entry.history.map((h, i) => {
@@ -145,7 +140,7 @@ export function ToolboxSection({ registry, title = 'Forged Toolbox', collapsible
               )}
               {Boolean(entry.inputSchema || entry.outputSchema) && (
                 <details className={styles.detailsBlockTight}>
-                  <summary className={[styles.detailsSummary, styles.amber].join(' ')}>SCHEMA</summary>
+                  <summary className={[styles.detailsSummary, styles.amber].join(' ')}>结构</summary>
                   <pre className={styles.codeBlock}>
                     {JSON.stringify({ input: entry.inputSchema ?? null, output: entry.outputSchema ?? null }, null, 2)}
                   </pre>
@@ -153,7 +148,7 @@ export function ToolboxSection({ registry, title = 'Forged Toolbox', collapsible
               )}
               {entry.sampleOutput && (
                 <details className={styles.detailsBlockTight}>
-                  <summary className={[styles.detailsSummary, styles.pass].join(' ')}>LATEST OUTPUT</summary>
+                  <summary className={[styles.detailsSummary, styles.pass].join(' ')}>最新输出</summary>
                   <pre className={styles.codeBlockShort}>{entry.sampleOutput}</pre>
                 </details>
               )}
@@ -218,35 +213,31 @@ export function ForgeVerdictBody({ entry }: { entry: ToolEntry }) {
     return (
       <div className={styles.verdictWrap}>
         <div className={styles.verdictPassHeader}>
-          ✓ judge confidence {entry.confidence.toFixed(2)}
+          ✓ 评审置信度 {entry.confidence.toFixed(2)}
         </div>
         <div>
-          The LLM judge reviewed this tool's source code, test outputs, and sandbox allowlist,
-          and approved it across safety, correctness, determinism, and bounded execution.
+          模型评审检查了工具源码、测试输出和沙箱白名单，并通过安全性、正确性、确定性及执行范围检查。
         </div>
         <div className={styles.verdictAdds}>
-          <b className={styles.verdictAddsLabel}>What this adds to the run:</b>{' '}
-          +0.04 outcome bonus for this event · the dept's report cites the tool's computed result ·
-          the tool is now reusable by any dept at near-zero cost (+0.02 per reuse).
+          <b className={styles.verdictAddsLabel}>对运行的影响：</b>{' '}
+          本事件结果加成 +0.04；部门报告引用工具计算结果；其他部门可以低成本复用，每次复用加成 +0.02。
         </div>
       </div>
     );
   }
   return (
     <div className={styles.verdictWrap}>
-      <div className={styles.verdictFailHeader}>✗ judge rejected</div>
+      <div className={styles.verdictFailHeader}>✗ 评审拒绝</div>
       {entry.errorReason ? (
         <div className={styles.verdictRejection}>{entry.errorReason}</div>
       ) : (
         <div className={styles.verdictMissing}>
-          (No rejection reason captured. The judge blocked the tool before it could execute.)
+          （未记录拒绝原因，评审已在执行前阻止该工具。）
         </div>
       )}
       <div className={styles.verdictCost}>
-        <b className={styles.verdictCostLabel}>Cost of a failed forge:</b>{' '}
-        −0.06 outcome bonus on this event · −0.015 morale per failure (crew confidence eroded) ·
-        −1.2&nbsp;kW power (sandbox compute consumed) · no quantitative grounding in the dept's report ·
-        the dept retries or moves on without the insight this tool would have provided.
+        <b className={styles.verdictCostLabel}>工具生成失败的代价：</b>{' '}
+        本事件结果加成 −0.06；每次失败士气 −0.015；沙箱计算消耗电力 1.2 kW；部门报告缺少该工具的定量依据，需要重试或在信息不足时继续。
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import type { LlmProvider, SimulationModelConfig } from '../../engine/types.js';
+import { configuredModel, normalizeProviderModel } from '../../engine/provider/model-config.js';
 
 export type SimulationEconomicsProfileId =
   | 'economy'
@@ -10,7 +11,7 @@ export type SimulationEconomicsProfileId =
 export interface ResolvedEconomicsProfile {
   id: SimulationEconomicsProfileId;
   models: SimulationModelConfig;
-  verdict: { mode: 'skip' | 'cheap' | 'balanced' | 'flagship' };
+  verdict: { mode: 'skip' | 'cheap' | 'balanced' | 'flagship'; model?: string };
   search: { mode: 'off' | 'gated' | 'adaptive' | 'aggressive'; maxSearches: number };
   batch: { maxConcurrency: number };
   compileSignature: string;
@@ -29,6 +30,7 @@ interface ResolveEconomicsProfileInput {
   baseModels: SimulationModelConfig;
   overrides?: Partial<SimulationModelConfig>;
   batchConcurrency?: number;
+  env?: Record<string, string | undefined>;
 }
 
 const OPENAI_ECONOMY_MODELS: SimulationModelConfig = {
@@ -63,32 +65,17 @@ const ANTHROPIC_QUALITY_MODELS: SimulationModelConfig = {
   agentReactions: 'claude-sonnet-4-6',
 };
 
-function inferProviderFromModel(model?: string): LlmProvider | undefined {
-  if (!model) return undefined;
-  if (model.startsWith('claude-')) return 'anthropic';
-  if (model.startsWith('gpt-') || model.startsWith('o')) return 'openai';
-  return undefined;
-}
-
-function normalizeRequestedModel(
-  provider: LlmProvider,
-  requested: string | undefined,
-): string | undefined {
-  if (!requested) return undefined;
-  return inferProviderFromModel(requested) === provider ? requested : undefined;
-}
-
 function mergeModelOverrides(
   provider: LlmProvider,
   baseModels: SimulationModelConfig,
   overrides?: Partial<SimulationModelConfig>,
 ): SimulationModelConfig {
   return {
-    commander: normalizeRequestedModel(provider, overrides?.commander) ?? baseModels.commander,
-    departments: normalizeRequestedModel(provider, overrides?.departments) ?? baseModels.departments,
-    judge: normalizeRequestedModel(provider, overrides?.judge) ?? baseModels.judge,
-    director: normalizeRequestedModel(provider, overrides?.director ?? overrides?.commander) ?? baseModels.director,
-    agentReactions: normalizeRequestedModel(provider, overrides?.agentReactions) ?? baseModels.agentReactions,
+    commander: normalizeProviderModel(provider, overrides?.commander) ?? baseModels.commander,
+    departments: normalizeProviderModel(provider, overrides?.departments) ?? baseModels.departments,
+    judge: normalizeProviderModel(provider, overrides?.judge) ?? baseModels.judge,
+    director: normalizeProviderModel(provider, overrides?.director ?? overrides?.commander) ?? baseModels.director,
+    agentReactions: normalizeProviderModel(provider, overrides?.agentReactions) ?? baseModels.agentReactions,
   };
 }
 
@@ -115,7 +102,12 @@ export function resolveEconomicsProfile(
 ): ResolvedEconomicsProfile {
   const id = input.profileId ?? 'balanced';
   const profileModels = selectProfileModels(input.provider, id, input.baseModels);
-  const models = mergeModelOverrides(input.provider, profileModels, input.overrides);
+  const defaultModel = configuredModel(input.provider, input.env);
+  const configuredModels = defaultModel ? {
+    commander: defaultModel, departments: defaultModel, judge: defaultModel,
+    director: defaultModel, agentReactions: defaultModel,
+  } : profileModels;
+  const models = mergeModelOverrides(input.provider, configuredModels, input.overrides);
 
   const policies: Record<
     SimulationEconomicsProfileId,
@@ -165,7 +157,9 @@ export function resolveEconomicsProfile(
   return {
     id,
     models,
-    verdict: policy.verdict,
+    verdict: defaultModel || normalizeProviderModel(input.provider, input.overrides?.judge)
+      ? { ...policy.verdict, model: models.judge }
+      : policy.verdict,
     search: policy.search,
     batch: {
       maxConcurrency: Math.max(1, input.batchConcurrency ?? policy.batch.maxConcurrency),

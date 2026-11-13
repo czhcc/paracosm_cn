@@ -1,3 +1,4 @@
+import { localizeTemplate } from '../../template-localization';
 /**
  * Scenario catalog grid for the Quickstart tab.
  *
@@ -61,18 +62,18 @@ function formatAge(iso: string): string {
   const then = Date.parse(iso);
   if (!Number.isFinite(then)) return '';
   const diffMs = Date.now() - then;
-  if (diffMs < 0) return 'just now';
+  if (diffMs < 0) return "刚刚";
   const minutes = Math.floor(diffMs / 60_000);
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) return "刚刚";
+  if (minutes < 60) return `${minutes} 分钟前`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return `${hours} 小时前`;
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days < 7) return `${days} 天前`;
   const weeks = Math.floor(days / 7);
-  if (weeks < 5) return `${weeks}w ago`;
+  if (weeks < 5) return `${weeks} 周前`;
   const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
+  if (months < 12) return `${months} 个月前`;
   return new Date(iso).getFullYear().toString();
 }
 
@@ -87,11 +88,11 @@ function sourceTone(source?: string): 'builtin' | 'disk' | 'compiled' | 'memory'
 
 /** Friendlier label per source type than the raw enum string. */
 function sourceLabel(source?: string): string {
-  if (source === 'builtin') return 'Built-in';
-  if (source === 'disk') return 'Saved';
-  if (source === 'compiled') return 'Custom';
-  if (source === 'memory') return 'Memory';
-  return source ?? 'Unknown';
+  if (source === 'builtin') return "内置";
+  if (source === 'disk') return "已保存";
+  if (source === 'compiled') return '自定义';
+  if (source === 'memory') return '内存';
+  return source ?? '未知';
 }
 
 /** Source filter chip values. `all` is the no-filter default; the
@@ -149,7 +150,7 @@ export function ScenarioCatalogGrid(props: ScenarioCatalogGridProps): JSX.Elemen
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const body = await res.json() as { scenarios?: CatalogScenario[] };
         if (cancelled) return;
-        setScenarios(body.scenarios ?? []);
+        setScenarios(localizeTemplate(body.scenarios ?? []));
         setError(null);
       } catch (err) {
         if (cancelled) return;
@@ -169,17 +170,17 @@ export function ScenarioCatalogGrid(props: ScenarioCatalogGridProps): JSX.Elemen
   if (loading && scenarios.length === 0) {
     return (
       <section className={styles.section} aria-labelledby="scenario-catalog-heading">
-        <h3 className={styles.heading} id="scenario-catalog-heading">All scenarios</h3>
-        <p className={styles.statusLine}>Loading catalog…</p>
+        <h3 className={styles.heading} id="scenario-catalog-heading">全部场景</h3>
+        <p className={styles.statusLine}>正在加载场景目录…</p>
       </section>
     );
   }
   if (error && scenarios.length === 0) {
     return (
       <section className={styles.section} aria-labelledby="scenario-catalog-heading">
-        <h3 className={styles.heading} id="scenario-catalog-heading">All scenarios</h3>
+        <h3 className={styles.heading} id="scenario-catalog-heading">全部场景</h3>
         <p className={`${styles.statusLine} ${styles.error}`} role="alert">
-          Failed to load catalog: {error}
+          场景目录加载失败： {error}
         </p>
       </section>
     );
@@ -254,23 +255,23 @@ export function ScenarioCatalogGrid(props: ScenarioCatalogGridProps): JSX.Elemen
   }, {});
 
   const chipDefs: Array<{ key: SourceFilter; label: string }> = [
-    { key: 'all', label: 'All' },
-    { key: 'builtin', label: 'Built-in' },
-    { key: 'disk', label: 'Saved' },
-    { key: 'compiled', label: 'Custom' },
+    { key: 'all', label: '全部' },
+    { key: 'builtin', label: "内置" },
+    { key: 'disk', label: "已保存" },
+    { key: 'compiled', label: '自定义' },
   ];
 
   return (
     <section className={styles.section} aria-labelledby="scenario-catalog-heading">
       <header className={styles.header}>
         <h3 className={styles.heading} id="scenario-catalog-heading">
-          All scenarios{' '}
+          全部场景{' '}
           <span className={styles.count}>
             · {filtersActive ? `${sorted.length} of ${scenarios.length}` : scenarios.length}
           </span>
         </h3>
         <div className={styles.actorRow}>
-          <label className={styles.actorLabel} htmlFor={sliderId}>Actors</label>
+          <label className={styles.actorLabel} htmlFor={sliderId}>决策者</label>
           <input
             id={sliderId}
             type="range"
@@ -280,25 +281,25 @@ export function ScenarioCatalogGrid(props: ScenarioCatalogGridProps): JSX.Elemen
             onChange={(e) => setActorCount(parseInt(e.target.value, 10))}
             disabled={disabled}
             className={styles.actorSlider}
-            aria-label="Number of parallel actors per scenario run"
+            aria-label="每个场景的并行决策者数量"
           />
           <span className={styles.actorValue}>{actorCount}</span>
         </div>
       </header>
       <div className={styles.filterRow}>
         <label className={styles.searchLabel} htmlFor={searchInputId}>
-          <span className="sr-only">Search scenarios</span>
+          <span className="sr-only">搜索场景</span>
           <input
             id={searchInputId}
             type="search"
             value={queryInput}
             onChange={(e) => setQueryInput(e.target.value)}
-            placeholder="Search by name or seed text…"
+            placeholder="按名称或场景描述搜索…"
             className={styles.searchInput}
-            aria-label="Filter catalog by name or seed text"
+            aria-label="按名称或场景描述搜索"
           />
         </label>
-        <div className={styles.chipGroup} role="group" aria-label="Filter by scenario source">
+        <div className={styles.chipGroup} role="group" aria-label="按场景来源筛选">
           {chipDefs.map((c) => {
             const total = c.key === 'all'
               ? scenarios.length
@@ -321,29 +322,29 @@ export function ScenarioCatalogGrid(props: ScenarioCatalogGridProps): JSX.Elemen
           })}
         </div>
         <label className={styles.sortLabel}>
-          <span className="sr-only">Sort scenarios</span>
+          <span className="sr-only">场景排序</span>
           <select
             value={sortMode}
             onChange={(e) => setSortMode(e.target.value as SortMode)}
             className={styles.sortSelect}
-            aria-label="Sort catalog"
+            aria-label="场景排序"
           >
-            <option value="curated">Sort: Curated</option>
-            <option value="most-runs">Sort: Most runs</option>
-            <option value="newest">Sort: Newest first</option>
-            <option value="alphabetical">Sort: A → Z</option>
+            <option value="curated">精选排序</option>
+            <option value="most-runs">运行次数最多</option>
+            <option value="newest">最新优先</option>
+            <option value="alphabetical">按名称排序</option>
           </select>
         </label>
       </div>
       {sorted.length === 0 ? (
         <div className={styles.emptyMatches} role="status" aria-live="polite">
-          No scenarios match your filter.{' '}
+          没有符合筛选条件的场景。{' '}
           <button
             type="button"
             className={styles.clearFiltersBtn}
             onClick={() => { setQueryInput(''); setSourceFilter('all'); }}
           >
-            Clear filters
+            清除筛选
           </button>
         </div>
       ) : (
@@ -361,13 +362,13 @@ export function ScenarioCatalogGrid(props: ScenarioCatalogGridProps): JSX.Elemen
                 type="button"
                 className={styles.cardBody}
                 onClick={() => setDetailScenario(s)}
-                aria-label={`View detail for ${s.name}`}
+                aria-label={`查看“${s.name}”详情`}
               >
                 <div className={styles.cardHeader}>
                   <span className={`${styles.sourceBadge} ${styles[`badge_${tone}`] ?? ''}`}>
                     {sourceLabel(s.source)}
                   </span>
-                  {isActive && <span className={styles.activeBadge}>Loaded</span>}
+                  {isActive && <span className={styles.activeBadge}>已加载</span>}
                 </div>
                 <h4 className={styles.cardName}>{s.name}</h4>
                 {s.seedText && (
@@ -378,19 +379,19 @@ export function ScenarioCatalogGrid(props: ScenarioCatalogGridProps): JSX.Elemen
                 <dl className={styles.cardStats}>
                   {typeof s.runCount === 'number' && s.runCount > 0 && (
                     <div className={styles.stat}>
-                      <dt className={styles.statKey}>Runs</dt>
+                      <dt className={styles.statKey}>运行次数</dt>
                       <dd className={styles.statValue}>{s.runCount.toLocaleString()}</dd>
                     </div>
                   )}
                   {typeof s.departments === 'number' && s.departments > 0 && (
                     <div className={styles.stat}>
-                      <dt className={styles.statKey}>Depts</dt>
+                      <dt className={styles.statKey}>部门</dt>
                       <dd className={styles.statValue}>{s.departments}</dd>
                     </div>
                   )}
                   {s.compiledAt && (
                     <div className={styles.stat}>
-                      <dt className={styles.statKey}>Compiled</dt>
+                      <dt className={styles.statKey}>编译时间</dt>
                       <dd className={styles.statValue}>{formatAge(s.compiledAt) || s.compiledAt.slice(0, 10)}</dd>
                     </div>
                   )}
@@ -409,9 +410,9 @@ export function ScenarioCatalogGrid(props: ScenarioCatalogGridProps): JSX.Elemen
                   onRunScenario(s.id, actorCount);
                 }}
                 disabled={disabled}
-                aria-label={`Run ${actorCount} actor${actorCount === 1 ? '' : 's'} against ${s.name}`}
+                aria-label={`在“${s.name}”中运行 ${actorCount} 位决策者`}
               >
-                Run {actorCount} {actorCount === 1 ? 'actor' : 'actors'} →
+                运行 {actorCount} {actorCount === 1 ? '位决策者' : '位决策者'} →
               </button>
             </li>
           );

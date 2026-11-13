@@ -212,6 +212,29 @@ test('resolveSimulationModels uses provider defaults when models are omitted for
   assert.equal(anthropicModels.agentReactions, 'claude-haiku-4-5-20251001');
 });
 
+test('custom OpenAI-compatible models survive normalization and standalone model resolution', () => {
+  const model = 'qwen3.8-flash-next';
+  const config = normalizeSimulationConfig({
+    actors: [leaderA, leaderB], provider: 'openai',
+    models: { commander: model, departments: model, judge: model, agentReactions: model },
+  });
+  assert.deepEqual(Object.values(config.models), Array(5).fill(model));
+  assert.deepEqual(resolveSimulationModels('openai', config.models), config.models);
+});
+
+test('environment model defaults apply to every role with explicit overrides taking precedence', () => {
+  const config = normalizeSimulationConfig({
+    actors: [leaderA, leaderB], provider: 'openai',
+    economics: { profileId: 'quality' },
+    models: { judge: ' local-review-model ' },
+  }, undefined, { OPENAI_MODEL: ' qwen3.8-flash-next ' });
+  assert.equal(config.models.judge, 'local-review-model');
+  assert.equal(config.economics.verdict.model, 'local-review-model');
+  for (const tier of ['commander', 'departments', 'director', 'agentReactions'] as const) {
+    assert.equal(config.models[tier], 'qwen3.8-flash-next');
+  }
+});
+
 test('normalizeSimulationConfig resolves explicit economics profiles', () => {
   const config = normalizeSimulationConfig({
     actors: [leaderA, leaderB],

@@ -108,7 +108,7 @@ test('compileScenarioWithPolling: 404 on status surfaces expired-job error', asy
       { seedText: 'd'.repeat(220) },
       { fetchImpl: fetch, waitImpl: FAST_WAIT, pollIntervalMs: 1 },
     ),
-    /expired or not found/,
+    /已过期或不存在/,
   );
 });
 
@@ -139,7 +139,7 @@ test('compileScenarioWithPolling: timeout throws when compile is too slow', asyn
           timeoutMs: 5000,
         },
       ),
-      /taking longer than/,
+      /耗时已超过/,
     );
   } finally {
     Date.now = realNow;

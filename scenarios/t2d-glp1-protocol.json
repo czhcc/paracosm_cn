@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "engineArchetype": "closed_turn_based_settlement",
   "labels": {
-    "name": "T2D + GLP-1 Care",
+    "name": "2 型糖尿病与 GLP-1 照护",
     "shortName": "t2d-care",
     "populationNoun": "patients",
     "settlementNoun": "clinic",
@@ -15,7 +15,7 @@
     "timeUnitNounPlural": "weeks",
     "actorNoun": "lead clinician",
     "actorNounPlural": "lead clinicians",
-    "tagline": "T2D + GLP-1 Care: a 24-month patient cohort under two clinician archetypes. GLP-1 dose titration, A1c trajectory, and adherence drift are the per-patient state."
+    "tagline": "两类临床医生对患者队列开展长期照护，跟踪 GLP-1 剂量调整、糖化血红蛋白变化和治疗依从程度。"
   },
   "theme": {
     "primaryColor": "#10b981",
@@ -45,108 +45,108 @@
   "departments": [
     {
       "id": "endocrinology",
-      "label": "Endocrinology",
-      "role": "Endocrinologist",
-      "icon": "\ud83d\udc89",
+      "label": "内分泌科",
+      "role": "内分泌医师",
+      "icon": "💉",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the patient's endocrinologist. You analyze HbA1c trajectory, fasting glucose, postprandial glucose patterns, beta-cell function markers, and pharmacological dose-response. You argue for titration, dose-hold, or de-escalation based on glycemic trends and side-effect tolerance."
+      "instructions": "你是患者的内分泌医师，分析糖化血红蛋白（HbA1c）轨迹、空腹血糖、餐后血糖模式、胰岛 β 细胞功能指标和药物剂量反应。根据血糖趋势与不良反应耐受情况，提出剂量调整、维持或降低治疗强度的建议。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "nutrition",
-      "label": "Nutrition",
-      "role": "Registered Dietitian",
-      "icon": "\ud83e\udd57",
+      "label": "营养科",
+      "role": "注册营养师",
+      "icon": "🥗",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the patient's registered dietitian. You analyze caloric intake, macronutrient distribution, eating patterns, food-medication timing (esp. with GLP-1 nausea), and protein adequacy during weight loss. You set the meal-plan adjustments that sustain adherence without lean-mass loss."
+      "instructions": "你是患者的注册营养师，分析热量摄入、宏量营养素分配、进食模式、食物与用药时间的配合（尤其是 GLP-1 引起恶心时），以及减重期间蛋白质是否充足。你调整膳食计划，维持依从性并避免瘦体组织流失。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "behavioral_psych",
-      "label": "Behavioral Health",
-      "role": "Health Psychologist",
-      "icon": "\ud83e\udde0",
+      "label": "行为健康科",
+      "role": "健康心理师",
+      "icon": "🧠",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the patient's health psychologist. You analyze motivation, self-efficacy, sleep hygiene, stress load, mood, and the cognitive friction of new routines. You design the behavioral scaffolding (CBT-I, motivational interviewing, habit-stacking) that converts protocol intent into daily adherence."
+      "instructions": "你是患者的健康心理师，分析动机、自我效能、睡眠卫生、压力负荷、情绪及建立新习惯的认知阻力。你通过失眠认知行为治疗（CBT-I）、动机访谈和习惯叠加等行为支持，将治疗方案转化为日常执行。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "cardiology",
-      "label": "Cardiology",
-      "role": "Preventive Cardiologist",
-      "icon": "\u2764\ufe0f",
+      "label": "心脏科",
+      "role": "预防心脏病医师",
+      "icon": "❤️",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the patient's preventive cardiologist. You analyze blood pressure, lipid panel, resting heart rate, exercise tolerance, and cardiovascular risk stratification (ASCVD, CKD-EPI). You hold the line on cardiac safety when the protocol pushes intensity, and you flag gallbladder + pancreatitis signals on GLP-1 therapy."
+      "instructions": "你是患者的预防心脏病医师，分析血压、血脂、静息心率、运动耐受及心血管风险分层（ASCVD、CKD-EPI）。当方案提高治疗强度时，你坚持心脏安全边界，并关注 GLP-1 治疗期间的胆囊和胰腺炎警讯。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "lifestyle_coach",
-      "label": "Lifestyle Coach",
-      "role": "Lifestyle Medicine Coach",
-      "icon": "\ud83c\udfc3",
+      "label": "生活方式指导",
+      "role": "生活方式医学指导师",
+      "icon": "🏃",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the patient's lifestyle medicine coach. You analyze step count, exercise minutes, sleep duration, hydration, and the patient's lived adherence vs prescription. You argue for graded exercise progression, recovery weeks, and the small environmental tweaks that compound over a 12-week protocol."
+      "instructions": "你是患者的生活方式医学指导师，分析步数、运动时长、睡眠时长、补水情况，以及实际执行与处方要求之间的差距。你主张分级增加运动、安排恢复周，并通过细小环境调整在 12 周方案中积累效果。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     }
   ],
   "metrics": [
     {
       "id": "hba1c",
-      "label": "HbA1c",
+      "label": "糖化血红蛋白（HbA1c）",
       "source": "metrics.hba1c",
       "format": "number",
       "better": "lower"
     },
     {
       "id": "fastingGlucose",
-      "label": "Fasting Glucose",
+      "label": "空腹血糖",
       "source": "metrics.fastingGlucose",
       "format": "number",
       "better": "lower"
     },
     {
       "id": "weight",
-      "label": "Weight",
+      "label": "体重",
       "source": "metrics.weight",
       "format": "number",
       "better": "lower"
     },
     {
       "id": "bmi",
-      "label": "BMI",
+      "label": "体质指数（BMI）",
       "source": "metrics.bmi",
       "format": "number",
       "better": "lower"
     },
     {
       "id": "exerciseAdherence",
-      "label": "Exercise Adherence",
+      "label": "运动执行程度",
       "source": "metrics.exerciseAdherence",
       "format": "percent"
     },
     {
       "id": "sleepHours",
-      "label": "Sleep",
+      "label": "睡眠",
       "source": "metrics.sleepHours",
       "format": "number"
     },
     {
       "id": "qualityOfLife",
-      "label": "Quality of Life",
+      "label": "生活质量",
       "source": "metrics.qualityOfLife",
       "format": "percent"
     },
     {
       "id": "mortalityRisk",
-      "label": "10-yr Mortality",
+      "label": "十年死亡风险",
       "source": "metrics.mortalityRisk",
       "format": "percent",
       "better": "lower"
     },
     {
       "id": "cardioFitness",
-      "label": "Cardio Fitness",
+      "label": "心肺适能",
       "source": "metrics.cardioFitness",
       "format": "percent"
     },
     {
       "id": "sideEffectBurden",
-      "label": "Side-effect Load",
+      "label": "不良反应负担",
       "source": "metrics.sideEffectBurden",
       "format": "percent",
       "better": "lower"
@@ -155,70 +155,70 @@
   "events": [
     {
       "id": "drug_titration",
-      "label": "Dose Titration",
-      "icon": "\ud83d\udc8a",
+      "label": "剂量调整",
+      "icon": "💊",
       "color": "#34d399"
     },
     {
       "id": "side_effect",
-      "label": "Side-effect Episode",
-      "icon": "\ud83e\udd22",
+      "label": "不良反应事件",
+      "icon": "🤢",
       "color": "#f59e0b"
     },
     {
       "id": "adherence_lapse",
-      "label": "Adherence Lapse",
-      "icon": "\ud83d\udcc9",
+      "label": "执行中断",
+      "icon": "📉",
       "color": "#ef4444"
     },
     {
       "id": "lab_result",
-      "label": "Lab Result",
-      "icon": "\ud83e\uddea",
+      "label": "化验结果",
+      "icon": "🧪",
       "color": "#3b82f6"
     },
     {
       "id": "lifestyle_decision",
-      "label": "Lifestyle Decision",
-      "icon": "\ud83e\udd57",
+      "label": "生活方式决策",
+      "icon": "🥗",
       "color": "#10b981"
     },
     {
       "id": "behavioral",
-      "label": "Behavioral Moment",
-      "icon": "\ud83e\udde0",
+      "label": "行为事件",
+      "icon": "🧠",
       "color": "#a78bfa"
     },
     {
       "id": "cardio_check",
-      "label": "Cardio Check",
-      "icon": "\u2764\ufe0f",
+      "label": "心血管检查",
+      "icon": "❤️",
       "color": "#dc2626"
     },
     {
       "id": "decision",
-      "label": "Care Decision",
-      "icon": "\ud83e\udded",
+      "label": "照护决策",
+      "icon": "🧭",
       "color": "#f97316"
     },
     {
       "id": "tool_forge",
-      "label": "Tool Forged",
-      "icon": "\ud83d\udd27",
+      "label": "工具生成",
+      "icon": "🔧",
       "color": "#8b5cf6"
     },
     {
       "id": "system",
-      "label": "System",
-      "icon": "\u2699\ufe0f",
+      "label": "系统",
+      "icon": "⚙️",
       "color": "#64748b"
     }
   ],
   "effects": {
     "pharmacological": {
       "hba1c": -0.3,
-      "fastingGlucose": -8.0,
-      "weight": -3.0,
+      "fastingGlucose": -8,
+      "weight": -3,
       "bmi": -0.5,
       "sideEffectBurden": 0.05
     },
@@ -253,7 +253,7 @@
     "adherence": {
       "exerciseAdherence": 0.12,
       "hba1c": -0.15,
-      "weight": -1.0,
+      "weight": -1,
       "qualityOfLife": 0.04
     }
   },
@@ -297,11 +297,11 @@
       "quotes"
     ],
     "departmentIcons": {
-      "endocrinology": "\ud83d\udc89",
-      "nutrition": "\ud83e\udd57",
-      "behavioral_psych": "\ud83e\udde0",
-      "cardiology": "\u2764\ufe0f",
-      "lifestyle_coach": "\ud83c\udfc3"
+      "endocrinology": "💉",
+      "nutrition": "🥗",
+      "behavioral_psych": "🧠",
+      "cardiology": "❤️",
+      "lifestyle_coach": "🏃"
     },
     "setupSections": [
       "leaders",
@@ -335,11 +335,11 @@
   "presets": [
     {
       "id": "default",
-      "label": "Cautious vs Aggressive",
+      "label": "谨慎与积极",
       "leaders": [
         {
           "name": "Dr. Marcus Reinhardt",
-          "archetype": "The Cautious Methodical Endocrinologist",
+          "archetype": "谨慎循证的内分泌医师",
           "hexaco": {
             "openness": 0.55,
             "conscientiousness": 0.92,
@@ -348,11 +348,11 @@
             "emotionality": 0.55,
             "honestyHumility": 0.88
           },
-          "instructions": "You are Dr. Marcus Reinhardt, 'The Cautious Methodical Endocrinologist.' You titrate slowly. You hold dose escalations until labs and patient-reported tolerance are unambiguous. You favor durable adherence over peak A1c reduction. Your HEXACO profile drives every clinical decision."
+          "instructions": "你是马库斯·莱因哈特医生，人称“谨慎循证的内分泌医师”。你缓慢调整剂量，只有当化验结果和患者报告的耐受情况明确时才增加剂量。相比追求最大的糖化血红蛋白降幅，你更重视持久依从性。你的 HEXACO 人格影响每项临床决策。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
         },
         {
           "name": "Dr. Priya Kapoor",
-          "archetype": "The Aggressive Intensifier",
+          "archetype": "积极强化治疗者",
           "hexaco": {
             "openness": 0.92,
             "conscientiousness": 0.55,
@@ -361,7 +361,7 @@
             "emotionality": 0.35,
             "honestyHumility": 0.5
           },
-          "instructions": "You are Dr. Priya Kapoor, 'The Aggressive Intensifier.' You front-load benefit. You push to titrate to maximum tolerated dose by week 4 and add lifestyle intensity early. You believe most side effects are transient and the metabolic momentum from rapid response carries adherence. Your HEXACO profile drives every clinical decision."
+          "instructions": "你是普里娅·卡普尔医生，人称“积极强化治疗者”。你倾向于尽早取得收益，推动在第 4 周前调整到最大耐受剂量，并尽早提高生活方式干预强度。你相信多数不良反应是暂时的，快速改善带来的代谢动力能够帮助维持依从性。你的 HEXACO 人格影响每项临床决策。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
         }
       ]
     }
@@ -370,7 +370,7 @@
     "metrics": {
       "population": {
         "id": "population",
-        "label": "Care Team Size",
+        "label": "照护团队人数",
         "unit": "people",
         "type": "number",
         "initial": 1,
@@ -379,17 +379,17 @@
       },
       "hba1c": {
         "id": "hba1c",
-        "label": "HbA1c",
+        "label": "糖化血红蛋白（HbA1c）",
         "unit": "%",
         "type": "number",
         "initial": 7.8,
-        "min": 4.0,
-        "max": 14.0,
+        "min": 4,
+        "max": 14,
         "category": "metric"
       },
       "fastingGlucose": {
         "id": "fastingGlucose",
-        "label": "Fasting Glucose",
+        "label": "空腹血糖",
         "unit": "mg/dL",
         "type": "number",
         "initial": 156,
@@ -399,7 +399,7 @@
       },
       "weight": {
         "id": "weight",
-        "label": "Weight",
+        "label": "体重",
         "unit": "lb",
         "type": "number",
         "initial": 178,
@@ -409,17 +409,17 @@
       },
       "bmi": {
         "id": "bmi",
-        "label": "BMI",
-        "unit": "kg/m\u00b2",
+        "label": "体质指数（BMI）",
+        "unit": "kg/m²",
         "type": "number",
-        "initial": 31.0,
+        "initial": 31,
         "min": 14,
         "max": 60,
         "category": "metric"
       },
       "exerciseAdherence": {
         "id": "exerciseAdherence",
-        "label": "Exercise Adh.",
+        "label": "运动执行程度",
         "unit": "%",
         "type": "number",
         "initial": 0.05,
@@ -429,7 +429,7 @@
       },
       "sleepHours": {
         "id": "sleepHours",
-        "label": "Sleep",
+        "label": "睡眠",
         "unit": "hrs/night",
         "type": "number",
         "initial": 6.2,
@@ -439,7 +439,7 @@
       },
       "qualityOfLife": {
         "id": "qualityOfLife",
-        "label": "QoL",
+        "label": "生活质量",
         "unit": "%",
         "type": "number",
         "initial": 0.55,
@@ -449,7 +449,7 @@
       },
       "mortalityRisk": {
         "id": "mortalityRisk",
-        "label": "10-yr Mortality",
+        "label": "十年死亡风险",
         "unit": "%",
         "type": "number",
         "initial": 0.18,
@@ -459,7 +459,7 @@
       },
       "cardioFitness": {
         "id": "cardioFitness",
-        "label": "Cardio Fitness",
+        "label": "心肺适能",
         "unit": "%",
         "type": "number",
         "initial": 0.45,
@@ -469,7 +469,7 @@
       },
       "sideEffectBurden": {
         "id": "sideEffectBurden",
-        "label": "Side Effects",
+        "label": "不良反应",
         "unit": "%",
         "type": "number",
         "initial": 0.05,
@@ -481,7 +481,7 @@
     "capacities": {
       "appointmentsPerMonth": {
         "id": "appointmentsPerMonth",
-        "label": "Visits/Month",
+        "label": "每月就诊次数",
         "unit": "visits",
         "type": "number",
         "initial": 2,
@@ -489,7 +489,7 @@
       },
       "labDrawsPerMonth": {
         "id": "labDrawsPerMonth",
-        "label": "Lab Draws/Month",
+        "label": "每月采血次数",
         "unit": "draws",
         "type": "number",
         "initial": 1,
@@ -499,7 +499,7 @@
     "statuses": {
       "treatmentPhase": {
         "id": "treatmentPhase",
-        "label": "Treatment Phase",
+        "label": "治疗阶段",
         "unit": "",
         "type": "string",
         "initial": "initiation",
@@ -509,7 +509,7 @@
     "politics": {
       "patientMotivation": {
         "id": "patientMotivation",
-        "label": "Motivation",
+        "label": "动机",
         "unit": "%",
         "type": "number",
         "initial": 65,
@@ -519,7 +519,7 @@
       },
       "familySupport": {
         "id": "familySupport",
-        "label": "Family Support",
+        "label": "家庭支持",
         "unit": "%",
         "type": "number",
         "initial": 70,
@@ -531,7 +531,7 @@
     "environment": {
       "insuranceCoverage": {
         "id": "insuranceCoverage",
-        "label": "Insurance Coverage",
+        "label": "保险覆盖",
         "unit": "%",
         "type": "number",
         "initial": 80,
@@ -539,7 +539,7 @@
       },
       "drugCostPerMonth": {
         "id": "drugCostPerMonth",
-        "label": "Drug Cost/Month",
+        "label": "每月药物费用",
         "unit": "USD",
         "type": "number",
         "initial": 850,
@@ -547,7 +547,7 @@
       },
       "foodEnvironment": {
         "id": "foodEnvironment",
-        "label": "Food Environment",
+        "label": "饮食环境",
         "unit": "%",
         "type": "number",
         "initial": 45,

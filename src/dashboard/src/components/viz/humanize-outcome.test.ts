@@ -11,8 +11,8 @@ test('humanizeOutcome synthesizes decision + death count + cause', () => {
     dominantCause: 'dust lung',
     moraleDelta: -0.04,
   });
-  assert.match(str, /Aria chose arcadia planitia/i);
-  assert.match(str, /3 lost to dust lung/);
+  assert.match(str, /Aria 选择了 arcadia planitia/i);
+  assert.match(str, /3 人因 dust lung 死亡/);
 });
 
 test('humanizeOutcome handles zero deaths cleanly', () => {
@@ -24,8 +24,8 @@ test('humanizeOutcome handles zero deaths cleanly', () => {
     dominantCause: null,
     moraleDelta: 0,
   });
-  assert.match(str, /Dietrich chose/i);
-  assert.doesNotMatch(str, /lost/);
+  assert.match(str, /Dietrich 选择了/i);
+  assert.doesNotMatch(str, /死亡/);
 });
 
 test('humanizeOutcome marks risky_failure with a distinct phrase', () => {
@@ -37,8 +37,8 @@ test('humanizeOutcome marks risky_failure with a distinct phrase', () => {
     dominantCause: 'radiation exposure',
     moraleDelta: -0.12,
   });
-  assert.match(str, /gamble|bet|risk/i);
-  assert.match(str, /5 lost to radiation exposure/);
+  assert.match(str, /承担风险/);
+  assert.match(str, /5 人因 radiation exposure 死亡/);
 });
 
 test('humanizeOutcome falls back to neutral template when decision is empty', () => {
@@ -51,5 +51,5 @@ test('humanizeOutcome falls back to neutral template when decision is empty', ()
     moraleDelta: 0,
   });
   assert.match(str, /Dietrich/);
-  assert.match(str, /1 lost to injury/);
+  assert.match(str, /1 人因 injury 死亡/);
 });

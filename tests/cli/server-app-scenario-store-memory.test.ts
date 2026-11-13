@@ -86,25 +86,25 @@ test('a store under the id of a built-in or a curated scenario is refused and ch
       for (const id of [mars.id, atlasLab.id, 'deep-ocean-station']) {
         const res = await store(author, station(id, 'Replaced'));
         assert.equal(res.status, 409, `${who} storing ${id}: ${res.status}`);
-        assert.match(((await res.json()) as { error: string }).error, new RegExp(`"${id}" is the id of a scenario every visitor`));
+        assert.match(((await res.json()) as { error: string }).error, new RegExp(`“${id}”是所有访客可见的公共场景 ID`));
       }
     }
 
     for (const [who, reader] of [['A', a], ['B', b], ['a caller with no cookie', cookieless]] as const) {
       const entries = await catalog(reader);
-      assert.equal(entries.find(e => e.id === mars.id)?.name, 'Mars Genesis', `${who}'s catalog`);
+      assert.equal(entries.find(e => e.id === mars.id)?.name, mars.labels.name, `${who}'s catalog`);
       assert.equal(entries.find(e => e.id === mars.id)?.source, 'builtin', `${who}'s catalog`);
-      assert.equal(entries.find(e => e.id === atlasLab.id)?.name, 'Atlas Lab', `${who}'s catalog`);
+      assert.equal(entries.find(e => e.id === atlasLab.id)?.name, atlasLab.labels.name, `${who}'s catalog`);
       assert.equal(entries.filter(e => e.name === 'Replaced').length, 0, `${who}'s catalog`);
-      assert.equal((await reader.json<{ labels: { name: string } }>('/scenario')).labels.name, 'Mars Genesis', `${who}'s default`);
-      assert.equal((await reader.json<{ labels: { name: string } }>(`/scenario?id=${atlasLab.id}`)).labels.name, 'Atlas Lab', `${who}'s lookup`);
+      assert.equal((await reader.json<{ labels: { name: string } }>('/scenario')).labels.name, mars.labels.name, `${who}'s default`);
+      assert.equal((await reader.json<{ labels: { name: string } }>(`/scenario?id=${atlasLab.id}`)).labels.name, atlasLab.labels.name, `${who}'s lookup`);
     }
 
     // B runs the built-in by its id and gets the built-in.
     const run = await b.post('/setup', settingsBody(mars));
     assert.equal(run.status, 200);
     const launch = await waitFor(() => launches[0], "B's run");
-    assert.equal(launch.scenario?.labels.name, 'Mars Genesis');
+    assert.equal(launch.scenario?.labels.name, mars.labels.name);
   });
 });
 
@@ -166,7 +166,7 @@ test('the memory store refuses a scenario over its size and a store past its cou
     }
     const pastOwn = await store(first, station('v0-one-more'));
     assert.equal(pastOwn.status, 507);
-    assert.match(((await pastOwn.json()) as { error: string }).error, new RegExp(`at most ${PER_VISITOR} scenarios`));
+    assert.match(((await pastOwn.json()) as { error: string }).error, new RegExp(`每位访客最多暂存 ${PER_VISITOR} 个场景`));
     // Storing over one of their own ids still works.
     assert.equal((await store(first, station('v0-s3', 'Renamed'))).status, 200);
     assert.equal((await catalog(first)).find(e => e.id === 'v0-s3')?.name, 'Renamed');
@@ -178,6 +178,6 @@ test('the memory store refuses a scenario over its size and a store past its cou
     }
     const pastAll = await store(cookied({ 'x-forwarded-for': '198.51.100.200' }), station('one-past-all'));
     assert.equal(pastAll.status, 507);
-    assert.match(((await pastAll.json()) as { error: string }).error, new RegExp(`at most ${IN_ALL} scenarios`));
+    assert.match(((await pastAll.json()) as { error: string }).error, new RegExp(`场景上限为 ${IN_ALL} 个`));
   });
 });

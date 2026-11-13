@@ -1,3 +1,4 @@
+import { localizeScenarioLabels } from './useScenarioLabels.helpers.js';
 import { useMemo } from 'react';
 import { useScenarioContext } from '../App.js';
 import { deriveLabels, type ScenarioLabels, type ScenarioLabelsInput } from './useScenarioLabels.helpers.js';
@@ -28,7 +29,7 @@ import { deriveLabels, type ScenarioLabels, type ScenarioLabelsInput } from './u
  */
 export function useScenarioLabels(): ScenarioLabels {
   const scenario = useScenarioContext();
-  return useMemo(() => deriveLabels(scenario as ScenarioLabelsInput), [
+  return useMemo(() => localizeScenarioLabels(deriveLabels(scenario as ScenarioLabelsInput)), [
     scenario.labels?.populationNoun,
     scenario.labels?.settlementNoun,
     (scenario.labels as { timeUnitNoun?: string } | undefined)?.timeUnitNoun,

@@ -406,7 +406,7 @@ export function useSSE(options: UseSSEOptions = {}) {
       ? {
           kind: (errEvent.data?.kind as ProviderErrorState['kind']) ?? 'unknown',
           provider: errEvent.data?.provider as string | undefined,
-          message: String(errEvent.data?.message ?? 'Provider error'),
+          message: String(errEvent.data?.message ?? "模型服务错误"),
           actionUrl: errEvent.data?.actionUrl as string | undefined,
           leader: errEvent.leader,
         }
@@ -783,7 +783,7 @@ function addValidationFallback(prev: readonly ValidationFallbackBucket[], d: Rec
               providerError: prev.providerError ?? {
                 kind: (d.kind as ProviderErrorState['kind']) ?? 'unknown',
                 provider: d.provider as string | undefined,
-                message: String(d.message ?? 'Provider error'),
+                message: String(d.message ?? "模型服务错误"),
                 actionUrl: d.actionUrl as string | undefined,
                 leader: data.leader,
               },
@@ -903,7 +903,7 @@ function addValidationFallback(prev: readonly ValidationFallbackBucket[], d: Rec
         if (skipped()) return;
         try {
           const data = JSON.parse(e.data);
-          const msg = String(data.error || 'Unknown simulation error');
+          const msg = String(data.error || "未知仿真错误");
           console.error('[SSE] Simulation error:', msg);
           setState(prev => ({ ...prev, errors: [...prev.errors, msg] }));
         } catch {}

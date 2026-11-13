@@ -37,7 +37,7 @@ export function FamilyTree({ center, byId, onSelect }: FamilyTreeProps) {
   const partner = center.partnerId ? byId.get(center.partnerId) : null;
   const children = center.childrenIds.map(id => byId.get(id)).filter((c): c is CellSnapshot => !!c);
   if (!partner && children.length === 0) {
-    return <div className={styles.empty}>No listed family.</div>;
+    return <div className={styles.empty}>暂无家属记录。</div>;
   }
   return (
     <div className={styles.list}>
@@ -46,7 +46,7 @@ export function FamilyTree({ center, byId, onSelect }: FamilyTreeProps) {
         <Thumb key={c.agentId} cell={c} onSelect={onSelect} relation="child" />
       ))}
       {children.length > 4 && (
-        <div className={styles.more}>+{children.length - 4} more children</div>
+        <div className={styles.more}>+{children.length - 4}  位其他子女</div>
       )}
     </div>
   );

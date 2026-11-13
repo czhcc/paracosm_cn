@@ -104,18 +104,18 @@ export function LibraryTab(): JSX.Element {
     <div className={styles.tab}>
       <header className={styles.header}>
         {/* h2: the page's h1 is the sr-only "Paracosm — Library" heading App.tsx renders for the tab. */}
-        <h2 className={styles.title}>Library</h2>
-        <div className={styles.viewToggle} role="group" aria-label="View mode">
+        <h2 className={styles.title}>资料库</h2>
+        <div className={styles.viewToggle} role="group" aria-label="显示方式">
           <button
             className={view === 'gallery' ? styles.viewActive : styles.viewBtn}
             onClick={() => setView('gallery')}
             aria-pressed={view === 'gallery'}
-          >Gallery</button>
+          >卡片</button>
           <button
             className={view === 'table' ? styles.viewActive : styles.viewBtn}
             onClick={() => setView('table')}
             aria-pressed={view === 'table'}
-          >Table</button>
+          >表格</button>
         </div>
       </header>
 
@@ -139,7 +139,7 @@ export function LibraryTab(): JSX.Element {
       <RecentlyViewedStrip onSelect={(runId) => setSelectedRunId(runId)} />
 
       {error ? (
-        <div className={styles.error}>Failed to load runs: {error}</div>
+        <div className={styles.error}>运行列表加载失败： {error}</div>
       ) : !loading && runs.length === 0 ? (
         <EmptyState
           filtersActive={filtersActive}

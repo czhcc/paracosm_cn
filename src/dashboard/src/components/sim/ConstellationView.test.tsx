@@ -73,7 +73,7 @@ test('ConstellationView: 50 actors → 50 nodes + 1225 edges (perf sanity)', () 
 
 test('ConstellationView: 0 actors → empty-state placeholder, no SVG', () => {
   const html = renderToString(withScenario(<ConstellationView state={makeState([])} onActorClick={() => {}} />));
-  assert.match(html, /Constellation will appear/);
+  assert.match(html, /启动决策者后将显示关系星图/);
   assert.ok(!html.includes('<svg'));
 });
 

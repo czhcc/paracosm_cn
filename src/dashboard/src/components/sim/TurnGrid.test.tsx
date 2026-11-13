@@ -52,7 +52,7 @@ const baseState = (eventsA: ProcessedEvent[], eventsB: ProcessedEvent[]): GameSt
 
 test('TurnGrid: empty state when neither leader has events', () => {
   const html = renderToString(withScenario(<TurnGrid state={baseState([], [])} />));
-  assert.match(html, /No turns yet/);
+  assert.match(html, /暂无回合/);
 });
 
 test('TurnGrid: renders one row per past turn', () => {

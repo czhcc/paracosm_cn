@@ -40,6 +40,17 @@
 
 ---
 
+## About this Chinese edition
+
+This project is based on [framerslab/paracosm](https://github.com/framerslab/paracosm). This fork localizes the dashboard, scenario text, and relevant model prompts into Simplified Chinese, and adds two scenarios:
+
+- [City talent policy comparison](scenarios/city-talent-policy.json): two virtual cities with the same initial conditions compare direct talent incentives with investment in the development environment, measuring economic growth and city attractiveness over eight years.
+- [Public opinion response comparison](scenarios/public-opinion-response.json): two managers respond to the same fictional service incident using restrictive controls or communication and guidance, comparing discussion levels, trust, issue resolution, rumor impact, rebound, and resource costs over eight days.
+
+These scenarios compare policy choices through separate simulation runs. Their numerical assumptions are experimental and have not been empirically calibrated; results are not validated forecasts. The original project's attribution and Apache-2.0 license are retained. For the Chinese documentation, see [README_zh.md](README_zh.md).
+
+---
+
 Paracosm compiles a JSON scenario draft (or a prompt, or an extracted document) into a runnable multi-agent world, plays it through a deterministic seeded kernel, and lets actors with HEXACO personality profiles decide turn by turn how the world unfolds. The kernel reproduces byte-for-byte. The LLM Event Director reads each actor's HEXACO profile and accumulated state, so events diverge from turn 1. Snapshot any turn, fork with a different actor, seed, or custom event, and the branch streams alongside the trunk: the contrast is visible in the artifact, not promised in copy.
 
 <p align="center">

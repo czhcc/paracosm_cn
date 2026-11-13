@@ -1,3 +1,4 @@
+import { displayLabel, roleLabel } from '../../../template-localization';
 import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
 import type { CellSnapshot, TurnSnapshot } from '../viz-types.js';
 import { HexacoRadar } from '../HexacoRadar.js';
@@ -26,12 +27,12 @@ interface ClickPopoverProps {
 }
 
 const HEXACO_LABELS: Record<keyof HexacoShape, string> = {
-  O: 'Openness',
-  C: 'Conscientiousness',
-  E: 'Extraversion',
-  A: 'Agreeableness',
-  Em: 'Emotionality',
-  HH: 'Honesty-Humility',
+  O: "开放性",
+  C: "尽责性",
+  E: "外向性",
+  A: "宜人性",
+  Em: "情绪性",
+  HH: "诚实—谦逊",
 };
 
 function topHexacoAxes(h: HexacoShape | undefined): string {
@@ -155,16 +156,16 @@ export function ClickPopover(props: ClickPopoverProps) {
           <div>
             <div className={styles.headerName}>{cell.name}</div>
             <div className={styles.headerSubline}>
-              {cell.role} · {cell.rank}
+              {roleLabel(cell.role)} · {displayLabel(cell.rank)}
               {cell.featured && (
-                <span className={styles.featuredPill}>FEATURED</span>
+                <span className={styles.featuredPill}>重点成员</span>
               )}
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close drilldown"
+            aria-label="关闭详情"
             className={styles.closeBtn}
           >
             ×
@@ -173,25 +174,25 @@ export function ClickPopover(props: ClickPopoverProps) {
 
         <div className={styles.section}>
           <div className={styles.statsGrid}>
-            <span className={styles.statKey}>DEPT</span>
-            <span className={styles.statValueUpper}>{cell.department}</span>
-            <span className={styles.statKey}>AGE</span>
+            <span className={styles.statKey}>部门</span>
+            <span className={styles.statValueUpper}>{displayLabel(cell.department)}</span>
+            <span className={styles.statKey}>年龄</span>
             <span className={styles.statValue}>{cell.age ?? '—'}</span>
-            <span className={styles.statKey}>MOOD</span>
-            <span className={styles.statValue}>{cell.mood}</span>
+            <span className={styles.statKey}>情绪</span>
+            <span className={styles.statValue}>{displayLabel(cell.mood)}</span>
             {morale !== null && (
               <>
-                <span className={styles.statKey}>PSYCH</span>
+                <span className={styles.statKey}>心理</span>
                 <span className={styles.statValue}>{morale}%</span>
               </>
             )}
-            <span className={styles.statKey}>ORIGIN</span>
+            <span className={styles.statKey}>来源</span>
             <span className={styles.statValue}>{generationLabel}</span>
-            <span className={styles.statKey}>PARTNER</span>
+            <span className={styles.statKey}>伴侣</span>
             <span className={styles.statValue}>
               {cell.partnerId ? 'yes' : '—'}
             </span>
-            <span className={styles.statKey}>CHILDREN</span>
+            <span className={styles.statKey}>子女</span>
             <span className={styles.statValue}>{cell.childrenIds?.length ?? 0}</span>
           </div>
         </div>
@@ -212,7 +213,7 @@ export function ClickPopover(props: ClickPopoverProps) {
 
         {memoryQuotes.length > 0 && (
           <div className={styles.section}>
-            <div className={styles.sectionLabel}>Recent memory</div>
+            <div className={styles.sectionLabel}>近期记忆</div>
             <ul className={styles.memoryList}>
               {memoryQuotes.map((q, i) => (
                 <li key={i} className={styles.memoryItem}>
@@ -230,7 +231,8 @@ export function ClickPopover(props: ClickPopoverProps) {
               onClick={() => onOpenChat(cell.name)}
               className={styles.chatBtn}
             >
-              Open chat with {cell.name.split(' ')[0]}
+
+              与此成员聊天： {cell.name.split(' ')[0]}
             </button>
           </div>
         )}

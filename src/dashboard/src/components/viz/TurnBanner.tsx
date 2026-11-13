@@ -100,7 +100,7 @@ export function TurnBanner({ state, currentTurn }: TurnBannerProps) {
   const canCollapse = populated.length > 0;
 
   return (
-    <div role="status" aria-label="Current turn narrative" className={styles.banner}>
+    <div role="status" aria-label="当前回合叙事" className={styles.banner}>
       <div className={styles.headline}>
         <span className={styles.turnLabel}>T{currentTurn + 1}{time ? ` \u00b7 ${time}` : ''}</span>
         <span className={styles.title}>{headline}</span>
@@ -110,10 +110,10 @@ export function TurnBanner({ state, currentTurn }: TurnBannerProps) {
             type="button"
             onClick={() => setCollapsed(c => !c)}
             aria-expanded={!collapsed}
-            aria-label={collapsed ? 'Expand per-actor outcomes' : 'Collapse per-actor outcomes'}
+            aria-label={collapsed ? "展开各决策者结果" : "收起各决策者结果"}
             className={styles.collapseBtn}
           >
-            {collapsed ? `\u25be ${populated.length} actors` : '\u25b4 hide'}
+            {collapsed ? `\u25be ${populated.length} 位决策者` : '\u25b4 收起'}
           </button>
         )}
       </div>
@@ -134,7 +134,7 @@ export function TurnBanner({ state, currentTurn }: TurnBannerProps) {
       ))}
       {showLines && hidden > 0 && (
         <div className={styles.lineMore}>
-          +{hidden} more \u00b7 see cohort grid below for the rest
+          +{hidden}  位其他决策者 · 详见下方对比网格
         </div>
       )}
     </div>

@@ -13,9 +13,9 @@ export function EmptyState(props: EmptyStateProps): JSX.Element {
     return (
       <section className={styles.empty}>
         <div className={styles.icon} aria-hidden="true">⌕</div>
-        <h2>No runs match these filters.</h2>
-        <p>Clear filters to see all runs in the library.</p>
-        <button onClick={onClearFilters} className={styles.cta}>Clear filters</button>
+        <h2>没有符合筛选条件的运行。</h2>
+        <p>清除筛选可查看资料库中的全部运行。</p>
+        <button onClick={onClearFilters} className={styles.cta}>清除筛选</button>
       </section>
     );
   }
@@ -23,12 +23,12 @@ export function EmptyState(props: EmptyStateProps): JSX.Element {
   return (
     <section className={styles.empty}>
       <div className={styles.icon} aria-hidden="true">∎</div>
-      <h2>No runs in your library yet.</h2>
-      <p>Try one of these to get started:</p>
+      <h2>资料库中暂无运行。</h2>
+      <p>可以通过以下方式开始：</p>
       <ul className={styles.list}>
-        <li><a href="?tab=sim">Run a Mars Genesis demo</a></li>
-        <li><a href="?tab=quickstart">Quickstart from a prompt or URL</a></li>
-        <li><a href="?tab=sim">Compile a custom scenario</a></li>
+        <li><a href="?tab=sim">运行火星创世纪演示</a></li>
+        <li><a href="?tab=quickstart">从文字或网页链接快速开始</a></li>
+        <li><a href="?tab=sim">编译自定义场景</a></li>
       </ul>
     </section>
   );

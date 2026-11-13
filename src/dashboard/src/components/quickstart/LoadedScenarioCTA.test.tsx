@@ -39,17 +39,17 @@ test('LoadedScenarioCTA: renders preset leader names + archetype when scenario h
   // React SSR inserts <!-- --> comments between adjacent text+variable
   // expressions; match the heading by its literal trailing scenario name
   // segment without the colon-space prefix.
-  assert.ok(html.includes('Run with the loaded scenario'));
+  assert.ok(html.includes('运行当前场景'));
   assert.ok(html.includes('Mars Genesis'));
-  assert.match(html, /Captain Reyes \(Pragmatist\) vs Director Liang \(Visionary\)/);
-  assert.match(html, /Same scenario, fresh seed/);
+  assert.match(html, /Captain Reyes \(Pragmatist\) 对比 Director Liang \(Visionary\)/);
+  assert.match(html, /复用当前场景，以新随机种子运行/);
   assert.match(html, /value="2"/);
 });
 
 test('LoadedScenarioCTA: renders fallback line when scenario has no presets', () => {
   const html = renderToString(withScenario(stubScenarioNoPreset, <LoadedScenarioCTA onRunStart={() => {}} />));
-  assert.match(html, /Auto-generated leaders \(no preset\)/);
-  assert.match(html, /~30s for actor generation/);
+  assert.match(html, /自动生成决策者（无预设）/);
+  assert.match(html, /生成决策者约需 30 秒/);
 });
 
 test('LoadedScenarioCTA: prefers presets[0].leaders (engine-side field) when present', () => {
@@ -65,8 +65,8 @@ test('LoadedScenarioCTA: prefers presets[0].leaders (engine-side field) when pre
     }],
   } as unknown as React.ContextType<typeof ScenarioContext>;
   const html = renderToString(withScenario(stubWithLeaders, <LoadedScenarioCTA onRunStart={() => {}} />));
-  assert.match(html, /Aria Chen \(Visionary\) vs Liam Park \(Pragmatist\)/);
-  assert.match(html, /Same scenario, fresh seed/);
+  assert.match(html, /Aria Chen \(Visionary\) 对比 Liam Park \(Pragmatist\)/);
+  assert.match(html, /复用当前场景，以新随机种子运行/);
 });
 
 test('LoadedScenarioCTA: disabled prop disables the button + slider, sets aria-busy=false (not launching)', () => {
@@ -77,6 +77,6 @@ test('LoadedScenarioCTA: disabled prop disables the button + slider, sets aria-b
 
 test('LoadedScenarioCTA: run button accessible label omits decorative arrow', () => {
   const html = renderToString(withScenario(stubScenarioWithPreset, <LoadedScenarioCTA onRunStart={() => {}} />));
-  assert.match(html, /aria-label="Run 2 actors against Mars Genesis"/);
+  assert.match(html, /aria-label="在“Mars Genesis”中运行 2 位决策者"/);
   assert.doesNotMatch(html, /aria-label="[^"]*-&gt;[^"]*"/);
 });

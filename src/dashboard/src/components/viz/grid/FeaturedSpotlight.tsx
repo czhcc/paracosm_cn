@@ -1,3 +1,4 @@
+import { departmentLabel, displayLabel, roleLabel } from '../../../template-localization';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CellSnapshot, TurnSnapshot } from '../viz-types.js';
 
@@ -79,8 +80,8 @@ export function FeaturedSpotlight({
           key={sp.cell.agentId}
           type="button"
           onClick={() => onSelect?.(sp.cell)}
-          aria-label={`Spotlight: ${sp.cell.name} · ${sp.cell.department}`}
-          title={`${sp.cell.name} · ${sp.cell.role} · ${sp.cell.department} · mood: ${sp.cell.mood}`}
+          aria-label={`关注成员： ${sp.cell.name} · ${departmentLabel(sp.cell.department)}`}
+          title={`${sp.cell.name} · ${roleLabel(sp.cell.role)} · ${departmentLabel(sp.cell.department)} · 情绪：${displayLabel(sp.cell.mood)}`}
           style={{
             pointerEvents: 'auto',
             display: 'flex',
@@ -109,7 +110,7 @@ export function FeaturedSpotlight({
             {sp.cell.name}
           </span>
           <span style={{ color: 'var(--text-3)', fontSize: 'var(--font-2xs)', flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            {sp.cell.department}
+            {departmentLabel(sp.cell.department)}
           </span>
         </button>
       ))}

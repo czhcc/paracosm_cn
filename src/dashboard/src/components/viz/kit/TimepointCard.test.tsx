@@ -11,7 +11,7 @@ const oxygenSpec: MetricSpec = { id: 'oxygen', label: 'Oxygen', unit: 'pct', ran
 const SPECS = { morale: moraleSpec, population: popSpec, oxygen: oxygenSpec };
 
 test('timepointLabel turn-loop returns "Turn N"', () => {
-  assert.equal(timepointLabel('turn-loop', 3), 'Turn 3');
+  assert.equal(timepointLabel('turn-loop', 3), '第 3 回合');
 });
 
 test('timepointLabel batch-trajectory returns "T+N"', () => {
@@ -19,7 +19,7 @@ test('timepointLabel batch-trajectory returns "T+N"', () => {
 });
 
 test('timepointLabel batch-point returns "Forecast"', () => {
-  assert.equal(timepointLabel('batch-point', 0), 'Forecast');
+  assert.equal(timepointLabel('batch-point', 0), '预测');
 });
 
 test('pickTopN returns at most n entries with declared specs', () => {
@@ -36,7 +36,7 @@ test('pickTopN drops metrics without a declared spec', () => {
 
 test('TimepointCard turn-loop mode renders "Turn N" label', () => {
   const html = renderToString(React.createElement(TimepointCard, { timepoint: 3, mode: 'turn-loop', metrics: { morale: 0.7 }, metricSpecs: SPECS }));
-  assert.ok(html.includes('Turn 3'));
+  assert.ok(html.includes('第 3 回合'));
 });
 
 test('TimepointCard batch-trajectory mode renders "T+N" label', () => {
@@ -46,7 +46,7 @@ test('TimepointCard batch-trajectory mode renders "T+N" label', () => {
 
 test('TimepointCard batch-point mode renders "Forecast" label', () => {
   const html = renderToString(React.createElement(TimepointCard, { timepoint: 0, mode: 'batch-point', metrics: { morale: 0.7 }, metricSpecs: SPECS }));
-  assert.ok(html.includes('Forecast'));
+  assert.ok(html.includes('预测'));
 });
 
 test('TimepointCard renders highlights as bullet list', () => {

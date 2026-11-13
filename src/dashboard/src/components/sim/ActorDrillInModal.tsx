@@ -97,7 +97,7 @@ export function ActorDrillInModal({ actorName, actorIndex, state, onClose, mode 
       >
         <header className={styles.head}>
           <div className={styles.actorName}>{actorName}</div>
-          <button type="button" aria-label="Close drill-in" className={styles.closeBtn} onClick={onClose}>×</button>
+          <button type="button" aria-label="关闭详情" className={styles.closeBtn} onClick={onClose}>×</button>
         </header>
         <div className={styles.body}>
           <ActorBar
@@ -109,7 +109,7 @@ export function ActorDrillInModal({ actorName, actorIndex, state, onClose, mode 
 
           {decisions.length > 0 && (
             <section className={styles.section}>
-              <h3 className={styles.sectionTitle}>Decisions ({decisions.length})</h3>
+              <h3 className={styles.sectionTitle}>决策（{decisions.length})</h3>
               <ul className={styles.list}>
                 {decisions.map((d) => {
                   const choice = (d.data?.choice ?? d.data?.title ?? '<choice>') as string;
@@ -126,13 +126,13 @@ export function ActorDrillInModal({ actorName, actorIndex, state, onClose, mode 
           )}
 
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Timeline ({events.length} events)</h3>
+            <h3 className={styles.sectionTitle}>时间线（{events.length} 个事件）</h3>
             {turnNumbers.length === 0 && (
-              <p className={styles.empty}>No events captured yet.</p>
+              <p className={styles.empty}>暂无已记录事件。</p>
             )}
             {turnNumbers.map((turn) => (
               <article key={turn} className={styles.turnArticle}>
-                <header className={styles.turnHeader}>Turn {turn}</header>
+                <header className={styles.turnHeader}>回合 {turn}</header>
                 <ul className={styles.turnList}>
                   {(grouped.get(turn) ?? []).map((e) => (
                     <li key={e.id} className={styles.turnEvent}>

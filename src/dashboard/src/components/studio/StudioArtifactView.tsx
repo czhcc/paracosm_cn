@@ -63,7 +63,7 @@ export function StudioArtifactView(props: StudioArtifactViewProps): JSX.Element 
               {alreadyExisted ? 'Already in Library' : promoteBusy ? 'Promoting…' : 'Promote to Library'}
             </button>
             <button type="button" className={styles.compareBtn} onClick={onCompare}>
-              Compare
+              对比
             </button>
           </div>
         )}

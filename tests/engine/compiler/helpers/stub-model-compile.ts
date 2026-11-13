@@ -68,7 +68,8 @@ const EXTRACTION_MARK = 'You are analyzing a document to extract domain knowledg
 const HOOK_MARK = 'You are generating ';
 
 /** True for the draft call. */
-export const isDraftRequest = (request: StubRequest): boolean => request.system.includes(DRAFT_MARK);
+export const isDraftRequest = (request: StubRequest): boolean => request.system.includes(DRAFT_MARK)
+  || request.system.includes('你是 Paracosm 多智能体结构化世界模型的场景架构师');
 /** True for the seed extraction. */
 export const isExtractionRequest = (request: StubRequest): boolean => request.text.includes(EXTRACTION_MARK);
 

@@ -56,7 +56,7 @@ export function useCitationRegistry(state: GameState): CitationRegistry {
           const url = (c.url || '').trim();
           const text = (c.text || '').trim();
           if (!url && !text) continue;
-          if (!url && text === 'Seed document') continue;
+          if (!url && text === "种子文档") continue;
           const key = url || `text:${text}`;
           let entry = byKey.get(key);
           if (!entry) {

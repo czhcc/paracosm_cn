@@ -91,7 +91,7 @@ export function BatchArtifactView(props: BatchArtifactViewProps): JSX.Element {
   if (mode === 'batch-trajectory') {
     const rawTimepoints = (artifact.trajectory?.timepoints ?? []) as RawTimepoint[];
     if (rawTimepoints.length === 0) {
-      return <div className={[styles.empty, className].filter(Boolean).join(' ')}>No timepoints in this run.</div>;
+      return <div className={[styles.empty, className].filter(Boolean).join(' ')}>此次运行没有时间点数据。</div>;
     }
 
     const stripPoints = rawTimepoints.map((tp, i) => ({
@@ -104,7 +104,7 @@ export function BatchArtifactView(props: BatchArtifactViewProps): JSX.Element {
       <div className={[styles.batchTrajectory, className].filter(Boolean).join(' ')}>
         <div className={styles.header}>
           <span>{artifact.metadata.scenario.name}</span>
-          <span>Batch trajectory ({rawTimepoints.length} timepoints)</span>
+          <span>批量轨迹（{rawTimepoints.length}  个时间点）</span>
         </div>
         <TrajectoryStrip
           timepoints={stripPoints}
@@ -135,7 +135,7 @@ export function BatchArtifactView(props: BatchArtifactViewProps): JSX.Element {
       <div className={[styles.batchPoint, className].filter(Boolean).join(' ')}>
         <div className={styles.header}>
           <span>{artifact.metadata.scenario.name}</span>
-          <span>Batch point forecast</span>
+          <span>批量单点预测</span>
         </div>
         <TimepointCard
           timepoint={0}
@@ -152,5 +152,5 @@ export function BatchArtifactView(props: BatchArtifactViewProps): JSX.Element {
   // turn-loop fallthrough: this component is not the right view for that
   // mode. The parent dispatcher should route turn-loop artifacts to
   // ReportView instead.
-  return <div className={styles.empty}>Use ReportView for turn-loop runs; this component renders batch-trajectory and batch-point only.</div>;
+  return <div className={styles.empty}>逐回合运行请使用报告视图；此视图仅展示批量轨迹与单点预测。</div>;
 }

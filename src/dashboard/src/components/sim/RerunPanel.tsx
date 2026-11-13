@@ -43,7 +43,7 @@ export function RerunPanel({ enabled = true }: RerunPanelProps) {
     try {
       const prev = readLastLaunchConfig(window.localStorage);
       if (!prev || !isLastLaunchFor(prev, scenario.id)) {
-        alert(`No previous launch config found for ${scenario.labels.name}. Run once from Settings first.`);
+        alert(`未找到上次启动配置： ${scenario.labels.name}。请先从设置页运行一次。`);
         return;
       }
       const overrides = readKeyOverrides(window.localStorage);
@@ -61,13 +61,13 @@ export function RerunPanel({ enabled = true }: RerunPanelProps) {
         visitorId?: string;
       };
       if (res.status === 429) {
-        alert(data.error || 'Rate limit hit. Add an API key in Settings to bypass.');
+        alert(data.error || "已达到演示限额，请在设置中填写自己的 API 密钥。");
         return;
       }
       if (!res.ok) {
         // Non-429 4xx/5xx — surface the server's error or a generic one
         // so the user isn't left with a dead button click.
-        alert(data.error || `Re-run failed: server responded with HTTP ${res.status}.`);
+        alert(data.error || `重新运行失败，服务器响应 HTTP ${res.status}.`);
         return;
       }
       if (data.redirect) {
@@ -109,9 +109,9 @@ export function RerunPanel({ enabled = true }: RerunPanelProps) {
 
   return (
     <div className={styles.panel}>
-      <span className={styles.label}>Re-run</span>
+      <span className={styles.label}>重新运行</span>
       <span className={styles.copy}>
-        Spin up a new run with the same leaders + scenario, seed bumped by one.
+        使用相同决策者和场景重新运行，随机种子增加 1。
       </span>
       <button
         type="button"
@@ -119,7 +119,7 @@ export function RerunPanel({ enabled = true }: RerunPanelProps) {
         onClick={handleClick}
         disabled={launching || !scenarioReady}
       >
-        {launching ? 'Launching…' : scenarioReady ? 'Run again with seed+1 ›' : 'Loading scenario…'}
+        {launching ? "正在启动…" : scenarioReady ? "随机种子加 1 后重新运行 ›" : "正在加载场景…"}
       </button>
     </div>
   );

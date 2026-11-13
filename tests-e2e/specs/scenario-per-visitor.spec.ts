@@ -170,7 +170,7 @@ test.describe('Scenario per visitor @scenario', () => {
     const compile = page.getByRole('button', { name: 'Compile scenario' });
     await expect(compile).toBeEnabled();
     await compile.click();
-    await expect(page.getByText('"mars-genesis" is taken on this server. Give your scenario an id of its own.')).toBeVisible();
+    await expect(page.getByText('“mars-genesis”已被此服务器上的场景使用，请为新场景设置独立的 ID。')).toBeVisible();
     await expect(compile).toBeEnabled();
   });
 

@@ -24,7 +24,7 @@ test('validateSeedUrl: accepts https', () => {
 test('validateSeedUrl: rejects non-URL', () => {
   const r = validateSeedUrl('not a url') as { ok: false; error: string };
   assert.equal(r.ok, false);
-  assert.match(r.error, /valid URL/);
+  assert.match(r.error, /网址无效/);
 });
 
 test('validateSeedUrl: rejects ftp scheme', () => {

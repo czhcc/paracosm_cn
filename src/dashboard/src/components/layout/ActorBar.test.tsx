@@ -19,9 +19,9 @@ test('ActorBar compact: MORALE displays as 0-100%, not double-scaled', () => {
       compact
     />,
   );
-  assert.match(html, /MORALE (?:<!-- -->)?32(?:<!-- -->)?%/, 'expected MORALE 32%, got double-scaled');
+  assert.match(html, /士气 (?:<!-- -->)?32(?:<!-- -->)?%/, 'expected MORALE 32%, got double-scaled');
   assert.ok(!html.includes('3200%'), 'morale must not double-scale to 3200%');
-  assert.match(html, /POP (?:<!-- -->)?98/, 'POP renders the latest value');
+  assert.match(html, /人口 (?:<!-- -->)?98/, 'POP renders the latest value');
 });
 
 test('ActorBar compact: morale of 100 renders as 100%, not 10000%', () => {
@@ -34,7 +34,7 @@ test('ActorBar compact: morale of 100 renders as 100%, not 10000%', () => {
       compact
     />,
   );
-  assert.match(html, /MORALE (?:<!-- -->)?100(?:<!-- -->)?%/);
+  assert.match(html, /士气 (?:<!-- -->)?100(?:<!-- -->)?%/);
 });
 
 test('ActorBar compact: empty moraleHistory hides the morale stat (no NaN%)', () => {
@@ -77,7 +77,7 @@ test('ActorBar compact: low morale derives a "low" mood label', () => {
   );
   // Match the visible label inside its <span>, not the className hash or
   // the title attribute (those would pass even if the visible text changed).
-  assert.match(html, /<span[^>]*>low<\/span>/, 'mood label "low" rendered as visible text');
+  assert.match(html, /<span[^>]*>低落<\/span>/, 'mood label "low" rendered as visible text');
 });
 
 test('ActorBar compact: high morale derives a "rising" mood label', () => {
@@ -90,18 +90,18 @@ test('ActorBar compact: high morale derives a "rising" mood label', () => {
       compact
     />,
   );
-  assert.match(html, /<span[^>]*>rising<\/span>/, 'mood label "rising" rendered as visible text');
+  assert.match(html, /<span[^>]*>高涨<\/span>/, 'mood label "rising" rendered as visible text');
 });
 
 test('ActorBar moodFor boundaries: 25 → tense, 50 → steady, 75 → rising', () => {
   const cases: Array<{ morale: number; expected: string }> = [
-    { morale: 24.99, expected: 'low' },
-    { morale: 25, expected: 'tense' },
-    { morale: 49.99, expected: 'tense' },
-    { morale: 50, expected: 'steady' },
-    { morale: 74.99, expected: 'steady' },
-    { morale: 75, expected: 'rising' },
-    { morale: 100, expected: 'rising' },
+    { morale: 24.99, expected: '低落' },
+    { morale: 25, expected: '紧张' },
+    { morale: 49.99, expected: '紧张' },
+    { morale: 50, expected: '平稳' },
+    { morale: 74.99, expected: '平稳' },
+    { morale: 75, expected: '高涨' },
+    { morale: 100, expected: '高涨' },
   ];
   for (const { morale, expected } of cases) {
     const html = renderToString(
@@ -146,7 +146,7 @@ test('ActorBar compact: pendingDecision renders DECIDING pulse chip', () => {
       compact
     />,
   );
-  assert.ok(html.includes('DECIDING'), 'DECIDING chip renders during decision phase');
+  assert.ok(html.includes('决策中'), 'DECIDING chip renders during decision phase');
 });
 
 test('ActorBar non-compact: dynamic row hidden when no event/status/morale', () => {
@@ -211,7 +211,7 @@ test('ActorBar non-compact: empty state shows "Awaiting first turn…" hint', ()
       moraleHistory={[]}
     />,
   );
-  assert.match(html, /Awaiting first turn/, 'empty card surfaces an awaiting hint');
+  assert.match(html, /等待首个回合/, 'empty card surfaces an awaiting hint');
 });
 
 test('ActorBar non-compact: empty state hidden once popHistory has data', () => {
@@ -223,7 +223,7 @@ test('ActorBar non-compact: empty state hidden once popHistory has data', () => 
       moraleHistory={[60]}
     />,
   );
-  assert.ok(!/Awaiting first turn/.test(html), 'no awaiting hint when sim has begun');
+  assert.ok(!/等待首个回合/.test(html), 'no awaiting hint when sim has begun');
 });
 
 test('ActorBar: nameFallback used when leader is null (status not yet seen)', () => {

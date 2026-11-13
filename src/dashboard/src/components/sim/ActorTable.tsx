@@ -41,11 +41,11 @@ interface ColumnDef {
 }
 
 const COLUMNS: ColumnDef[] = [
-  { key: 'name',       label: 'Actor',      numeric: false },
-  { key: 'archetype',  label: 'Archetype',  numeric: false },
-  { key: 'turn',       label: 'Turn',       numeric: true  },
+  { key: 'name',       label: "决策者",      numeric: false },
+  { key: 'archetype',  label: "人物类型",  numeric: false },
+  { key: 'turn',       label: "回合",       numeric: true  },
   { key: 'population', label: 'Pop',        numeric: true  },
-  { key: 'morale',     label: 'Morale',     numeric: true  },
+  { key: 'morale',     label: "士气",     numeric: true  },
   { key: 'deaths',     label: 'Deaths',     numeric: true  },
   { key: 'tools',      label: 'Tools',      numeric: true  },
 ];
@@ -99,7 +99,7 @@ export function ActorTable({ state, onActorClick }: ActorTableProps): JSX.Elemen
   if (sorted.length === 0) {
     return (
       <div className={styles.empty} role="status">
-        No actor data yet — events will populate this table as the run progresses.
+        暂无决策者数据，运行过程中事件将逐步填入此表。
       </div>
     );
   }
@@ -156,8 +156,8 @@ export function ActorTable({ state, onActorClick }: ActorTableProps): JSX.Elemen
                   <td className={styles.nameCell}>
                     <span className={styles.actorName}>{row.name}</span>
                     {row.pending && (
-                      <span className={styles.pendingPill} title="Waiting on commander decision">
-                        pending
+                      <span className={styles.pendingPill} title="等待决策者决策">
+                        等待中
                       </span>
                     )}
                   </td>

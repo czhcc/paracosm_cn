@@ -92,7 +92,7 @@ export function ReplayLastRunCTA() {
     session.id;
   const meta = [
     session.scenarioName && session.scenarioName !== subtitle ? session.scenarioName : null,
-    typeof session.eventCount === 'number' ? `${session.eventCount} events` : null,
+    typeof session.eventCount === 'number' ? `${session.eventCount} 个事件` : null,
     typeof session.durationMs === 'number' ? `${Math.round(session.durationMs / 1000)}s` : null,
     typeof session.createdAt === 'number' ? new Date(session.createdAt).toISOString().slice(0, 10) : null,
   ]
@@ -100,8 +100,8 @@ export function ReplayLastRunCTA() {
     .join(' · ');
 
   return (
-    <a className={styles.card} href={href} aria-label={`Replay last run: ${subtitle}`}>
-      <span className={styles.eyebrow}>Replay last run</span>
+    <a className={styles.card} href={href} aria-label={`回放最近一次运行：${subtitle}`}>
+      <span className={styles.eyebrow}>回放最近一次运行</span>
       <span className={styles.row}>
         <span className={styles.actor}>{subtitle}</span>
         <span className={styles.arrow} aria-hidden="true">▶</span>

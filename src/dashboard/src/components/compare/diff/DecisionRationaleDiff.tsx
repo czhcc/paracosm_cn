@@ -23,19 +23,19 @@ export function DecisionRationaleDiff({ artifacts }: DecisionRationaleDiffProps)
   const columns = artifacts.map(extractDecisions);
   if (columns.every((c) => c.length === 0)) {
     return (
-      <section className={styles.diffSection} aria-label="Decision rationale comparison">
+      <section className={styles.diffSection} aria-label="决策理由对比">
         <header className={styles.diffHead}>
-          <h5 className={styles.diffTitle}>Decision rationale</h5>
+          <h5 className={styles.diffTitle}>决策理由</h5>
         </header>
-        <p className={styles.diffEmpty}>No decisions recorded (batch-point mode or no commander turns).</p>
+        <p className={styles.diffEmpty}>暂无决策记录（批量单点模式或未执行指挥官回合）。</p>
       </section>
     );
   }
   const cssVars = { gridTemplateColumns: `repeat(${artifacts.length}, 1fr)` } as React.CSSProperties;
   return (
-    <section className={styles.diffSection} aria-label="Decision rationale comparison">
+    <section className={styles.diffSection} aria-label="决策理由对比">
       <header className={styles.diffHead}>
-        <h5 className={styles.diffTitle}>Decision rationale</h5>
+        <h5 className={styles.diffTitle}>决策理由</h5>
       </header>
       <div className={styles.rationaleGrid} style={cssVars}>
         {columns.map((entries, idx) => (
@@ -48,7 +48,7 @@ export function DecisionRationaleDiff({ artifacts }: DecisionRationaleDiffProps)
             {entries.length === 0 && <p className={styles.diffEmpty}>—</p>}
             {entries.map((e, i) => (
               <div key={i} className={styles.rationaleEntry}>
-                <span className={styles.rationaleTurn}>Turn {e.turn}</span>
+                <span className={styles.rationaleTurn}>回合 {e.turn}</span>
                 <p className={styles.rationaleDecision}>{e.decision}</p>
                 <p className={styles.rationaleText}>{e.rationale}</p>
               </div>

@@ -1,3 +1,4 @@
+import { departmentLabel, displayLabel, roleLabel } from '../../../template-localization';
 import { useMemo, useState, type CSSProperties } from 'react';
 import type { CellSnapshot } from '../viz-types.js';
 import { useScenarioLabels } from '../../../hooks/useScenarioLabels.js';
@@ -36,7 +37,7 @@ type RosterSort = 'dept' | 'name' | 'psych' | 'age';
 
 const SORT_CHIPS: { key: RosterSort; label: string }[] = [
   { key: 'dept', label: 'Dept' },
-  { key: 'name', label: 'Name' },
+  { key: 'name', label: "名称" },
   { key: 'psych', label: 'Psych' },
   { key: 'age', label: 'Age' },
 ];
@@ -80,7 +81,7 @@ export function RosterDrawer({
     const match = new Set<string>();
     if (tokens.length > 0) {
       for (const c of cells) {
-        const hay = `${c.name} ${c.department} ${c.role} ${c.mood}`.toLowerCase();
+        const hay = `${c.name} ${c.department} ${departmentLabel(c.department)} ${c.role} ${roleLabel(c.role)} ${c.mood} ${displayLabel(c.mood)}`.toLowerCase();
         if (tokens.every(t => hay.includes(t))) match.add(c.agentId);
       }
     }
@@ -120,12 +121,12 @@ export function RosterDrawer({
     <div className={styles.drawer}>
       <div className={styles.header} style={sideStyle}>
         <span className={styles.headerLabel} style={sideStyle}>
-          {actorName} Roster · {alive.length}
+          {actorName}  人员名单 · {alive.length}
         </span>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close roster"
+          aria-label="关闭人员名单"
           className={styles.closeBtn}
         >
           ×
@@ -149,13 +150,13 @@ export function RosterDrawer({
       </div>
       <div className={styles.body}>
         {grouped.length === 0 && (
-          <div className={styles.empty}>No living {labels.people}.</div>
+          <div className={styles.empty}>没有存活的 {labels.people}.</div>
         )}
         {grouped.map(([dept, list]) => (
           <div key={dept}>
             {sort === 'dept' && (
               <div className={styles.deptHeader}>
-                {dept} · {list.length}
+                {displayLabel(dept)} · {list.length}
               </div>
             )}
             {list.map(c => {
@@ -169,7 +170,7 @@ export function RosterDrawer({
                   onMouseEnter={() => onHover(c.agentId)}
                   onMouseLeave={() => onHover(null)}
                   onClick={() => onSelect(c)}
-                  title={`${c.name} · ${c.role} · ${c.mood}`}
+                  title={`${c.name} · ${roleLabel(c.role)} · ${displayLabel(c.mood)}`}
                   className={styles.row}
                   style={rowVarStyle(isMatch, dimmed, isHovered)}
                 >
@@ -194,7 +195,7 @@ export function RosterDrawer({
               onClick={() => setShowDeceased(v => !v)}
               className={styles.deceasedToggle}
             >
-              {showDeceased ? '▼' : '▶'} Deceased · {deceased.length}
+              {showDeceased ? '▼' : '▶'}  已故 · {deceased.length}
             </button>
             {showDeceased &&
               deceased.map(c => {
@@ -206,7 +207,7 @@ export function RosterDrawer({
                     onMouseEnter={() => onHover(c.agentId)}
                     onMouseLeave={() => onHover(null)}
                     onClick={() => onSelect(c)}
-                    title={`${c.name} · ${c.role} · deceased`}
+                    title={`${c.name} · ${roleLabel(c.role)} · 已故`}
                     className={[styles.row, styles.deceased].join(' ')}
                     style={rowVarStyle(false, true, isHovered)}
                   >

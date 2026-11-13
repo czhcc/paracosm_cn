@@ -39,8 +39,8 @@ const SERIES: SeriesDef[] = [
   // morale histories are recorded as 0-100 ints in useGameState
   // (see line 406 of hooks/useGameState.ts), so pin the range to
   // [0, 100] for visual stability across turns.
-  { id: 'morale',     label: 'Morale',     unitSuffix: '%', pick: moraleSeries, fixedRange: { lo: 0, hi: 100 } },
-  { id: 'population', label: 'Population', unitSuffix: '',  pick: popSeries },
+  { id: 'morale',     label: "士气",     unitSuffix: '%', pick: moraleSeries, fixedRange: { lo: 0, hi: 100 } },
+  { id: 'population', label: "人口", unitSuffix: '',  pick: popSeries },
 ];
 
 const CHART_W = 360;
@@ -58,7 +58,7 @@ function QuantileChart({ bands, fixedRange, unitSuffix }: ChartProps): JSX.Eleme
   if (bands.length === 0) {
     return (
       <div className={styles.empty} role="status">
-        No turns recorded yet.
+        暂无回合记录。
       </div>
     );
   }
@@ -106,7 +106,7 @@ function QuantileChart({ bands, fixedRange, unitSuffix }: ChartProps): JSX.Eleme
       width={CHART_W}
       height={CHART_H}
       role="img"
-      aria-label={`Quantile distribution across turns. Latest turn ${lastBand.turn}: median ${lastBand.median.toFixed(0)}${unitSuffix}, range ${lastBand.min.toFixed(0)}-${lastBand.max.toFixed(0)}${unitSuffix} across ${lastBand.n} actor${lastBand.n === 1 ? '' : 's'}.`}
+      aria-label={`逐回合分位数分布。最新回合 ${lastBand.turn}: median ${lastBand.median.toFixed(0)}${unitSuffix}, range ${lastBand.min.toFixed(0)}-${lastBand.max.toFixed(0)}${unitSuffix} across ${lastBand.n} actor${lastBand.n === 1 ? '' : 's'}.`}
     >
       <path className={styles.envelope} d={envelope} />
       <path className={styles.iqr} d={iqr} />
@@ -134,10 +134,10 @@ export function DistributionPanel({ state }: DistributionPanelProps): JSX.Elemen
   if (!haveAny) return null;
 
   return (
-    <div className={styles.panel} aria-label="Distribution across actors">
+    <div className={styles.panel} aria-label="各决策者分布">
       <div className={styles.heading}>
-        <span className={styles.headingLabel}>DISTRIBUTION</span>
-        <span className={styles.headingHint}>median · IQR · min-max envelope</span>
+        <span className={styles.headingLabel}>分布</span>
+        <span className={styles.headingHint}>中位数 · 四分位距 · 最小值至最大值范围</span>
       </div>
       <div className={styles.charts}>
         {projected.map(({ def, bands }) => {
@@ -148,7 +148,7 @@ export function DistributionPanel({ state }: DistributionPanelProps): JSX.Elemen
                 <span className={styles.chartTitle}>{def.label}</span>
                 {last && (
                   <span className={styles.chartLatest}>
-                    T{last.turn} · median {Math.round(last.median)}{def.unitSuffix} · {last.min.toFixed(0)}-{last.max.toFixed(0)}{def.unitSuffix} · n={last.n}
+                    T{last.turn} · 中位数 {Math.round(last.median)}{def.unitSuffix} · {last.min.toFixed(0)}-{last.max.toFixed(0)}{def.unitSuffix} · n={last.n}
                   </span>
                 )}
               </div>

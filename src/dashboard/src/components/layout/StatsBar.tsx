@@ -31,8 +31,8 @@ function fmtSuffix(id: string): string {
 
 /** Short labels that fit the dense stats bar (desktop + tablet). */
 const SHORT_LABELS: Record<string, string> = {
-  population: 'POP',
-  morale: 'MORALE',
+  population: "人口",
+  morale: "士气",
   foodMonthsReserve: 'FOOD',
   powerKw: 'POWER',
   infrastructureModules: 'MODULES',
@@ -78,7 +78,7 @@ function formatCauses(causes: Record<string, number> | undefined): string {
   const sorted = Object.entries(causes).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
   if (sorted.length === 0) return '';
   const top = sorted.slice(0, 3).map(([cause, n]) => {
-    const short = cause.replace('radiation cancer', 'radiation').replace('natural causes', 'age').replace('age-related complications', 'age').replace('fatal fracture', 'fracture').replace('accident: ', '').replace('accident', 'accident');
+    const short = cause.replace('radiation cancer', 'radiation').replace('natural causes', 'age').replace("年龄相关并发症", 'age').replace('fatal fracture', 'fracture').replace('accident: ', '').replace('accident', 'accident');
     return `${n} ${short}`;
   });
   const rest = sorted.length - top.length;
@@ -168,7 +168,7 @@ export function StatsBar({ actors, crisisText, toolRegistry }: StatsBarProps) {
     <div
       className={`stats-bar ${styles.bar}`}
       role="region"
-      aria-label="Leader statistics"
+      aria-label="决策者统计"
       // tabIndex=0 so keyboard users can focus + horizontally scroll
       // the stats row. The bar overflows on narrow viewports when many
       // metric pills are present (axe `scrollable-region-focusable`).
@@ -200,7 +200,7 @@ export function StatsBar({ actors, crisisText, toolRegistry }: StatsBarProps) {
             </span>
             <span className={styles.valueA}>{fA}{suffix}</span>
             {dA && <span className={deltaClass(dA, 'gain')}>{dA}</span>}
-            <span className={styles.sep}>vs</span>
+            <span className={styles.sep}>对比</span>
             <span className={styles.valueB}>{fB}{suffix}</span>
             {dB && <span className={deltaClass(dB, 'gain')}>{dB}</span>}
           </span>
@@ -208,24 +208,24 @@ export function StatsBar({ actors, crisisText, toolRegistry }: StatsBarProps) {
       })}
 
       <span className={styles.pill}>
-        <span className={styles.label} title="Deaths">
-          <span className="pill-label-full">DEATHS</span>
+        <span className={styles.label} title="死亡人数">
+          <span className="pill-label-full">死亡</span>
           <span className="pill-label-short">†</span>
         </span>
         <span
           className={styles.valueA}
           title={deathCausesA && Object.keys(deathCausesA).length > 0
-            ? `Leader A deaths by cause: ${Object.entries(deathCausesA).map(([k, v]) => `${v} ${k}`).join(', ')}`
+            ? `决策者 A 的死亡原因： ${Object.entries(deathCausesA).map(([k, v]) => `${v} ${k}`).join(', ')}`
             : undefined}
         >
           {deathsA}
         </span>
         {deltaDeathsA && <span className={deltaClass(deltaDeathsA, 'lossIsRed')}>{deltaDeathsA}</span>}
-        <span className={styles.sep}>vs</span>
+        <span className={styles.sep}>对比</span>
         <span
           className={styles.valueB}
           title={deathCausesB && Object.keys(deathCausesB).length > 0
-            ? `Leader B deaths by cause: ${Object.entries(deathCausesB).map(([k, v]) => `${v} ${k}`).join(', ')}`
+            ? `决策者 B 的死亡原因： ${Object.entries(deathCausesB).map(([k, v]) => `${v} ${k}`).join(', ')}`
             : undefined}
         >
           {deathsB}
@@ -244,8 +244,8 @@ export function StatsBar({ actors, crisisText, toolRegistry }: StatsBarProps) {
       </span>
 
       <span className={styles.pill}>
-        <span className={styles.label} title="Tools forged">
-          <span className="pill-label-full">TOOLS</span>
+        <span className={styles.label} title="生成工具">
+          <span className="pill-label-full">工具</span>
           <span className="pill-label-short">T</span>
         </span>
         <span className={styles.valueA}>{toolsA}</span>
@@ -258,10 +258,10 @@ export function StatsBar({ actors, crisisText, toolRegistry }: StatsBarProps) {
       {toolRegistry && toolRegistry.list.length > 0 && (
         <span
           className={styles.pill}
-          title="Forged-tool reuse count per leader. Reuses amortize forge cost across multiple events."
+          title="各决策者的工具复用次数。复用可分摊多个事件的工具创建费用。"
         >
-          <span className={styles.label} title="Reuse count">
-            <span className="pill-label-full">REUSE</span>
+          <span className={styles.label} title="复用次数">
+            <span className="pill-label-full">复用</span>
             <span className="pill-label-short">R</span>
           </span>
           <span className={styles.valueA}>{reuseA}</span>
@@ -273,8 +273,8 @@ export function StatsBar({ actors, crisisText, toolRegistry }: StatsBarProps) {
       )}
 
       <span className={styles.pill}>
-        <span className={styles.label} title="Citations">
-          <span className="pill-label-full">CITES</span>
+        <span className={styles.label} title="引用">
+          <span className="pill-label-full">引用</span>
           <span className="pill-label-short">C</span>
         </span>
         <span className={styles.valueA}>{citationsA}</span>
@@ -290,7 +290,7 @@ export function StatsBar({ actors, crisisText, toolRegistry }: StatsBarProps) {
           title={`Categorical scenario-declared statuses (world.statuses).\n\nLeader A:\n${formatBagTooltip(statusesA) || '(none)'}\n\nLeader B:\n${formatBagTooltip(statusesB) || '(none)'}`}
         >
           <span className={styles.label}>
-            <span className="pill-label-full">STATUSES</span>
+            <span className="pill-label-full">状态</span>
             <span className="pill-label-short">§</span>
           </span>
           <span className={styles.valueA}>{statusesA ? Object.keys(statusesA).length : 0}</span>
@@ -305,7 +305,7 @@ export function StatsBar({ actors, crisisText, toolRegistry }: StatsBarProps) {
           title={`Environment bag (world.environment), external conditions.\n\nLeader A:\n${formatBagTooltip(environmentA) || '(none)'}\n\nLeader B:\n${formatBagTooltip(environmentB) || '(none)'}`}
         >
           <span className={styles.label}>
-            <span className="pill-label-full">ENV</span>
+            <span className="pill-label-full">环境</span>
             <span className="pill-label-short">E</span>
           </span>
           <span className={styles.valueA}>{environmentA ? Object.keys(environmentA).length : 0}</span>

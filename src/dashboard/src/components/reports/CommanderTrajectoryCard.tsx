@@ -149,8 +149,8 @@ export function CommanderTrajectoryCard({
   return (
     <div className={styles.card}>
       <div className={styles.headerRow}>
-        <span className={styles.title}>PERSONALITY ARC</span>
-        <span className={styles.range}>turn {minTurn} → {maxTurn}</span>
+        <span className={styles.title}>人格变化</span>
+        <span className={styles.range}>回合 {minTurn} → {maxTurn}</span>
       </div>
       <svg
         viewBox={`0 0 ${W} ${H}`}

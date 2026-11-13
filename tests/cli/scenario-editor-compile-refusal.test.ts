@@ -32,7 +32,7 @@ test("the editor's compile of the scenario it opens on, a built-in, reads the se
     assert.equal(active.id, mars.id);
 
     const refused = await page.post('/compile', editorRequest(active));
-    assert.equal(await compileRefusal(refused), `"${mars.id}" is taken on this server. Give your scenario an id of its own.`);
+    assert.equal(await compileRefusal(refused), `“${mars.id}”已被此服务器上的场景使用，请为新场景设置独立的 ID。`);
     assert.equal(compiles, 0, 'the compiler was not called');
 
     // A compile the server takes is a stream, which the editor reads itself.
@@ -49,6 +49,6 @@ test("the editor's compile of the scenario it opens on, a built-in, reads the se
 });
 
 test('a refusal with no message of its own reads as its status', async () => {
-  assert.equal(await compileRefusal(new Response('Bad Gateway', { status: 502 })), 'The compile was refused (HTTP 502).');
-  assert.equal(await compileRefusal(new Response(JSON.stringify({ error: '' }), { status: 429 })), 'The compile was refused (HTTP 429).');
+  assert.equal(await compileRefusal(new Response('Bad Gateway', { status: 502 })), '编译被拒绝（HTTP 502）。');
+  assert.equal(await compileRefusal(new Response(JSON.stringify({ error: '' }), { status: 429 })), '编译被拒绝（HTTP 429）。');
 });

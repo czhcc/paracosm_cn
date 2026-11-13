@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "engineArchetype": "closed_turn_based_settlement",
   "labels": {
-    "name": "Lunar Outpost",
+    "name": "月球前哨站",
     "shortName": "lunar",
     "populationNoun": "crew members",
     "settlementNoun": "outpost",
@@ -15,7 +15,7 @@
     "timeUnitNounPlural": "years",
     "actorNoun": "commander",
     "actorNounPlural": "commanders",
-    "tagline": "Lunar Outpost: 50-person crew at the lunar south pole. Regolith dust + low-g atrophy run per agent. Two leaders set the resource cadence."
+    "tagline": "50 名成员在月球南极建设前哨站，面对月壤粉尘、低重力健康损耗和资源压力。两位指挥官以不同风格安排建设与补给。"
   },
   "theme": {
     "primaryColor": "#6366f1",
@@ -47,79 +47,79 @@
   "departments": [
     {
       "id": "medical",
-      "label": "Medical",
-      "role": "Chief Medical Officer",
-      "icon": "\ud83c\udfe5",
+      "label": "医疗部",
+      "role": "首席医疗官",
+      "icon": "🏥",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Chief Medical Officer of a lunar outpost. You analyze crew health: regolith dust exposure, muscle atrophy in 1/6g, bone density loss, psychological wellbeing."
+      "instructions": "你是月球前哨站的首席医疗官，分析成员健康，包括月壤粉尘暴露、六分之一重力下的肌肉萎缩、骨密度流失和心理健康。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "engineering",
-      "label": "Engineering",
-      "role": "Chief Engineer",
-      "icon": "\u2699\ufe0f",
+      "label": "工程部",
+      "role": "总工程师",
+      "icon": "⚙️",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Chief Engineer of a lunar outpost. You analyze infrastructure: habitat integrity, power systems (solar + nuclear), thermal management, construction."
+      "instructions": "你是月球前哨站的总工程师，分析基础设施，包括栖息舱完整性、太阳能与核能电力系统、热管理和建设工程。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "mining",
-      "label": "Mining",
-      "role": "Mining Operations Lead",
-      "icon": "\u26cf\ufe0f",
+      "label": "采矿部",
+      "role": "采矿作业主管",
+      "icon": "⛏️",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Mining Operations Lead. You analyze ISRU: water ice extraction from shadowed craters, regolith processing, construction material production."
+      "instructions": "你是采矿作业主管，分析原位资源利用（ISRU），包括从永久阴影陨石坑提取水冰、月壤处理及建筑材料生产。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "life-support",
-      "label": "Life Support",
-      "role": "Life Support Chief",
-      "icon": "\ud83e\udee7",
+      "label": "生命保障部",
+      "role": "生命保障主管",
+      "icon": "🫧",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Life Support Chief. You analyze ECLSS: oxygen from electrolysis, water recycling, food production, atmospheric management."
+      "instructions": "你是生命保障主管，分析环境控制与生命保障系统（ECLSS），包括电解制氧、水循环、食物生产和舱内大气管理。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     },
     {
       "id": "communications",
-      "label": "Communications",
-      "role": "Communications Officer",
-      "icon": "\ud83d\udce1",
+      "label": "传播部",
+      "role": "通信官",
+      "icon": "📡",
       "defaultModel": "gpt-5.4-mini",
-      "instructions": "You are the Communications Officer. You analyze Earth link: signal scheduling, relay satellite status, data transmission, crew morale through connectivity."
+      "instructions": "你是通信官，分析地球通信链路，包括信号时隙安排、中继卫星状态、数据传输，以及通信连通性对成员士气的影响。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
     }
   ],
   "metrics": [
     {
       "id": "population",
-      "label": "Crew",
+      "label": "成员",
       "source": "metrics.population",
       "format": "number"
     },
     {
       "id": "morale",
-      "label": "Morale",
+      "label": "士气",
       "source": "metrics.morale",
       "format": "percent"
     },
     {
       "id": "foodMonthsReserve",
-      "label": "Food",
+      "label": "食物",
       "source": "metrics.foodMonthsReserve",
       "format": "number"
     },
     {
       "id": "powerKw",
-      "label": "Power",
+      "label": "功率",
       "source": "metrics.powerKw",
       "format": "number"
     },
     {
       "id": "infrastructureModules",
-      "label": "Modules",
+      "label": "模块",
       "source": "metrics.infrastructureModules",
       "format": "number"
     },
     {
       "id": "scienceOutput",
-      "label": "Science",
+      "label": "科研",
       "source": "metrics.scienceOutput",
       "format": "number"
     }
@@ -127,50 +127,50 @@
   "events": [
     {
       "id": "crisis",
-      "label": "Crisis",
-      "icon": "\u26a0\ufe0f",
+      "label": "危机",
+      "icon": "⚠️",
       "color": "#ef4444"
     },
     {
       "id": "decision",
-      "label": "Decision",
-      "icon": "\u26a1",
+      "label": "决策",
+      "icon": "⚡",
       "color": "#f59e0b"
     },
     {
       "id": "birth",
-      "label": "Arrival",
-      "icon": "\ud83d\ude80",
+      "label": "抵达",
+      "icon": "🚀",
       "color": "#22c55e"
     },
     {
       "id": "death",
-      "label": "Casualty",
-      "icon": "\ud83d\udc80",
+      "label": "伤亡",
+      "icon": "💀",
       "color": "#6b7280"
     },
     {
       "id": "promotion",
-      "label": "Appointment",
-      "icon": "\u2b06\ufe0f",
+      "label": "任命",
+      "icon": "⬆️",
       "color": "#3b82f6"
     },
     {
       "id": "relationship",
-      "label": "Bond",
-      "icon": "\ud83e\udd1d",
+      "label": "关系建立",
+      "icon": "🤝",
       "color": "#ec4899"
     },
     {
       "id": "tool_forge",
-      "label": "Tool Forged",
-      "icon": "\ud83d\udd27",
+      "label": "工具生成",
+      "icon": "🔧",
       "color": "#8b5cf6"
     },
     {
       "id": "system",
-      "label": "System",
-      "icon": "\u2699\ufe0f",
+      "label": "系统",
+      "icon": "⚙️",
       "color": "#64748b"
     }
   ],
@@ -214,7 +214,7 @@
     "metrics": {
       "population": {
         "id": "population",
-        "label": "Crew",
+        "label": "成员",
         "unit": "",
         "type": "number",
         "initial": 50,
@@ -223,7 +223,7 @@
       },
       "powerKw": {
         "id": "powerKw",
-        "label": "Power",
+        "label": "功率",
         "unit": "kW",
         "type": "number",
         "initial": 200,
@@ -233,7 +233,7 @@
       },
       "foodMonthsReserve": {
         "id": "foodMonthsReserve",
-        "label": "Food Reserve",
+        "label": "食物储备",
         "unit": "months",
         "type": "number",
         "initial": 12,
@@ -242,7 +242,7 @@
       },
       "waterLitersPerDay": {
         "id": "waterLitersPerDay",
-        "label": "Water",
+        "label": "水",
         "unit": "L/day",
         "type": "number",
         "initial": 400,
@@ -252,8 +252,8 @@
       },
       "pressurizedVolumeM3": {
         "id": "pressurizedVolumeM3",
-        "label": "Volume",
-        "unit": "m\u00b3",
+        "label": "容积",
+        "unit": "m³",
         "type": "number",
         "initial": 1500,
         "min": 0,
@@ -262,7 +262,7 @@
       },
       "infrastructureModules": {
         "id": "infrastructureModules",
-        "label": "Modules",
+        "label": "模块",
         "unit": "",
         "type": "number",
         "initial": 2,
@@ -272,7 +272,7 @@
       },
       "scienceOutput": {
         "id": "scienceOutput",
-        "label": "Science",
+        "label": "科研",
         "unit": "",
         "type": "number",
         "initial": 0,
@@ -281,7 +281,7 @@
       },
       "morale": {
         "id": "morale",
-        "label": "Morale",
+        "label": "士气",
         "unit": "%",
         "type": "number",
         "initial": 0.8,
@@ -293,7 +293,7 @@
     "capacities": {
       "lifeSupportCapacity": {
         "id": "lifeSupportCapacity",
-        "label": "Life Support Cap",
+        "label": "生命保障容量",
         "unit": "",
         "type": "number",
         "initial": 60,
@@ -306,7 +306,7 @@
     "politics": {
       "earthDependencyPct": {
         "id": "earthDependencyPct",
-        "label": "Earth Dependency",
+        "label": "地球依赖程度",
         "unit": "%",
         "type": "number",
         "initial": 95,
@@ -316,7 +316,7 @@
       },
       "independencePressure": {
         "id": "independencePressure",
-        "label": "Independence Pressure",
+        "label": "独立诉求压力",
         "unit": "%",
         "type": "number",
         "initial": 0.05,
@@ -328,8 +328,8 @@
     "environment": {
       "surfaceGravity": {
         "id": "surfaceGravity",
-        "label": "Surface Gravity",
-        "unit": "m/s\u00b2",
+        "label": "地表重力",
+        "unit": "m/s²",
         "type": "number",
         "initial": 1.62,
         "min": 0,
@@ -376,11 +376,11 @@
       "outcome"
     ],
     "departmentIcons": {
-      "medical": "\ud83c\udfe5",
-      "engineering": "\u2699\ufe0f",
-      "mining": "\u26cf\ufe0f",
-      "life-support": "\ud83e\udee7",
-      "communications": "\ud83d\udce1"
+      "medical": "🏥",
+      "engineering": "⚙️",
+      "mining": "⛏️",
+      "life-support": "🫧",
+      "communications": "📡"
     },
     "setupSections": [
       "leaders",
@@ -415,11 +415,11 @@
   "presets": [
     {
       "id": "default",
-      "label": "Default Lunar Outpost",
+      "label": "月球前哨站默认预设",
       "leaders": [
         {
           "name": "Commander Sarah Lindgren",
-          "archetype": "The Pioneer",
+          "archetype": "开拓者",
           "hexaco": {
             "openness": 0.85,
             "conscientiousness": 0.6,
@@ -428,11 +428,11 @@
             "emotionality": 0.35,
             "honestyHumility": 0.7
           },
-          "instructions": "You are Commander Sarah Lindgren, \"The Pioneer.\" You balance ambition with crew safety. You push boundaries but respect engineering limits. You communicate openly. Your HEXACO profile drives your leadership style."
+          "instructions": "你是指挥官莎拉·林德格伦，人称“开拓者”。你在雄心与成员安全之间寻求平衡，愿意突破边界，但尊重工程极限，并保持开放沟通。你的 HEXACO 人格决定领导风格。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
         },
         {
           "name": "Commander Raj Patel",
-          "archetype": "The Methodologist",
+          "archetype": "方法论者",
           "hexaco": {
             "openness": 0.35,
             "conscientiousness": 0.9,
@@ -441,14 +441,14 @@
             "emotionality": 0.6,
             "honestyHumility": 0.85
           },
-          "instructions": "You are Commander Raj Patel, \"The Methodologist.\" You follow procedures. You document everything. You prioritize crew welfare over discovery timelines. Cautious, thorough, transparent. Your HEXACO profile drives your leadership style."
+          "instructions": "你是指挥官拉杰·帕特尔，人称“方法论者”。你遵循流程，完整记录一切，将成员福祉置于发现进度之前。你谨慎、周全、透明。你的 HEXACO 人格决定领导风格。请使用简体中文撰写分析、决策和理由，保留约定的 JSON 字段、枚举和代码标识。"
         }
       ],
       "personnel": [
         {
           "name": "Dr. Sarah Anderson",
           "department": "medical",
-          "role": "Senior Flight Surgeon",
+          "role": "高级航天医师",
           "specialization": "Aerospace Medicine",
           "age": 42,
           "featured": true
@@ -456,7 +456,7 @@
         {
           "name": "James Mueller",
           "department": "engineering",
-          "role": "Senior Structural Engineer",
+          "role": "高级结构工程师",
           "specialization": "Structural Systems",
           "age": 48,
           "featured": true
@@ -464,7 +464,7 @@
         {
           "name": "Dr. Yuki Nakamura",
           "department": "mining",
-          "role": "Senior ISRU Engineer",
+          "role": "高级原位资源利用工程师",
           "specialization": "ISRU Engineering",
           "age": 39,
           "featured": true
@@ -472,7 +472,7 @@
         {
           "name": "Chen Wei",
           "department": "life-support",
-          "role": "Senior ECLSS Engineer",
+          "role": "高级环境控制与生命保障工程师",
           "specialization": "ECLSS Design",
           "age": 44,
           "featured": true
@@ -480,7 +480,7 @@
         {
           "name": "Maria Santos",
           "department": "communications",
-          "role": "Senior Network Engineer",
+          "role": "高级网络工程师",
           "specialization": "Deep Space Networks",
           "age": 36,
           "featured": true
@@ -615,13 +615,13 @@
   "knowledgeRef": "lunar-knowledge.json",
   "dataDrivenHooks": {
     "progressionPhysics": "lunar-regolith-atrophy",
-    "directorInstructions": "You are the Crisis Director for a lunar outpost simulation. You observe outpost state and generate crises that test the crew's weaknesses, exploit consequences of prior decisions, and create narrative tension.\n\nRULES:\n1. Each crisis has exactly 2-3 options with stable IDs (option_a, option_b, option_c)\n2. Exactly one option must be marked isRisky: true (higher upside, higher downside)\n3. Crises must reference real lunar science (regolith toxicity, 1/6g effects, solar power cycles, ISRU)\n4. Never repeat a crisis category from the immediately previous turn\n5. Escalate: later crises should reference consequences of earlier decisions\n6. Calibrate difficulty to outpost state\n7. Include actual numbers in the crisis description\n8. Specify which departments should analyze (2-4 departments per crisis)\n\nCRISIS CATEGORIES:\n- environmental: micrometeorites, thermal cycling, seismic activity, solar storms\n- resource: water ice, regolith, power, oxygen shortage\n- medical: dust toxicity, muscle atrophy, bone loss, radiation from solar events\n- psychological: isolation, Earth-homesickness, crew tension, monotony\n- political: Earth agency relations, commercial interests, international partners\n- infrastructure: habitat damage, power systems, communications, mining equipment\n- social: crew rotation, family separation, cultural friction\n- technological: equipment failure, software, autonomous systems\n\nAVAILABLE DEPARTMENTS (use ONLY these exact names):\n- medical\n- engineering\n- mining\n- life-support\n- communications\n\nReturn ONLY valid JSON matching the standard crisis format.",
+    "directorInstructions": "你是月球前哨站仿真的危机导演。观察前哨站状态，生成考验成员弱点、承接既往决策后果并形成叙事张力的危机。\n\n规则：\n1. 每场危机恰有 2～3 个选项，稳定 ID 为 option_a、option_b、option_c。\n2. 恰有一个选项标记 isRisky: true，具有更高潜在收益与更大潜在损失。\n3. 危机依据真实月球科学，包括月壤毒性、六分之一重力影响、太阳能周期和原位资源利用（ISRU）。\n4. 不得重复上一回合的危机类别。\n5. 后续危机应引用之前决策的后果并逐步升级。\n6. 根据前哨站状态校准难度。\n7. 危机描述包含实际数值。\n8. 每场危机指定 2～4 个分析部门。\n\n危机 category：\n- environmental：微陨石、热循环、月震、太阳风暴。\n- resource：水冰、月壤、电力、氧气短缺。\n- medical：粉尘毒性、肌肉萎缩、骨质流失、太阳活动辐射。\n- psychological：隔离、思乡、成员矛盾、单调生活。\n- political：地球机构关系、商业利益、国际伙伴。\n- infrastructure：栖息舱损伤、电力系统、通信、采矿设备。\n- social：成员轮换、家庭分离、文化摩擦。\n- technological：设备故障、软件、自主系统。\n\nrelevantDepartments 仅可使用以下精确 ID：medical、engineering、mining、life-support、communications。\n仅返回符合标准危机格式的有效 JSON。\n所有人类可读文本使用简体中文；JSON 键、枚举、部门 ID、指标标识及代码保持协议格式。",
     "departments": {
       "medical": {
-        "heading": "HEALTH:",
+        "heading": "健康：",
         "chips": [
           {
-            "label": "Avg regolith exposure",
+            "label": "平均月壤暴露量",
             "agg": {
               "fn": "avg",
               "field": "health.cumulativeRadiationMsv",
@@ -634,7 +634,7 @@
             "format": "number"
           },
           {
-            "label": "Avg bone/muscle",
+            "label": "平均骨骼／肌肉状况",
             "agg": {
               "fn": "avg",
               "field": "health.boneDensityPct",
@@ -649,82 +649,82 @@
         ]
       },
       "engineering": {
-        "heading": "INFRASTRUCTURE:",
+        "heading": "基础设施：",
         "chips": [
           {
-            "label": "Modules",
+            "label": "模块",
             "source": "metrics.infrastructureModules",
             "format": "number"
           },
           {
-            "label": "Power (solar + nuclear)",
+            "label": "功率（太阳能与核能）",
             "source": "metrics.powerKw",
             "format": "number"
           },
           {
-            "label": "Life support cap",
+            "label": "生命保障容量",
             "source": "metrics.lifeSupportCapacity",
             "format": "number"
           },
           {
-            "label": "Crew",
+            "label": "成员",
             "source": "metrics.population",
             "format": "number"
           },
           {
-            "label": "Volume m\u00b3",
+            "label": "容积（立方米）",
             "source": "metrics.pressurizedVolumeM3",
             "format": "number"
           }
         ]
       },
       "mining": {
-        "heading": "MINING:",
+        "heading": "采矿：",
         "chips": [
           {
-            "label": "Power",
+            "label": "功率",
             "source": "metrics.powerKw",
             "format": "number"
           },
           {
-            "label": "Modules",
+            "label": "模块",
             "source": "metrics.infrastructureModules",
             "format": "number"
           }
         ],
-        "footer": "Ice extraction active in permanently shadowed craters. Regolith processing for construction materials. ISRU capacity scales with power."
+        "footer": "正在永久阴影陨石坑中提取水冰，并将月壤加工为建筑材料。原位资源利用容量随电力增加。"
       },
       "life-support": {
-        "heading": "LIFE SUPPORT:",
+        "heading": "生命保障：",
         "chips": [
           {
-            "label": "Reserves (months)",
+            "label": "储备（月）",
             "source": "metrics.foodMonthsReserve",
             "format": "number"
           },
           {
-            "label": "Water L/day",
+            "label": "每日供水量（升）",
             "source": "metrics.waterLitersPerDay",
             "format": "number"
           },
           {
-            "label": "Crew",
+            "label": "成员",
             "source": "metrics.population",
             "format": "number"
           }
         ],
-        "footer": "O2 from electrolysis."
+        "footer": "通过电解制氧。"
       },
       "communications": {
-        "heading": "COMMS:",
+        "heading": "通信：",
         "chips": [
           {
-            "label": "Crew morale",
+            "label": "成员士气",
             "source": "metrics.morale",
             "format": "percent"
           }
         ],
-        "footer": "Earth visible from crater rim during ~70% of lunar day. Direct line-of-sight link. 1.3s signal delay. Relay satellite for far-side coverage."
+        "footer": "从陨石坑边缘可在约 70% 的月昼时间看到地球，使用视距直连链路，信号延迟约 1.3 秒；月球背面依靠中继卫星覆盖。"
       }
     },
     "postureRules": [],
@@ -872,10 +872,10 @@
     "reactionTemplate": {
       "lines": [
         {
-          "template": "Stationed at lunar outpost. {{years}} years on the Moon."
+          "template": "驻守月球前哨站，已在月球生活 {{years}} 年。"
         },
         {
-          "template": "Severe muscle and bone atrophy from 1/6g.",
+          "template": "六分之一重力导致严重肌肉萎缩与骨质流失。",
           "when": {
             "agent": "health.boneDensityPct",
             "op": "<",
@@ -883,7 +883,7 @@
           }
         },
         {
-          "template": "Significant regolith dust exposure.",
+          "template": "有显著月壤粉尘暴露。",
           "when": {
             "agent": "health.cumulativeRadiationMsv",
             "op": ">",
@@ -897,20 +897,20 @@
       {
         "turn": 1,
         "event": {
-          "title": "Lunar Arrival",
-          "description": "Your crew module has entered lunar orbit. Choose a base location for the permanent outpost.",
-          "crisis": "Your crew module has entered lunar orbit. You must choose a base location for the permanent outpost. Two candidates:\n\nOPTION A: Shackleton Crater Rim (south pole, 89.9\u00b0S). Near-permanent sunlight for solar power. Access to permanently shadowed craters with confirmed water ice deposits (LCROSS 2009). Challenging terrain with steep slopes.\n\nOPTION B: Marius Hills Lava Tube. Natural radiation shielding from the intact lava tube ceiling (up to 50m of basalt). Stable thermal environment. No direct solar power access (requires nuclear or transmitted power). Limited water ice nearby.\n\nBoth sites offer access to regolith for ISRU construction. Communication with Earth is line-of-sight dependent.",
+          "title": "抵达月球",
+          "description": "成员舱已进入月球轨道，请为永久前哨站选择基地位置。",
+          "crisis": "成员舱已进入月球轨道，请为永久前哨站选择基地位置。两个候选地点如下：\n\n方案 A：沙克尔顿陨石坑边缘，位于南极、南纬 89.9°。接近持续日照，有利于太阳能供电，可进入已确认存在水冰的永久阴影陨石坑（LCROSS，2009 年）。地形复杂，坡度陡峭。\n\n方案 B：马里乌斯丘陵熔岩管。完整熔岩管顶部可提供天然辐射屏蔽，玄武岩厚度可达 50 米；热环境稳定。没有直接太阳能，需使用核能或传输供电；附近水冰有限。\n\n两地均可获取月壤用于原位资源利用建设，与地球的通信依赖视线条件。",
           "options": [
             {
               "id": "option_a",
-              "label": "Shackleton Crater Rim",
-              "description": "Sunlight, water ice, steep terrain",
+              "label": "沙克尔顿陨石坑边缘",
+              "description": "有日照和水冰，但地形陡峭。",
               "isRisky": false
             },
             {
               "id": "option_b",
-              "label": "Marius Hills Lava Tube",
-              "description": "Natural shielding, no solar, limited water",
+              "label": "马里乌斯丘陵熔岩管",
+              "description": "天然屏蔽，无直接太阳能，水资源有限。",
               "isRisky": true
             }
           ],
@@ -927,26 +927,26 @@
             "engineering",
             "mining"
           ],
-          "turnSummary": "Crew in orbit. Solar-powered crater rim or radiation-shielded lava tube: the first decision defines everything."
+          "turnSummary": "成员位于轨道上。选择太阳能充足的陨石坑边缘，还是可屏蔽辐射的熔岩管？首个决定将塑造未来。"
         }
       },
       {
         "turn": "final",
         "event": {
-          "title": "Mission Review",
-          "description": "Earth space agencies request a comprehensive status report on your outpost.",
-          "crisis": "Earth space agencies request a comprehensive status report on your outpost:\n\n1. CREW: Current headcount, rotation schedule, health status\n2. INFRASTRUCTURE: Modules, pressurized volume, power generation, mining output\n3. SELF-SUFFICIENCY: Water from ISRU, food production, oxygen generation\n4. SCIENCE: Geological surveys, astronomical observations, technology demonstrations\n5. OPERATIONS: What worked, what failed, what needs redesign\n6. RECOMMENDATION: Should the outpost expand, maintain, or be re-evaluated?\n\nBe direct. Your assessment shapes the next decade of lunar policy.",
+          "title": "任务评审",
+          "description": "地球航天机构要求提交前哨站的全面状态报告。",
+          "crisis": "地球航天机构要求提交前哨站的全面状态报告：\n\n1. 成员：当前人数、轮换日程和健康状况。\n2. 基础设施：模块、加压容积、发电及采矿产出。\n3. 自给自足：原位资源利用供水、食物生产和制氧。\n4. 科研：地质勘查、天文观测和技术验证。\n5. 运营：哪些有效，哪些失败，哪些需要重新设计？\n6. 建议：前哨站应扩张、维持现状，还是重新评估？\n\n请直接陈述，你的评估将影响未来十年的月球政策。",
           "options": [
             {
               "id": "option_a",
-              "label": "Factual assessment",
-              "description": "Report data accurately, flag risks",
+              "label": "如实评估",
+              "description": "准确汇报数据并指出风险。",
               "isRisky": false
             },
             {
               "id": "option_b",
-              "label": "Expansion proposal",
-              "description": "Advocate for major expansion based on results",
+              "label": "扩张建议",
+              "description": "根据成果主张大规模扩张。",
               "isRisky": true
             }
           ],
@@ -963,7 +963,7 @@
             "medical",
             "mining"
           ],
-          "turnSummary": "Earth agencies demand a full status report. The commander must decide: honest assessment or bold expansion pitch."
+          "turnSummary": "地球机构要求完整状态报告。指挥官必须选择：如实评估，还是提出大胆的扩张计划。"
         }
       }
     ]

@@ -111,20 +111,20 @@ export function TimelineSparkline({
   return (
     <div className={styles.wrap}>
       <div className={styles.legend}>
-        <span>MORALE · POP{hasFood ? ' · FOOD' : ''} · T1 → T{maxTurns}</span>
+        <span>士气 · 人口{hasFood ? ' · 食物' : ''} · T1 → T{maxTurns}</span>
         <span className={styles.legendRight}>
           <span className={styles.legendA}>A</span>
           <span className={styles.legendB}>B</span>
-          <span className={styles.legendKey}>— morale</span>
-          <span className={styles.legendKey}>··· pop</span>
-          {hasFood && <span className={styles.legendKey}>- - food</span>}
+          <span className={styles.legendKey}>— 士气</span>
+          <span className={styles.legendKey}>··· 人口</span>
+          {hasFood && <span className={styles.legendKey}>- - 食物</span>}
         </span>
       </div>
       <svg
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="none"
         role="img"
-        aria-label={`Timeline sparkline of morale, population${hasFood ? ', and food' : ''} across both leaders`}
+        aria-label={`士气与人口时间线迷你图${hasFood ? '与食物' : ''}，对比两位决策者`}
         onClick={handleClick}
         onMouseMove={handleMove}
         onMouseLeave={handleLeave}
@@ -171,18 +171,18 @@ export function TimelineSparkline({
             {a && (
               <div className={styles.tooltipRowA}>
                 <span className={styles.tooltipBold}>A</span>
-                <span>pop {a.population}</span>
-                <span>· {Math.round(a.morale * 100)}% mor</span>
-                {typeof a.foodReserve === 'number' && <span>· {a.foodReserve.toFixed(1)}mo</span>}
+                <span>人口 {a.population}</span>
+                <span>· {Math.round(a.morale * 100)}% 士气</span>
+                {typeof a.foodReserve === 'number' && <span>· {a.foodReserve.toFixed(1)} 月</span>}
                 {(a.births > 0 || a.deaths > 0) && <span>· +{a.births}/-{a.deaths}</span>}
               </div>
             )}
             {b && (
               <div className={styles.tooltipRowB}>
                 <span className={styles.tooltipBold}>B</span>
-                <span>pop {b.population}</span>
-                <span>· {Math.round(b.morale * 100)}% mor</span>
-                {typeof b.foodReserve === 'number' && <span>· {b.foodReserve.toFixed(1)}mo</span>}
+                <span>人口 {b.population}</span>
+                <span>· {Math.round(b.morale * 100)}% 士气</span>
+                {typeof b.foodReserve === 'number' && <span>· {b.foodReserve.toFixed(1)} 月</span>}
                 {(b.births > 0 || b.deaths > 0) && <span>· +{b.births}/-{b.deaths}</span>}
               </div>
             )}

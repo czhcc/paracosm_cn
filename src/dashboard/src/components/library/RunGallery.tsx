@@ -36,7 +36,7 @@ export function RunGallery(props: RunGalleryProps): JSX.Element {
   return (
     <section className={styles.gallery}>
       <header className={styles.head}>
-        <span>All runs · {loading ? 'loading…' : `${total} results`}</span>
+        <span>全部运行 · {loading ? "加载中…" : `${total} 条结果`}</span>
       </header>
 
       {loading && runs.length === 0 ? (
@@ -68,9 +68,9 @@ export function RunGallery(props: RunGalleryProps): JSX.Element {
         <button
           disabled={currentOffset === 0}
           onClick={() => onPageChange(Math.max(0, currentOffset - pageSize))}
-        >‹ Prev</button>
-        <span>page {page} of {totalPages}</span>
-        <button disabled={!hasMore} onClick={() => onPageChange(currentOffset + pageSize)}>Next ›</button>
+        >‹ 上一页</button>
+        <span>第 {page} / {totalPages} 页</span>
+        <button disabled={!hasMore} onClick={() => onPageChange(currentOffset + pageSize)}>下一页 ›</button>
       </footer>
     </section>
   );

@@ -1,4 +1,5 @@
 import type { KeyPersonnel } from '../engine/core/agent-generator.js';
+import { configuredModel, normalizeProviderModel } from '../engine/provider/model-config.js';
 import type { Department } from '../engine/core/state.js';
 import type { ScenarioPackage } from '../engine/types.js';
 import { marsScenario } from '../engine/scenarios/index.js';
@@ -172,11 +173,11 @@ export interface NormalizedSimulationConfig {
  * promotion record would sit beside the one it names.
  */
 export const DEFAULT_KEY_PERSONNEL: KeyPersonnel[] = [
-  { name: 'Dr. Yuki Tanaka', department: 'medical', role: 'Senior Physician, Radiation Medicine', specialization: 'Radiation Medicine', age: 38, featured: true },
-  { name: 'Erik Lindqvist', department: 'engineering', role: 'Senior Structural Engineer', specialization: 'Structural Engineering', age: 45, featured: true },
-  { name: 'Amara Osei', department: 'agriculture', role: 'Senior Hydroponics Specialist', specialization: 'Hydroponics', age: 34, featured: true },
-  { name: 'Dr. Priya Singh', department: 'psychology', role: 'Clinical Psychologist', specialization: 'Clinical Psychology', age: 41, featured: true },
-  { name: 'Carlos Fernandez', department: 'engineering', role: 'Senior Geologist', specialization: 'Mars Surface Geology', age: 50, featured: true },
+  { name: 'Dr. Yuki Tanaka', department: 'medical', role: "高级放射医学医师", specialization: 'Radiation Medicine', age: 38, featured: true },
+  { name: 'Erik Lindqvist', department: 'engineering', role: "高级结构工程师", specialization: 'Structural Engineering', age: 45, featured: true },
+  { name: 'Amara Osei', department: 'agriculture', role: "高级水培专家", specialization: 'Hydroponics', age: 34, featured: true },
+  { name: 'Dr. Priya Singh', department: 'psychology', role: "临床心理师", specialization: 'Clinical Psychology', age: 41, featured: true },
+  { name: 'Carlos Fernandez', department: 'engineering', role: "高级地质学家", specialization: 'Mars Surface Geology', age: 50, featured: true },
 ];
 
 /**
@@ -462,12 +463,12 @@ export function resolveSimulationModels(
   costPreset: CostPreset = 'quality',
 ): SimulationModelConfig {
   const defaults = costPreset === 'economy' ? DEMO_MODELS[provider] : DEFAULT_MODELS[provider];
+  const defaultModel = configuredModel(provider);
   const normalizeModel = (
     requested: string | undefined,
     fallback: string,
   ): string => {
-    if (!requested) return fallback;
-    return inferProviderFromModel(requested) === provider ? requested : fallback;
+    return normalizeProviderModel(provider, requested) ?? defaultModel ?? fallback;
   };
 
   return {
@@ -743,6 +744,7 @@ function withNeutralTraits(actor: ActorConfig): ActorConfig {
 export function normalizeSimulationConfig(
   input: SimulationSetupPayload,
   scenario: ScenarioPackage = marsScenario,
+  env: Record<string, string | undefined> = process.env,
 ): NormalizedSimulationConfig {
   // Fork setup takes exactly one actor (the override for the forked
   // branch). Regular pair setup takes exactly two and dispatches to
@@ -799,6 +801,7 @@ export function normalizeSimulationConfig(
     baseModels: DEFAULT_MODELS[inferredProvider],
     overrides: input.models,
     batchConcurrency: input.economics?.batchConcurrency,
+    env,
   });
 
   return {

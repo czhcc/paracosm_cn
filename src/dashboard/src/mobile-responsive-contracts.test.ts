@@ -27,8 +27,8 @@ test('mobile contracts: RunTable exposes labels and card-like phone layout', () 
   const styles = read('./components/library/RunTable.module.scss');
 
   assert.ok(component.includes('className={styles.wrapper}'), 'RunTable has a scroll/card wrapper');
-  assert.match(component, /data-label="Scenario"/, 'scenario cell has mobile label');
-  assert.match(component, /data-label="Started"/, 'started cell has mobile label');
+  assert.match(component, /data-label="场景"/, 'scenario cell has mobile label');
+  assert.match(component, /data-label="开始时间"/, 'started cell has mobile label');
   assert.match(styles, /@media\s*\(max-width:\s*720px\)/, 'RunTable has a phone breakpoint');
   assert.match(styles, /td::before/, 'RunTable phone cells render their data-label');
   assert.match(styles, /display:\s*block/, 'RunTable can switch rows/cells to block layout');

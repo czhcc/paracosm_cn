@@ -73,7 +73,7 @@ export function parseStudioInput(text: string): StudioInput {
   if (!result.ok) {
     return {
       kind: 'error',
-      message: `Not a paracosm RunArtifact: ${result.issues[0] ?? 'invalid shape'}`,
+      message: `不是有效的 Paracosm 运行记录： ${result.issues[0] ?? 'invalid shape'}`,
       hint: result.issues.slice(1).join('; ') || undefined,
     };
   }

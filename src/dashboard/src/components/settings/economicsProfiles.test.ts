@@ -13,6 +13,6 @@ test('economics profile options stay ordered from cheapest to most expensive', (
 });
 
 test('describeServerMode distinguishes local demo from platform API', () => {
-  assert.equal(describeServerMode('local_demo').label, 'Local demo');
-  assert.equal(describeServerMode('platform_api').label, 'Platform API');
+  assert.equal(describeServerMode('local_demo').label, '本地演示');
+  assert.equal(describeServerMode('platform_api').label, '平台 API');
 });

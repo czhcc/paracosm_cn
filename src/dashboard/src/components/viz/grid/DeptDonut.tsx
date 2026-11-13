@@ -1,3 +1,4 @@
+import { departmentLabel } from '../../../template-localization';
 import { useMemo } from 'react';
 import type { CellSnapshot } from '../viz-types.js';
 
@@ -60,7 +61,7 @@ export function DeptDonut({
           fontSize: 'var(--font-3xs)',
           fontFamily: 'var(--mono)',
         }}
-        aria-label="No live members"
+        aria-label="没有存活成员"
       >
         —
       </div>
@@ -79,7 +80,7 @@ export function DeptDonut({
       height={size}
       viewBox={`0 0 ${size} ${size}`}
       role="img"
-      aria-label={`Department breakdown: ${slices.map(s => `${s.dept} ${s.count}`).join(', ')}`}
+      aria-label={`部门分布： ${slices.map(s => `${departmentLabel(s.dept)} ${s.count}`).join(', ')}`}
     >
       {slices.map((s, i) => {
         const angle = s.frac * Math.PI * 2;
@@ -104,12 +105,12 @@ export function DeptDonut({
         ].join(' ');
         return (
           <path
-            key={`${s.dept}-${i}`}
+            key={`${departmentLabel(s.dept)}-${i}`}
             d={d}
             fill={s.color}
             opacity={0.85}
           >
-            <title>{`${s.dept}: ${s.count} (${Math.round(s.frac * 100)}%)`}</title>
+            <title>{`${departmentLabel(s.dept)}: ${s.count} (${Math.round(s.frac * 100)}%)`}</title>
           </path>
         );
       })}
