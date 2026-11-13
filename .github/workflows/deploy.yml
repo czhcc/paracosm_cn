@@ -147,7 +147,7 @@ jobs:
         run: npm run check:sitemap
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build
           path: |
@@ -415,7 +415,7 @@ jobs:
 
       - name: Upload the tarball
         if: steps.changes.outputs.library_changed == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: package
           path: ${{ runner.temp }}/package/${{ steps.pack.outputs.tarball }}
