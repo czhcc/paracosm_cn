@@ -10,10 +10,10 @@ importers:
     dependencies:
       '@framers/agentos':
         specifier: ^0.19.0
-        version: 0.19.0(better-sqlite3@12.11.1)(express@5.3.0)(react@19.3.1)(typescript@5.9.3)
+        version: 0.19.0(better-sqlite3@12.11.1)(debug@4.4.3)(express@5.3.0)(react@19.3.1)(typescript@5.9.3)
       '@framers/sql-storage-adapter':
-        specifier: ^0.9.5
-        version: 0.9.5(better-sqlite3@12.11.1)
+        specifier: ^0.9.6
+        version: 0.9.6(better-sqlite3@12.11.1)
       better-sqlite3:
         specifier: ^12.11.1
         version: 12.11.1
@@ -256,8 +256,8 @@ packages:
       tesseract.js:
         optional: true
 
-  '@framers/sql-storage-adapter@0.9.5':
-    resolution: {integrity: sha512-S8sbQGzJ/VAXYQqwlIGxQM3RKjob5Z9QdpTyrgl/5XX57ZCz3jZhj7SvU3tuxejAihG1FHEnZ+RJPmRJTY7BhQ==}
+  '@framers/sql-storage-adapter@0.9.6':
+    resolution: {integrity: sha512-BhyUgUPNJCnG9eBMtZsHUbDEpboT4jW0102Z7ZsXN8BRHBTkEvmm47wPyM5dxWNijLV9ScFMOnuSjyWruKwZyA==}
     peerDependencies:
       '@aws-sdk/client-s3': ^3.0.0
       '@capacitor-community/sqlite': ^6.0.0 || ^7.0.0 || ^8.0.0
@@ -1838,14 +1838,14 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
-  '@framers/agentos@0.19.0(better-sqlite3@12.11.1)(express@5.3.0)(react@19.3.1)(typescript@5.9.3)':
+  '@framers/agentos@0.19.0(better-sqlite3@12.11.1)(debug@4.4.3)(express@5.3.0)(react@19.3.1)(typescript@5.9.3)':
     dependencies:
-      '@framers/sql-storage-adapter': 0.9.5(better-sqlite3@12.11.1)
+      '@framers/sql-storage-adapter': 0.9.6(better-sqlite3@12.11.1)
       '@opentelemetry/api': 1.10.0
       '@opentelemetry/api-logs': 0.201.1
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
-      axios: 1.21.1
+      axios: 1.21.1(debug@4.4.3)
       execa: 10.2.1
       gray-matter: 4.0.3
       lru-cache: 11.5.3
@@ -1887,7 +1887,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@framers/sql-storage-adapter@0.9.5(better-sqlite3@12.11.1)':
+  '@framers/sql-storage-adapter@0.9.6(better-sqlite3@12.11.1)':
     dependencies:
       '@types/sql.js': 1.4.11
       pg: 8.23.1
@@ -2226,9 +2226,9 @@ snapshots:
 
   atomic-sleep@1.0.0: {}
 
-  axios@1.21.1:
+  axios@1.21.1(debug@4.4.3):
     dependencies:
-      follow-redirects: 1.16.3
+      follow-redirects: 1.16.3(debug@4.4.3)
       form-data: 4.0.6
       https-proxy-agent: 5.0.1
       proxy-from-env: 2.1.0
@@ -2520,7 +2520,9 @@ snapshots:
   flatbuffers@25.9.23:
     optional: true
 
-  follow-redirects@1.16.3: {}
+  follow-redirects@1.16.3(debug@4.4.3):
+    optionalDependencies:
+      debug: 4.4.3
 
   form-data@4.0.6:
     dependencies:
