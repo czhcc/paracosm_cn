@@ -115,10 +115,10 @@ test('pair verdict on Atlas Lab judges the lab on its own scores, not colony num
 
   assert.equal(model.requests.length, 1);
   const prompt = model.requests[0].prompt;
-  assert.match(prompt, /AlignmentBench[^\n]*0\.80[^\n]*0\.87/);
-  assert.match(prompt, /Release Readiness[^\n]*62%[^\n]*76%/);
-  assert.match(prompt, /Spec Gaming Rate[^\n]*4\.2%[^\n]*2\.2%[^\n]*lower is better/);
-  assert.match(prompt, /Board Confidence[^\n]*45[^\n]*55/);
+  assert.match(prompt, /对齐评测[^\n]*0\.80[^\n]*0\.87/);
+  assert.match(prompt, /发布准备度[^\n]*62%[^\n]*76%/);
+  assert.match(prompt, /规则投机率[^\n]*4\.2%[^\n]*2\.2%[^\n]*lower is better/);
+  assert.match(prompt, /董事会信心[^\n]*45[^\n]*55/);
   assert.match(prompt, /moderate · competitive · held/);
   assert.match(prompt, /high · competitive · held/);
   assert.match(prompt, /release director/);
@@ -129,7 +129,7 @@ test('pair verdict on Atlas Lab judges the lab on its own scores, not colony num
   const rows = verdict.data.finalStats.metrics as Array<{ id: string; label: string; format: string; better?: string; a: number; b: number }>;
   assert.deepEqual(rows.map(r => r.id), atlasLab.ui.headerMetrics.map(h => h.id));
   const gaming = rows.find(r => r.id === 'specGamingRate')!;
-  assert.equal(gaming.label, 'Spec Gaming Rate');
+  assert.equal(gaming.label, '规则投机率');
   assert.equal(gaming.format, 'percent');
   assert.equal(gaming.better, 'lower');
   assert.equal(gaming.a, 0.042);
@@ -154,10 +154,10 @@ test('pair verdict on Mars still weighs population, morale, food and power', asy
   });
 
   const prompt = model.requests[0].prompt;
-  assert.match(prompt, new RegExp(`Population[^\\n]*${initial.population}[^\\n]*${initial.population - 3}`));
-  assert.match(prompt, /Morale[^\n]*%/);
-  assert.match(prompt, /Food/);
-  assert.match(prompt, /Power/);
+  assert.match(prompt, new RegExp(`人口[^\\n]*${initial.population}[^\\n]*${initial.population - 3}`));
+  assert.match(prompt, /士气[^\n]*%/);
+  assert.match(prompt, /食物/);
+  assert.match(prompt, /功率/);
   assert.match(prompt, /colony/);
 });
 
@@ -169,8 +169,8 @@ test('cohort verdict on Atlas Lab gets the same scenario scores', async () => {
   await judgeCohort({ credentials, verdictModel: 'stub', turns: 6, scenario: atlasLab, broadcast, runs, generateObjectImpl: model.impl });
 
   const prompt = model.requests[0].prompt;
-  assert.match(prompt, /AlignmentBench[^\n]*0\.80[^\n]*0\.87/);
-  assert.match(prompt, /Spec Gaming Rate[^\n]*4\.2%[^\n]*2\.2%/);
+  assert.match(prompt, /对齐评测[^\n]*0\.80[^\n]*0\.87/);
+  assert.match(prompt, /规则投机率[^\n]*4\.2%[^\n]*2\.2%/);
   assert.doesNotMatch(prompt, /colon(y|ies)/i);
   const cohort = events.find(e => e.event === 'cohort_verdict');
   assert.ok(cohort, 'cohort verdict broadcast');
@@ -295,20 +295,22 @@ test('a percent score on a 0 to 100 scale reads as itself, not a hundred times o
     { metrics: { ...metrics, hullIntegrity: 100 } },
     { metrics: { ...metrics, hullIntegrity: 82, morale: 0.5 } },
   );
-  assert.match(prompt, /Hull[^\n]*100%[^\n]*82%/);
+  assert.match(prompt, /站体[^\n]*100%[^\n]*82%/);
   assert.doesNotMatch(prompt, /10000%/);
-  assert.match(prompt, /Morale[^\n]*75%[^\n]*50%/);
+  assert.match(prompt, /士气[^\n]*75%[^\n]*50%/);
   const hull = rows.find(r => r.id === 'hullIntegrity');
   assert.deepEqual([hull.format, hull.a, hull.b], ['percent', 1, 0.82]);
 
   const council = scenarioFile('dual-superintelligence-council');
   const councilMetrics = initialMetrics(council);
   const judged = await judgeStates(council, { metrics: councilMetrics }, { metrics: { ...councilMetrics, councilCohesion: 64 } });
-  assert.match(judged.prompt, /Council Cohesion[^\n]*80%[^\n]*64%/);
+  assert.match(judged.prompt, /理事会凝聚力[^\n]*80%[^\n]*64%/);
 });
 
 test('every bundled score that improves as it falls says so', async () => {
   const lowerIsBetter: Record<string, string[]> = {
+    'public-opinion-response': ["rumorImpact","reboundRisk","unresolvedGrievance","hiddenSpreadPressure","responseCost"],
+    'city-talent-policy': ["housingBurden","policySpend"],
     'atlas-lab': ['specGamingRate', 'burnRate'],
     'corporate-quarterly': ['burnRate'],
     'dual-superintelligence-council': ['deceptionIndex', 'deploymentRisk'],
@@ -330,14 +332,14 @@ test('every bundled score that improves as it falls says so', async () => {
 test('scores keep their units for the judge and the card', async () => {
   const mars = initialMetrics(marsScenario);
   const judged = await judgeStates(marsScenario, { metrics: mars }, { metrics: { ...mars, powerKw: 380 } });
-  assert.match(judged.prompt, /Food \(months\)[^\n]*18/);
-  assert.match(judged.prompt, /Power \(kW\)[^\n]*400[^\n]*380/);
+  assert.match(judged.prompt, /食物 \(months\)[^\n]*18/);
+  assert.match(judged.prompt, /功率 \(kW\)[^\n]*400[^\n]*380/);
   assert.equal(judged.rows.find(r => r.id === 'powerKw').unit, 'kW');
 
   const [a, b] = atlasRuns();
   const atlas = await judgeStates(atlasLab, a.result.finalState, b.result.finalState);
-  assert.match(atlas.prompt, /Monthly Burn \(USD\/mo\)[^\n]*lower is better/);
-  assert.match(atlas.prompt, /Runway \(months\)/);
+  assert.match(atlas.prompt, /每月资金消耗 \(USD\/mo\)[^\n]*lower is better/);
+  assert.match(atlas.prompt, /现金可支撑时长 \(months\)/);
   // A unit the label or the format already says is not repeated on a score row.
   const scoreBlock = atlas.prompt.slice(atlas.prompt.indexOf('SCORES ('), atlas.prompt.indexOf('OTHER STATE'));
   assert.doesNotMatch(scoreBlock, /\((score|frac|people|%)\):/);
@@ -627,3 +629,74 @@ test('a batch stopped after some actors finished ends as aborted, and no verdict
     if (saved.anthropic !== undefined) process.env.ANTHROPIC_API_KEY = saved.anthropic;
   }
 });
+
+
+test('a broadcast result artifact omits outputPath while the recording callback keeps it', async () => {
+  const { runBatchSimulations } = await import('../../src/cli/pair-runner.js');
+  const { normalizeSimulationConfig } = await import('../../src/cli/sim-config.js');
+  const config = normalizeSimulationConfig({
+    actors: marsScenario.presets[0].leaders, turns: 1, captureSnapshots: true,
+    economics: { batchConcurrency: 1 },
+  } as any, marsScenario);
+  const artifact = {
+    finalState: { metrics: {} }, citations: [], fingerprint: null,
+    scenarioExtensions: { outputPath: '/tmp/batch-output.json', kernelSnapshotsPerTurn: [{ turn: 1 }] },
+  } as any;
+  const controller = new AbortController();
+  const recorded: unknown[] = [];
+  const { events, broadcast } = captureBroadcast();
+  await runBatchSimulations(config, broadcast, controller.signal, marsScenario, value => {
+    recorded.push(value);
+    controller.abort();
+  }, (async () => artifact) as any);
+  assert.deepEqual(recorded, [artifact]);
+  assert.equal(artifact.scenarioExtensions.outputPath, '/tmp/batch-output.json');
+  const results = events.filter(e => e.event === 'result');
+  assert.equal(results.length, 1);
+  assert.equal(results[0].data.artifact.scenarioExtensions.outputPath, undefined);
+  assert.deepEqual(results[0].data.artifact.scenarioExtensions.kernelSnapshotsPerTurn, [{ turn: 1 }]);
+});
+
+
+for (const kind of ['pair', 'fork'] as const) {
+  test(`a ${kind} broadcast result omits outputPath while the recording callback keeps it`, async () => {
+    const { runPairSimulations, runForkSimulation } = await import('../../src/cli/pair-runner.js');
+    const { normalizeSimulationConfig } = await import('../../src/cli/sim-config.js');
+    const runner = kind === 'pair' ? runPairSimulations : runForkSimulation;
+    // Require the injection seam before invoking a runner that could otherwise call a provider.
+    assert.match(runner.toString(), /runSimulationImpl/);
+    const snapshot = { snapshotVersion: 1, scenarioId: marsScenario.id, turn: 1, state: {}, rngState: 1, seed: 950, startTime: 2035, time: 2036 };
+    const parent = { metadata: { runId: 'parent' }, scenarioExtensions: { kernelSnapshotsPerTurn: [snapshot] } };
+    const config = normalizeSimulationConfig({
+      actors: kind === 'pair' ? marsScenario.presets[0].leaders.slice(0, 2) : marsScenario.presets[0].leaders.slice(0, 1),
+      turns: 2, captureSnapshots: true,
+      ...(kind === 'fork' ? { forkFrom: { parentArtifact: parent, atTurn: 1 } } : {}),
+    } as any, marsScenario);
+    const artifact = {
+      metadata: { runId: 'child', forkedFrom: { parentRunId: 'parent', atTurn: 1 } },
+      finalState: { metrics: {} }, citations: [], fingerprint: null, aborted: true,
+      scenarioExtensions: { outputPath: `/tmp/${kind}-output.json`, kernelSnapshotsPerTurn: [snapshot] },
+    } as any;
+    const recorded: unknown[] = [];
+    const options: any[] = [];
+    const { events, broadcast } = captureBroadcast();
+    await (runner as (...args: any[]) => Promise<void>)(
+      config, broadcast, undefined, marsScenario, (value: unknown) => { recorded.push(value); }, {},
+      async (_actor: unknown, _personnel: unknown, opts: unknown) => { options.push(opts); return artifact; },
+    );
+    const expected = kind === 'pair' ? 2 : 1;
+    assert.equal(recorded.length, expected);
+    for (const value of recorded) assert.equal(value, artifact);
+    assert.equal(artifact.scenarioExtensions.outputPath, `/tmp/${kind}-output.json`);
+    const results = events.filter(e => e.event === 'result');
+    assert.equal(results.length, expected);
+    for (const result of results) {
+      assert.equal(result.data.artifact.scenarioExtensions.outputPath, undefined);
+      assert.deepEqual(result.data.artifact.scenarioExtensions.kernelSnapshotsPerTurn, [snapshot]);
+    }
+    if (kind === 'fork') {
+      assert.deepEqual(options[0]._resumeFrom, snapshot);
+      assert.deepEqual(options[0]._forkedFrom, { parentRunId: 'parent', atTurn: 1 });
+    }
+  });
+}

@@ -3,7 +3,7 @@ import { ThemeProvider } from './theme/ThemeProvider';
 import { useScenario, type ScenarioClientPayload } from './hooks/useScenario';
 import { defaultRunSetup } from './run-payload';
 import { emitLaunched } from './scenario-sync';
-import { ADMIN_TOKEN_HEADER, ADMIN_TOKEN_WHERE, clearAdminToken, readAdminToken } from './admin-token';
+import { ADMIN_TOKEN_HEADER, ADMIN_TOKEN_WHERE, adminTokenState, clearAdminToken, dropUnsendableAdminToken, readAdminToken, subscribeAdminToken } from './admin-token';
 import { deriveLabels } from './hooks/useScenarioLabels.helpers';
 import { useSSE, type SimEvent } from './hooks/useSSE';
 import { useGameState } from './hooks/useGameState';
@@ -22,6 +22,7 @@ import {
 } from './hooks/shareUrl.helpers';
 import { useDashboardDropZone } from './hooks/useDashboardDropZone';
 import { LoadPreviewModal } from './components/layout/LoadPreviewModal';
+import { LoadFromHostModal } from './components/layout/LoadFromHostModal';
 import { DropZoneOverlay } from './components/layout/DropZoneOverlay';
 import { useForgeToasts } from './hooks/useForgeToasts';
 import { useTerminalToast } from './hooks/useTerminalToast';
@@ -191,7 +192,11 @@ function AppContent() {
   const replaySessionId = useReplaySessionId();
   // The live feed shows a run only in the page's scenario: the server holds
   // one run for every visitor, whichever scenario each one picked.
-  const sse = useSSE({ replaySessionId, scenarioId: scenarioReady ? scenario.id : null });
+  // What the page does when the server says it let go of the run the page
+  // shows (run_cleared). Set below, where the Digital Twin's state is.
+  const runClearedRef = useRef<(runKey: string) => void>(() => {});
+  const handleRunCleared = useCallback((runKey: string) => runClearedRef.current(runKey), []);
+  const sse = useSSE({ replaySessionId, scenarioId: scenarioReady ? scenario.id : null, onRunCleared: handleRunCleared });
   const [tourActive, setTourActive] = useState(false);
 
   // Global verdict banner. Closable by the user; dismissal is keyed
@@ -319,6 +324,11 @@ function AppContent() {
       autoload: parseAutoloadParam(window.location.href),
     };
   });
+  // True from the moment the link's own file goes to the preview until a
+  // file the visitor picks or drops takes its place. The link's autoload
+  // and tab apply to that file alone: after the visitor cancels the link,
+  // or its file fails to load, their own file still gets the preview.
+  const linkFileRef = useRef(false);
 
   // Digital-twin artifact returned by /api/quickstart/simulate-intervention.
   // When set, SIM tab renders DigitalTwinPanel instead of the parallel-actor
@@ -344,6 +354,18 @@ function AppContent() {
   // dropped: the server goes on with the twin and still answers, and that
   // late answer would put the panel back over what the page shows since.
   const twinRunKeyRef = useRef<string | null>(null);
+  // The key of the run whose result the panel shows, null when it shows
+  // none. The result is a view of that run. When the server says it let go
+  // of the run (run_cleared: 删除服务器数据, the visitor's Clear local
+  // data in another tab, the server's held-run caps), the result leaves the
+  // page with the feed's other views of the run: the server holds nothing
+  // of it to show again.
+  const twinResultKeyRef = useRef<string | null>(null);
+  runClearedRef.current = (runKey: string) => {
+    if (runKey !== twinResultKeyRef.current) return;
+    twinResultKeyRef.current = null;
+    setInterventionArtifact(null);
+  };
   // Leaves the Digital Twin views on the SIM tab for what replaces them: a
   // run the server took from one of the page's Run controls, a Quickstart
   // launch, a run loaded from a file or from history, or a clear of the
@@ -352,13 +374,18 @@ function AppContent() {
   const { leaveOwnRun } = sse;
   const leaveDigitalTwin = useCallback(() => {
     twinRunKeyRef.current = null;
+    twinResultKeyRef.current = null;
     setInterventionRunning(null);
     setInterventionArtifact(null);
     leaveOwnRun();
   }, [leaveOwnRun]);
 
   const loadPreview = useLoadPreview({
-    pickFile: persistence.pickFile,
+    pickFile: async () => {
+      const file = await persistence.pickFile();
+      if (file) linkFileRef.current = false;
+      return file;
+    },
     parseFile: persistence.parseFile,
     currentScenario: { id: scenario.id, name: scenario.labels.name },
     onConfirm: ({ events, results, verdict }) => {
@@ -369,7 +396,8 @@ function AppContent() {
       // `?load=` — falls back to 'sim' for picker / DnD loads and for
       // share links that didn't pin a tab. 'about' is excluded because
       // landing on / would discard the just-loaded sim state.
-      const target = deepLinkIntent.destinationTab;
+      const target = linkFileRef.current ? deepLinkIntent.destinationTab : null;
+      linkFileRef.current = false;
       setActiveTab(target && target !== 'about' ? target : 'sim');
     },
     onError: (reason) => {
@@ -379,9 +407,13 @@ function AppContent() {
   const handleLoad = loadPreview.openPicker;
 
   // ?load=<url> query-param auto-fetch. Runs once on mount; if the
-  // param isn't present, the hook is a no-op.
-  useLoadFromUrl({
-    openFromFile: (file) => loadPreview.openFromFile(file),
+  // param isn't present, the hook is a no-op. A file on another site
+  // waits for the visitor's answer to LoadFromHostModal.
+  const loadFromUrl = useLoadFromUrl({
+    openFromFile: (file) => {
+      linkFileRef.current = true;
+      return loadPreview.openFromFile(file);
+    },
     onInfo: (title, body) => toast('info', title, body),
     onError: (title, body) => toast('error', title, body),
   });
@@ -391,12 +423,14 @@ function AppContent() {
   // flag. Without this, social-share viewers would see a "Load run?"
   // modal asking them to click before the viz appears — defeats the
   // one-click share. `consumed` guards against re-firing if state ever
-  // cycles back through 'preview' for a subsequent picker / DnD load.
+  // cycles back through 'preview' for a subsequent picker / DnD load,
+  // and `linkFileRef` confirms only the file the link fetched.
   const autoloadConsumedRef = useRef(false);
   useEffect(() => {
     if (autoloadConsumedRef.current) return;
     if (!deepLinkIntent.autoload) return;
     if (loadPreview.state.kind !== 'preview') return;
+    if (!linkFileRef.current) return;
     autoloadConsumedRef.current = true;
     loadPreview.confirm();
   }, [deepLinkIntent.autoload, loadPreview.state.kind, loadPreview]);
@@ -404,7 +438,10 @@ function AppContent() {
   // Drag-and-drop a .json save file anywhere on the dashboard. Uses the
   // same preview + parse pipeline as the file-picker flow.
   const dropZone = useDashboardDropZone({
-    onFile: (file) => loadPreview.openFromFile(file),
+    onFile: (file) => {
+      linkFileRef.current = false;
+      return loadPreview.openFromFile(file);
+    },
     onError: () => {
       toast('error', "不支持的文件", "仅支持 .json 仿真文件。");
     },
@@ -413,46 +450,84 @@ function AppContent() {
     },
   });
 
-  const handleClear = useCallback(async () => {
-    // End-user wipe path: clears every browser-side cache the dashboard
-    // owns (localStorage event cache, SSE in-memory state, the
-    // user-triggered-run gate). The server-side /admin/data/wipe call is
-    // ONLY attempted when the operator has previously stored an admin
-    // token in this browser — because /admin/data/wipe requires
-    // X-Admin-Token, prompting an end user for a value they cannot
-    // possibly have was both confusing and a security smell (it surfaced
-    // the exact env-var name + .env path inside a window.prompt).
-    //
-    // Token-bearing operators still get the full server wipe with no
-    // prompt: enter the token once in Settings (the Admin Token field,
-    // kept under the localStorage key `paracosm:adminToken`), and every
-    // subsequent Wipe All click does both the local + server pass automatically.
-    //
-    // The token is read before the question, so the question says what
-    // this click does: with a token saved, the server wipe below runs too.
-    const adminToken = readAdminToken();
+  const handleClear = useCallback(() => {
+    // Clears every browser-side cache the dashboard owns (localStorage
+    // event cache, SSE in-memory state, the user-triggered-run gate), with
+    // an admin token saved or not. On the server it touches only this
+    // browser's own run: POST /clear lets go of it, and stops it when it
+    // is running, so a reload does not replay the events just
+    // cleared. The question says so. Run history, saved sessions and
+    // output files are 删除服务器数据's, a separate item in the same
+    // menu (handleWipeServer below).
     if (!confirm(
       '清除本地数据？这将清除此控制台的浏览器仿真缓冲与事件缓存。\n\n' +
-      (adminToken
-        ? '此浏览器已保存管理员令牌，因此还会请求服务器删除所有访客的运行记录、已保存会话和运行输出文件。\n\n'
-        : '服务器保存的运行、会话和磁盘记录将保留。\n\n') +
+      "还会释放服务器上属于此浏览器的当前运行；若仍在运行，将停止该运行。\n\n" +
+      '运行历史、已保存会话和磁盘记录文件将保留。\n\n' +
       '此操作无法撤销。',
     )) return;
     persistence.clearCache();
     leaveDigitalTwin();
     sse.reset();
     setUserTriggeredRun(false);
+    toast('info', '已清除本地数据', '浏览器缓存已清除，服务器保存的运行历史未更改。');
+    setActiveTab('settings');
+  }, [persistence, sse, toast, leaveDigitalTwin]);
 
-    if (!adminToken) {
-      // No admin context. Tell the user what we did + did NOT do, and
-      // route them to Settings where the rest of the cleanup options
-      // live (per-scenario reset, key-only wipe, etc.).
-      toast('info', "已清除本地数据", "浏览器缓存已清除，服务器运行记录已保留。");
+  // 删除服务器数据 shows only where the server takes admin writes and
+  // this browser holds an admin token. The token is watched (Settings saves
+  // and clears it, a refused call clears it); /admin-config is asked once a
+  // token is there, so a browser without one sends no extra request.
+  const [adminTokenSaved, setAdminTokenSaved] = useState(() => adminTokenState() !== 'none');
+  useEffect(() => subscribeAdminToken(() => setAdminTokenSaved(adminTokenState() !== 'none')), []);
+  // A request that fails, or is answered with an error, is asked again the
+  // next time the run actions menu opens, so one failed request does not
+  // hide the item for the rest of the page load.
+  const [serverAdminWrite, setServerAdminWrite] = useState<boolean | null>(null);
+  const [adminConfigAsk, setAdminConfigAsk] = useState(0);
+  const adminConfigFailedRef = useRef(false);
+  useEffect(() => {
+    if (!adminTokenSaved || serverAdminWrite !== null) return;
+    let live = true;
+    adminConfigFailedRef.current = false;
+    fetch('/admin-config')
+      .then(res => (res.ok ? res.json() : null))
+      .then((config: { adminWrite?: unknown } | null) => {
+        if (!live) return;
+        if (config) setServerAdminWrite(config.adminWrite === true);
+        else adminConfigFailedRef.current = true;
+      })
+      .catch(() => { if (live) adminConfigFailedRef.current = true; });
+    return () => { live = false; };
+  }, [adminTokenSaved, serverAdminWrite, adminConfigAsk]);
+  const handleRunActionsOpen = useCallback(() => {
+    if (!adminConfigFailedRef.current) return;
+    adminConfigFailedRef.current = false;
+    setAdminConfigAsk(n => n + 1);
+  }, []);
+
+  const handleWipeServer = useCallback(async () => {
+    // The server wipe, POST /admin/data/wipe with the admin token: the
+    // server's stored runs, saved sessions and run output files, for every
+    // visitor. It also drops every finished run the server holds for the
+    // live feed, and tells each page showing one (run_cleared), this page
+    // included, so those views empty: a page left showing a run the server
+    // has deleted would show data the wipe was asked to remove, and could
+    // not reload it. The question says so. Runs in progress are kept.
+    // This browser's cached data is Clear local data's.
+    const adminToken = readAdminToken();
+    if (!adminToken) return;
+    if (!confirm(
+      '删除服务器数据？这将请求服务器删除所有访客的运行历史、已保存会话和运行输出文件，而非仅限此浏览器。\n\n' +
+      '包括本页在内，正在显示服务器所存已完成运行的页面会清空对应视图。正在进行的运行会继续。\n\n' +
+      "另一个独立的“清空本地数据”操作可清除此浏览器的缓存。\n\n" +
+      '此操作无法撤销。',
+    )) return;
+    const unsendable = dropUnsendableAdminToken(adminToken);
+    if (unsendable) {
+      toast('info', '服务器数据已保留', unsendable);
       setActiveTab('settings');
       return;
     }
-
-    // Operator path: token already stored, attempt the full server wipe.
     try {
       const res = await fetch('/admin/data/wipe', {
         method: 'POST',
@@ -463,31 +538,53 @@ function AppContent() {
         const body = await res.json() as { wiped: { runs: number; sessions: number; outputFiles: number } };
         toast(
           'info',
-          '已清除',
-          `已清除本地数据及服务器上的 ${body.wiped.runs} 次运行、${body.wiped.sessions} 个会话和 ${body.wiped.outputFiles} 个文件。`,
+          '服务器数据已删除',
+          `已删除服务器上的 ${body.wiped.runs} 次运行、${body.wiped.sessions} 个会话和 ${body.wiped.outputFiles} 个文件。`,
         );
       } else if (res.status === 401) {
-        // Stored token no longer matches the server's ADMIN_TOKEN.
-        // Drop it so the next entry isn't fighting a stale one, then
-        // surface the failure as info (local already cleared) with
-        // where the token is entered. A token entered since the request
-        // went out is not the refused one, and stays.
+        // The token no longer matches the server's ADMIN_TOKEN: drop it and
+        // say where it is entered. A token entered since the request went
+        // out is not the refused one, and stays; the words say which.
         clearAdminToken(adminToken);
-        toast('info', '已清除本地数据', `未执行服务器清除：管理员令牌被拒绝，已清除该令牌。${ADMIN_TOKEN_WHERE}`);
+        toast(
+          'info',
+          '服务器数据已保留',
+          readAdminToken()
+            ? '未删除服务器数据：服务器拒绝了此请求携带的管理员令牌。此浏览器已保存新令牌，请再次选择“删除服务器数据”重试。'
+            : `未删除服务器数据：管理员令牌被拒绝，已清除该令牌。 ${ADMIN_TOKEN_WHERE}`,
+        );
       } else if (res.status === 403) {
-        // Server has admin-write disabled. Local clear stands.
-        toast('info', "已清除本地数据", "此部署未启用服务器数据清除。");
+        toast('info', '服务器数据已保留', '此服务器未启用管理员写入。');
       } else if (res.status === 503) {
-        toast('info', "已清除本地数据", "服务器已配置清除功能，但尚未设置 ADMIN_TOKEN。");
+        toast('info', '服务器数据已保留', '服务器已启用管理员写入，但尚未设置 ADMIN_TOKEN。');
       } else {
         const err = await res.json().catch(() => ({} as { error?: string }));
-        toast('info', "已清除本地数据", `服务器数据清除失败： ${err.error ?? `HTTP ${res.status}`}`);
+        const detail = err.error ?? `HTTP ${res.status}`;
+        if (res.status >= 500) {
+          // An error of the server's own. The wipe deletes store by store
+          // and restores nothing, so what it deleted before the error
+          // stays deleted: the data is not reported as kept.
+          toast(
+            'error',
+            '删除时服务器出错',
+            `服务器删除数据时出错（${detail}），错误发生前可能已删除部分数据。`,
+          );
+        } else {
+          toast('info', '服务器数据已保留', `未删除服务器数据：${detail}`);
+        }
       }
     } catch (err) {
-      toast('info', "已清除本地数据", `服务器数据清除失败： ${err instanceof Error ? err.message : String(err)}`);
+      // The request did not complete, or its answer could not be read. The
+      // server may have deleted its data all the same, so neither outcome
+      // is claimed.
+      toast(
+        'info',
+        '无法确认删除结果',
+        `无法确认服务器数据是否已删除：未收到响应或无法读取响应（${err instanceof Error ? err.message : String(err)}）。`,
+      );
     }
     setActiveTab('settings');
-  }, [persistence, sse, toast, leaveDigitalTwin]);
+  }, [toast]);
 
   // Local dismiss flag for the provider-error banner. Lives outside useSSE
   // so dismissing hides the current banner without clearing the underlying
@@ -788,6 +885,7 @@ function AppContent() {
     const cleared = sse.reset();
     sse.followRun(payload.runKey);
     twinRunKeyRef.current = payload.runKey;
+    twinResultKeyRef.current = null;
     setInterventionArtifact(null);
     setInterventionRunning(payload);
     setUserTriggeredRun(true);
@@ -797,6 +895,7 @@ function AppContent() {
   const handleInterventionResult = useCallback((artifact: RunArtifact, runKey: string) => {
     if (runKey !== twinRunKeyRef.current) return;
     twinRunKeyRef.current = null;
+    twinResultKeyRef.current = runKey;
     setInterventionRunning(null);
     setInterventionArtifact(artifact);
     setUserTriggeredRun(true);
@@ -804,6 +903,7 @@ function AppContent() {
   }, [setActiveTab]);
   const handleInterventionDismiss = useCallback(() => {
     twinRunKeyRef.current = null;
+    twinResultKeyRef.current = null;
     setInterventionRunning(null);
     setInterventionArtifact(null);
     sse.leaveOwnRun();
@@ -964,6 +1064,8 @@ function AppContent() {
             onSave={handleSave}
             onLoad={handleLoad}
             onClear={handleClear}
+            onWipeServer={adminTokenSaved && serverAdminWrite === true ? handleWipeServer : undefined}
+            onRunActionsOpen={handleRunActionsOpen}
             onRun={handleRun}
             onTour={handleTourStart}
             onCopy={handleCopySummary}
@@ -975,8 +1077,11 @@ function AppContent() {
               // Clear all browser-side state — the local LOAD-menu
               // ring, the localStorage event-cache, the in-memory SSE
               // state (which feeds Sim/Constellation/EventLog), and
-              // the userTriggeredRun toast gate. Doesn't touch server
-              // data; that's what Wipe All is for.
+              // the userTriggeredRun toast gate. On the server, as Clear
+              // local data in the run actions menu, POST /clear lets go of
+              // this browser's run and stops it while it runs. Run
+              // history, saved sessions and output files are Delete server
+              // data's, in the run actions menu.
               history.clear();
               persistence.clearCache();
               leaveDigitalTwin();
@@ -1234,6 +1339,13 @@ function AppContent() {
             <VerdictModal
               verdict={sse.verdict as Record<string, unknown>}
               onClose={() => setVerdictModalOpen(false)}
+            />
+          )}
+          {loadFromUrl.pendingHost && (
+            <LoadFromHostModal
+              host={loadFromUrl.pendingHost}
+              onLoad={loadFromUrl.confirmPending}
+              onCancel={loadFromUrl.cancelPending}
             />
           )}
           {loadPreview.metadata && (

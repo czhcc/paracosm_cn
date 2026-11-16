@@ -211,6 +211,14 @@ export interface UseSSEOptions {
    * Digital Twin run).
    */
   scenarioId?: string | null;
+  /**
+   * Called with the run's key when the server says it let go of the run the
+   * page shows from the feed (`run_cleared`), after the feed's views of it
+   * emptied. The page holds views of that run outside the feed's state (a
+   * finished Digital Twin's result), and empties them here. Not called for
+   * a run the page does not show, nor for the page's own reset().
+   */
+  onRunCleared?: (runKey: string) => void;
 }
 
 /** The run fields of SSEState, empty: a page that holds no run. */
@@ -228,6 +236,9 @@ export function useSSE(options: UseSSEOptions = {}) {
   const replaySessionId = options.replaySessionId ?? null;
   const replaySpeed = options.replaySpeed;
   const scenarioId = options.scenarioId ?? null;
+  // Read when run_cleared arrives, so the stream is not reopened for a new callback.
+  const onRunClearedRef = useRef(options.onRunCleared);
+  onRunClearedRef.current = options.onRunCleared;
   const [state, setState] = useState<SSEState>({
     status: 'connecting',
     events: [],
@@ -402,12 +413,14 @@ export function useSSE(options: UseSSEOptions = {}) {
     // a reload after a failed run restores the banner state, not just
     // the viz/reports tabs.
     const errEvent = events.find(e => e.type === 'provider_error');
+    // A file's JSON can hold any value here; the banner shows a string only.
+    const errActionUrl = errEvent?.data?.actionUrl;
     const restoredProviderError: ProviderErrorState | null = errEvent
       ? {
           kind: (errEvent.data?.kind as ProviderErrorState['kind']) ?? 'unknown',
           provider: errEvent.data?.provider as string | undefined,
-          message: String(errEvent.data?.message ?? "模型服务错误"),
-          actionUrl: errEvent.data?.actionUrl as string | undefined,
+          message: String(errEvent.data?.message ?? '模型服务错误'),
+          actionUrl: typeof errActionUrl === 'string' ? errActionUrl : undefined,
           leader: errEvent.leader,
         }
       : null;
@@ -658,6 +671,7 @@ function addValidationFallback(prev: readonly ValidationFallbackBucket[], d: Rec
         // A run loaded from a file is not the feed's: it stays.
         if (shownFromFileRef.current) return;
         clearLocalRun();
+        onRunClearedRef.current?.(runKey);
       });
 
       // Every run opens with active_scenario, which names its scenario; the
@@ -774,6 +788,7 @@ function addValidationFallback(prev: readonly ValidationFallbackBucket[], d: Rec
           // them in `events` for audit / reload-restoration purposes.
           if (data.type === 'provider_error' && data.data) {
             const d = data.data as Record<string, unknown>;
+            const actionUrl = d.actionUrl;
             setState(prev => ({
               ...prev,
               events: [...prev.events, data],
@@ -783,8 +798,8 @@ function addValidationFallback(prev: readonly ValidationFallbackBucket[], d: Rec
               providerError: prev.providerError ?? {
                 kind: (d.kind as ProviderErrorState['kind']) ?? 'unknown',
                 provider: d.provider as string | undefined,
-                message: String(d.message ?? "模型服务错误"),
-                actionUrl: d.actionUrl as string | undefined,
+                message: String(d.message ?? '模型服务错误'),
+                actionUrl: typeof actionUrl === 'string' ? actionUrl : undefined,
                 leader: data.leader,
               },
             }));

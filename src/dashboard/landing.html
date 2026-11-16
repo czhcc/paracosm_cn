@@ -54,7 +54,7 @@
 </script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
-{"@type":"Question","name":"What is Paracosm?","acceptedAnswer":{"@type":"Answer","text":"Paracosm is an open-source TypeScript structured world-model engine for LLM agent swarms (npm install paracosm, Apache-2.0). You define or ground a world as a ScenarioPackage with departments, metrics, crisis templates, and progression hooks. The engine populates the world, generates events from live state, and resolves outcomes through a seeded deterministic kernel. LLM-driven stages diverge because every prompt carries the leader's HEXACO profile. The npm package exports two scenarios (Mars Genesis, Lunar Outpost) and the repository's scenarios/ folder holds five more; new ones compile from a JSON draft, prompt, brief, or URL."}},
+{"@type":"Question","name":"What is Paracosm?","acceptedAnswer":{"@type":"Answer","text":"Paracosm is an open-source TypeScript structured world-model engine for LLM agent swarms (npm install paracosm, Apache-2.0). You define or ground a world as a ScenarioPackage with departments, metrics, crisis templates, and progression hooks. The engine populates the world, generates events from live state, and resolves outcomes through a seeded deterministic kernel. LLM-driven stages diverge because every prompt carries the leader's HEXACO profile. The npm package exports two scenarios (Mars Genesis, Lunar Outpost) and the repository's scenarios/ folder holds seven more; new ones compile from a JSON draft, prompt, brief, or URL."}},
 {"@type":"Question","name":"What are the two kinds of world model and which one is Paracosm?","acceptedAnswer":{"@type":"Answer","text":"The phrase 'world model' is overloaded. Older lineages do most of the work: Hafner's Dreamer line and DeepMind's MuZero learn dynamics in latent space; MuJoCo, Brax, and Isaac Sim simulate physics deterministically. Both have been the substrate for robotics research for years. LeCun's JEPA family is explicitly anti-pixel — the architectural argument is that pixel reconstruction is wasteful. Newer pixel-generation entrants (Sora, Genie 3, World Labs Marble) get the headlines, but their 'world simulator' framing is contested by the older lineage. Structured / LLM-based world models emit typed JSON state, decisions, and citations agents can reason inside. Paracosm is in the structured / LLM lineage. The split is surveyed in the Tsinghua FIB Lab ACM CSUR 2025 survey and the World Model for Robot Learning survey (arXiv 2605.00080); critique in Xing 2025 (arXiv 2507.05169); counterfactual semantics in Kirfel et al, AI & Ethics 2025."}},
 {"@type":"Question","name":"How does Paracosm differ from MiroFish, OASIS, and other agent-based modeling stacks?","acceptedAnswer":{"@type":"Answer","text":"MiroFish and OASIS (CAMEL-AI) run open-ended bottom-up social simulations with thousands to one million LLM-driven agents and emit aggregate prediction reports. Paracosm runs a top-down agent swarm: one HEXACO-typed leader, ~5 specialist departments, ~100 personality-typed cells, deterministic per seed. Different scale (~100 vs 1k-1M), direction (top-down vs bottom-up), output (universal forkable RunArtifact vs aggregate forecast). Classical ABM (Mesa, NetLogo, MASON, ABIDES, AnyLogic) is rule-based and largely non-LLM; Paracosm threads LLMs into events while keeping a deterministic kernel for state."}},
 {"@type":"Question","name":"How does a single turn run end-to-end?","acceptedAnswer":{"@type":"Answer","text":"A turn takes 30-90 seconds and runs four phases. (1) Event Director reads world state and prior decisions, generates events that target weak points. (2) Department Analysis: five specialist agents analyze in parallel, can recall research, may forge new computational tools. (3) Commander Decision: the leader weighs department input through their HEXACO profile and emits an action category, parameter set, rationale, and confidence score. (4) Kernel Resolution: the deterministic state machine applies effects, agents react, HEXACO traits drift through leader-pull, role-activation, and outcome-reinforcement. The full per-turn record appends to the RunArtifact."}},
@@ -758,12 +758,12 @@ npm run dashboard     <span class="cm"># opens http://localhost:3456</span>
 <!-- SCENARIOS -->
 <section class="sec sec-alt" id="scenarios">
   <div class="sec-inner">
-    <h2 class="sec-title rv">Seven scenarios to start from</h2>
-    <p class="sec-desc rv">A ScenarioPackage is a JSON file. It declares departments, metrics, crisis templates, progression rules, and milestone events; the engine reads the package, populates the world, and runs the simulation. All seven below are JSON files in the repository's <a href="https://github.com/framerslab/paracosm/tree/master/scenarios" target="_blank" rel="noopener"><code>scenarios/</code></a> folder; the npm package exports two of them, Mars Genesis and Lunar Outpost, as <code>marsScenario</code> and <code>lunarScenario</code>. Switching scenarios takes no engine code changes. Compile your own from a brief, URL, or seed prompt with <code>compileScenario()</code>.</p>
+    <h2 class="sec-title rv">Nine scenarios to start from</h2>
+    <p class="sec-desc rv">A ScenarioPackage is a JSON file. It declares departments, metrics, crisis templates, progression rules, and milestone events; the engine reads the package, populates the world, and runs the simulation. All nine below are JSON files in the repository's <a href="https://github.com/framerslab/paracosm/tree/master/scenarios" target="_blank" rel="noopener"><code>scenarios/</code></a> folder; the npm package exports two of them, Mars Genesis and Lunar Outpost, as <code>marsScenario</code> and <code>lunarScenario</code>. Switching scenarios takes no engine code changes. Compile your own from a brief, URL, or seed prompt with <code>compileScenario()</code>.</p>
 
     <div class="faq-list rv">
       <details class="faq-item">
-        <summary>Mars Genesis · 100 colonists · Flagship</summary>
+        <summary>火星创世纪 · 100 colonists · Flagship</summary>
         <div class="faq-body">
           100-person Mars colony across 50 simulated years. Five departments (Medical, Engineering, Agriculture, Psychology, Governance) analyze each event. Agents track bone density, radiation exposure, food reserves, morale, and political faction alignment. The Event Director uses all of this to generate events that target the colony's weakest points.
           <div class="faq-cite">100 colonists · 5 depts · 6 turns · 50 simulated years · landing 2035</div>
@@ -771,7 +771,7 @@ npm run dashboard     <span class="cm"># opens http://localhost:3456</span>
       </details>
 
       <details class="faq-item">
-        <summary>Lunar Outpost · 50 crew · Proven</summary>
+        <summary>月球前哨站 · 50 crew · Proven</summary>
         <div class="faq-body">
           50-person crew at the lunar south pole. Five departments handle medical, engineering, mining, life-support, and communications. The scenario models regolith toxicity, 1/6g muscle and bone atrophy, Earth-relay communication delays, and crew rotation logistics. Proves the engine works across scenario boundaries with zero engine code changes.
           <div class="faq-cite">50 crew · 5 depts · 8 turns · 10 simulated years · arrival 2030</div>
@@ -779,7 +779,7 @@ npm run dashboard     <span class="cm"># opens http://localhost:3456</span>
       </details>
 
       <details class="faq-item">
-        <summary>Atlas Lab · 480 researchers · Frontier AI</summary>
+        <summary>阿特拉斯实验室 · 480 researchers · Frontier AI</summary>
         <div class="faq-body">
           A frontier AI research lab racing competitor labs to ship a model that just crossed capability thresholds. Five departments (Alignment Research, Capability Research, Governance, Deployment Engineering, Communications) weigh release-readiness against deception index, alignment score, deployment risk, and competitor capability gap. The Visionary commander pushes ship-fast; the Engineer commander holds for safety review — same world, divergent decisions.
           <div class="faq-cite">480 researchers · 5 depts · 6 turns · alignment vs capability arc</div>
@@ -787,7 +787,7 @@ npm run dashboard     <span class="cm"># opens http://localhost:3456</span>
       </details>
 
       <details class="faq-item">
-        <summary>Dual Superintelligence Council · 30 council members · AI governance</summary>
+        <summary>双超级智能理事会 · 30 council members · AI governance</summary>
         <div class="faq-body">
           Year 2035. A deliberative council of 30 members weighs civilization-scale deployment decisions for two recently-stood-up superintelligence systems. Five departments (Alignment Council, Capability Council, Governance, Safety Engineering, Public Communications) test the council's ability to coordinate under deception risk, public scrutiny, and competing incentive structures. Pressure-tests how a single commander's HEXACO profile shifts collective decision-making.
           <div class="faq-cite">30 council members · 5 depts · 6 turns · civilization-scale deployment</div>
@@ -795,7 +795,7 @@ npm run dashboard     <span class="cm"># opens http://localhost:3456</span>
       </details>
 
       <details class="faq-item">
-        <summary>Q-Scope Corp · 40 employees · Corporate strategy</summary>
+        <summary>Q-Scope 公司 · 40 employees · Corporate strategy</summary>
         <div class="faq-body">
           A 40-person developer observability SaaS facing quarterly board pressure. Five departments (Sales, Engineering, Finance, HR, Operations) field events targeting churn risk, runway, hiring velocity, and product reliability. Use this for M&A simulation, market-entry plays, leadership replays — the canonical corporate-strategy scenario. Twelve quarter-turns of decisions across the same starting cap table.
           <div class="faq-cite">40 employees · 5 depts · 12 turns · quarterly cadence</div>
@@ -803,7 +803,7 @@ npm run dashboard     <span class="cm"># opens http://localhost:3456</span>
       </details>
 
       <details class="faq-item">
-        <summary>Deep Ocean Station · 50 crew · Closed habitat</summary>
+        <summary>深海研究站 · 50 crew · Closed habitat</summary>
         <div class="faq-body">
           50-person crew aboard a deep-ocean research station, 2038 onwards. Five departments (Medical, Engineering, Marine Science, Life Support, Communications) field hull-pressure events, atmospheric balance, surface-link blackouts, and crew morale under prolonged isolation. A pressure-vessel analog to Lunar Outpost — same closed-system shape, different physics.
           <div class="faq-cite">50 crew · 5 depts · 8 turns · 2038 launch · sealed habitat</div>
@@ -811,10 +811,26 @@ npm run dashboard     <span class="cm"># opens http://localhost:3456</span>
       </details>
 
       <details class="faq-item">
-        <summary>T2D + GLP-1 Care · 1 patient · Digital-twin medicine</summary>
+        <summary>2 型糖尿病与 GLP-1 照护 · 1 patient · Digital-twin medicine</summary>
         <div class="faq-body">
           Single-patient digital twin tracking a Type-2 diabetes patient on a GLP-1 protocol across six clinical timepoints. Five care-team departments (Endocrinology, Nutrition, Behavioral Psych, Cardiology, Lifestyle Coach) read the same chart and propose interventions. The scenario uses <code>paracosm/digital-twin</code>: subject + intervention configs feed the same kernel, and the artifact carries the per-timepoint chart so a different physician HEXACO profile produces a measurably different trajectory.
           <div class="faq-cite">1 patient · 5 depts · 6 timepoints · GLP-1 protocol arc</div>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary>双城引才：经济成长与城市吸引力 · 八年政策对比</summary>
+        <div class="faq-body">
+          两座初始条件相同的虚拟城市，市长初始人格相同，分别采用直接激励与发展环境两种引才政策。比较经济成长、城市吸引力、人才留存与政策成本。
+          <div class="faq-cite">100 名代表性居民 · 5 个部门 · 8 回合 · 未经实证校准的情景假设</div>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary>舆情应对：封堵限制与沟通疏导 · 八日策略对比</summary>
+        <div class="faq-body">
+          陈宁与林清面对同一虚拟服务事故，分别采用封堵限制与沟通疏导。比较短期讨论、长期信任、诉求解决、谣言影响、传播反弹及资源成本。
+          <div class="faq-cite">100 名代表性用户 · 5 个部门 · 8 回合 · 未经实证校准的情景假设</div>
         </div>
       </details>
     </div>
@@ -1030,7 +1046,7 @@ npm run dashboard     <span class="cm"># opens http://localhost:3456</span>
 
       <!-- ============== WHAT IT IS ============== -->
       <details class="faq-item"><summary>What is Paracosm?</summary><div class="faq-body">
-        An open-source TypeScript structured world-model engine for LLM agent swarms (<code>npm install paracosm</code>, Apache-2.0). You define or ground a world as a <code>ScenarioPackage</code>: departments, metrics, crisis templates, progression hooks. The engine populates the world, generates events from live state, and resolves outcomes through a seeded deterministic kernel. LLM-driven stages diverge because every prompt carries the leader's HEXACO profile. The npm package exports two scenarios, Mars Genesis and Lunar Outpost, and the repository's <code>scenarios/</code> folder holds five more; you can compile new ones from a JSON draft, prompt, brief, or URL.
+        An open-source TypeScript structured world-model engine for LLM agent swarms (<code>npm install paracosm</code>, Apache-2.0). You define or ground a world as a <code>ScenarioPackage</code>: departments, metrics, crisis templates, progression hooks. The engine populates the world, generates events from live state, and resolves outcomes through a seeded deterministic kernel. LLM-driven stages diverge because every prompt carries the leader's HEXACO profile. The npm package exports two scenarios, Mars Genesis and Lunar Outpost, and the repository's <code>scenarios/</code> folder holds seven more; you can compile new ones from a JSON draft, prompt, brief, or URL.
         <div class="faq-cite">Positioning map: <a href="https://github.com/framerslab/paracosm/blob/master/docs/positioning/world-model-mapping.md" target="_blank" rel="noopener">docs/positioning/world-model-mapping.md</a></div>
       </div></details>
 
@@ -1061,7 +1077,7 @@ npm run dashboard     <span class="cm"># opens http://localhost:3456</span>
 
       <details class="faq-item"><summary>How does runtime tool forging work, and is it safe?</summary><div class="faq-body">
         When a department agent needs a calculation the codebase doesn't provide, it writes one. A medical officer facing a radiation crisis writes a dose calculator. An engineer writes a structural load analyzer. The pipeline: specialist proposes a tool → Zod-validated input/output schema → JavaScript body authored by the LLM → run in an in-process <a href="https://nodejs.org/api/vm.html" target="_blank" rel="noopener"><code>node:vm</code> context</a> with a 10-second wall-clock limit, its heap use reported against a nominal 128 MB budget. The forge always rejects code that uses <code>eval</code>, <code>Function</code>, <code>require</code>, dynamic <code>import</code>, <code>process</code>, <code>child_process</code> or destructive <code>fs.*</code> calls, and paracosm grants forged code no network, file or crypto access. An LLM judge reviews the output against the specialist's stated intent — match approves, mismatch rejects. Approved tools land in a discoverable registry that subsequent turns and other actors pull from. Reuse via <code>call_forged_tool</code> costs tens of tokens; fresh forges cost full LLM tokens for proposal + body + scaffolding + judge. After turn three, most decisions invoke a previously-forged tool and total run cost flattens.
-        <div class="faq-cite">Implementation: AgentOS <code>EmergentCapabilityEngine</code> + <code>EmergentJudge</code> + <code>ForgeToolMetaTool</code> + <code>CodeSandbox</code>.</div>
+        <div class="faq-cite">Implementation: AgentOS <code>EmergentCapabilityEngine</code> + <code>EmergentJudge</code> + <code>ForgeToolMetaTool</code>; the forged code runs in paracosm's own executor (<code>forged-code-executor.ts</code>), a <code>node:vm</code> context of its own inside the server's process.</div>
       </div></details>
 
       <details class="faq-item"><summary>What is the HEXACO personality model and why use it?</summary><div class="faq-body">
@@ -1138,6 +1154,7 @@ npm run dashboard     <span class="cm"># opens http://localhost:3456</span>
       <li><strong>Microsoft Clarity</strong> (Microsoft is our processor) records clicks, scrolling and mouse movement as session replays and heatmaps. It masks the text and images on the page before anything leaves your browser, apart from the page title. Its cookies, <code>_clck</code> and <code>_clsk</code> plus Microsoft's own, recognize a returning browser and connect the pages of one visit.</li>
     </ul>
     <p class="sec-desc rv" style="margin-bottom:24px">The dashboard sets two cookies of its own. <code>paracosm_scenario</code> is set when you pick a scenario or start a run in a scenario other than the one you picked. It holds only that scenario's id and lasts 30 days, so the dashboard reopens on your pick. <code>paracosm_visitor</code> holds a random id this server gives your browser the first time you open the dashboard, so a run you start stays with your own pages and shows on no one else's. It lasts 30 days and identifies your browser to this server alone.</p>
+    <p class="sec-desc rv" style="margin-bottom:24px">To apply its usage limits, the server keeps your IP address with a count of your requests: runs, Digital Twin runs included, compiles, chat messages, run imports and other Quickstart requests such as generating leaders, grounding a scenario or reading a page. It counts a compile on your own model key too when that compile uses this site's web search or reads a page through it. Each count ends at the next UTC midnight, or at the next UTC hour for chat. The server deletes ended counts from memory at its hourly cleanup and then updates its saved copy. It also clears ended counts from the saved copy when it starts. It holds your address to limit simultaneous runs on your own model key and open live views, until the run is dropped or the view closes.</p>
     <p class="sec-desc rv" style="margin-bottom:0">A copy of Paracosm you install from npm or run from the repository loads none of these tools. Questions about this site's data go to <a href="mailto:team@frame.dev">team@frame.dev</a>.</p>
   </div>
 </section>

@@ -591,7 +591,7 @@ async function replayThroughRoute(runId: string, artifact: RunArtifact, scenario
 
 test('POST /api/v1/runs/:runId/replay answers matches=true for a Mars run the turn loop saved, decisions applied', async () => {
   const { artifact, log } = await runMarsWithStubModel();
-  assert.deepEqual(log.decisions, ['Landfall', 'Legacy Assessment'], 'the stub model gave both decisions their recorded replies');
+  assert.deepEqual(log.decisions, ['首次着陆', '殖民地发展评估'], 'the stub model gave both decisions their recorded replies');
 
   const answer = await replayThroughRoute('r-turn-loop', artifact, marsScenario);
   assert.equal(answer.status, 200);
@@ -610,4 +610,29 @@ test('POST /api/v1/runs/:runId/replay answers 422 with the reason for a run save
   assert.equal(answer.body.error, 'replay_preconditions_unmet');
   assert.match(String(answer.body.message), /cannot verify this run/);
   assert.deepEqual(answer.recorded, [], 'neither a match nor a mismatch is recorded');
+});
+
+
+test('a stored artifact answer omits outputPath and keeps the stored file unchanged', async () => {
+  const { rmSync } = await import('node:fs');
+  const dir = mkdtempSync(join(tmpdir(), 'paracosm-public-artifact-'));
+  const artifactPath = join(dir, 'artifact.json');
+  const artifact = { metadata: { runId: 'public-artifact' }, scenarioExtensions: { outputPath: artifactPath, label: 'kept' } };
+  writeFileSync(artifactPath, JSON.stringify(artifact));
+  const store = createSqliteRunHistoryStore({ dbPath: ':memory:' });
+  try {
+    await store.insertRun(makeRun({ runId: 'public-artifact', artifactPath }));
+    const captured: CapturedResponse = { statusCode: 0, body: '', headers: {} };
+    await handlePlatformApiRoute(makeReq('/api/v1/runs/public-artifact'), makeRes(captured), {
+      runHistoryStore: store, corsHeaders: {}, ...ENABLED, runsDir: dir,
+    });
+    assert.equal(captured.statusCode, 200);
+    const answer = JSON.parse(captured.body);
+    assert.equal(answer.record.artifactPath, undefined);
+    assert.deepEqual(answer.artifact.scenarioExtensions, { label: 'kept' });
+    assert.deepEqual(JSON.parse(readFileSync(artifactPath, 'utf-8')), artifact);
+  } finally {
+    await store.close?.();
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

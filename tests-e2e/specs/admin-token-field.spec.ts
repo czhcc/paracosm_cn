@@ -2,20 +2,20 @@
  * The admin token is entered in Settings.
  *
  * On a server with admin writes on (ADMIN_WRITE=true and an ADMIN_TOKEN) the
- * dashboard's Save to Disk, its server wipe and its scenario delete send the
- * token this browser keeps under the localStorage key paracosm:adminToken.
- * The dashboard had no control that writes that key, so each call answered
- * 401 with nothing on the page to act on. Settings holds an Admin Token
- * field, shown only where admin writes are on, and a refused call says where
- * that field is.
+ * dashboard sends the token this browser keeps under the localStorage key
+ * paracosm:adminToken on four kinds of call: Save to Disk, 删除服务器数据
+ * in the run actions menu, and Rename and Delete in a scenario's details.
+ * Settings holds an Admin Token field, shown only where admin writes are on,
+ * and a refused call says where that field is.
  *
  * The pages talk to a real server of their own with admin writes on
  * (tests-e2e/support/admin-write-server.ts). Its scenarios folder is a
- * temporary one, and the scenario saved is a real one (scenarios/submarine.json).
- * No model is called and nothing starts a run. The last test reads the
- * default server, which runs with admin writes off.
+ * temporary one holding one compiled scenario, the scenario saved is a real
+ * one (scenarios/submarine.json), no model is called and nothing starts a
+ * run. The last test reads the default server, which runs with admin writes
+ * off.
  */
-import { test, expect, type Locator, type Page, type Request } from '@playwright/test';
+import { test, expect, type Browser, type Locator, type Page, type Request } from '@playwright/test';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
@@ -34,6 +34,63 @@ const SCENARIO_ID = (JSON.parse(submarine) as { id: string }).id;
 const WHERE = '请在“设置”的“管理员令牌”中输入令牌，然后点击“保存”。';
 const REFUSED = `磁盘写入被拒绝：缺少管理员令牌或令牌错误。${WHERE}`;
 const SAVED = new RegExp(`已将“${SCENARIO_ID}”(?:的 JSON 草稿)?保存到 scenarios/${SCENARIO_ID}\\.json`);
+/** A token the server refuses: a server wipe sent with it removes nothing. */
+const WRONG = 'not-the-token';
+/** The refusal in a scenario's details, for Rename and for Delete. */
+const REFUSED_IN_DRAWER = `管理员令牌被拒绝，已清除该令牌。 ${WHERE}`;
+/** A token a request header cannot carry: the euro sign is U+20AC. */
+const UNSENDABLE_TOKEN = 'tok\u20ACen';
+const UNSENDABLE = '此令牌包含请求头无法传输的字符，因此未保存。'
+  + '令牌仅支持可打印的 ASCII 和 Latin-1 字符：U+0020 至 U+007E，以及 U+00A0 至 U+00FF。';
+/**
+ * The question Clear local data asks, with a token saved or not. Its POST
+ * /clear lets go of this browser's own run on the server and stops it when
+ * it is running, so the question says so.
+ */
+const CLEAR_QUESTION = '清除本地数据？这将清除此控制台的浏览器仿真缓冲与事件缓存。\n\n'
+  + "还会释放服务器上属于此浏览器的当前运行；若仍在运行，将停止该运行。\n\n"
+  + '运行历史、已保存会话和磁盘记录文件将保留。\n\n'
+  + '此操作无法撤销。';
+/**
+ * Clear local data in the RUN menu's local history: its tooltip and its
+ * question. It posts the same POST /clear, so both say so.
+ */
+const HISTORY_CLEAR_TITLE = '清除此浏览器的全部状态：保存的运行列表、事件缓存和当前仿真状态。'
+  + "还会释放服务器上属于此浏览器的当前运行；若仍在运行，将停止它。"
+  + '运行历史、已保存会话及输出文件会保留；启用管理员写入且已保存令牌时，可在 ⋯ 菜单中选择“删除服务器数据”删除这些内容。';
+const HISTORY_CLEAR_QUESTION = '清除浏览器全部本地状态？\n\n'
+  + '  • 已保存的运行列表（此下拉菜单）\n'
+  + '  • 事件缓存（仿真／星座／日志）\n'
+  + '  • 当前事件流状态\n\n'
+  + "还会释放服务器上属于此浏览器的当前运行；若仍在运行，将停止该运行。\n\n"
+  + '运行历史、已保存会话和磁盘记录文件会保留（可通过 ⋯ 菜单中可见的“删除服务器数据”删除）。\n\n'
+  + '此操作无法撤销。';
+/** What a scenario's details say when the server refused an older token and a newer one is saved. */
+const refusedWithNewerToken = (call: string, button: string) =>
+  `服务器拒绝了本次${call === 'rename' ? '重命名' : '删除'}请求携带的管理员令牌。此浏览器已保存新令牌，请点击“${button === 'Save' ? '保存' : '删除'}”重试。`;
+/**
+ * The question 删除服务器数据 asks. The wipe drops every finished run
+ * the server holds, and the pages showing one are told, so the question
+ * says what happens to this page's view and to every other page's.
+ */
+const WIPE_QUESTION = '删除服务器数据？这将请求服务器删除所有访客的运行历史、已保存会话和运行输出文件，而非仅限此浏览器。\n\n'
+  + '包括本页在内，正在显示服务器所存已完成运行的页面会清空对应视图。正在进行的运行会继续。\n\n'
+  + "另一个独立的“清空本地数据”操作可清除此浏览器的缓存。\n\n"
+  + '此操作无法撤销。';
+/** 删除服务器数据 refused for an older token while a newer one is saved. */
+const WIPE_REFUSED_WITH_NEWER_TOKEN = '未删除服务器数据：服务器拒绝了此请求携带的管理员令牌。'
+  + '此浏览器已保存新令牌，请再次选择“删除服务器数据”重试。';
+/** 删除服务器数据, when the server's answer did not arrive or could not be read. */
+const WIPE_NOT_KNOWN = /无法确认服务器数据是否已删除/;
+/**
+ * 删除服务器数据, when the server answers with an error of its own: it
+ * deletes store by store and restores nothing, so some data may be gone.
+ */
+const wipeStoppedOnError = (error: string) =>
+  `服务器删除数据时出错（${error}），错误发生前可能已删除部分数据。`;
+/** The compiled scenario tests-e2e/support/admin-write-server.ts plants. */
+const COMPILED_ID = 'e2e-compiled-scenario';
+const COMPILED_NAME = 'E2E Compiled Scenario';
 
 const settingsLaunch = (page: Page) => page.getByRole('button', { name: /启动仿真|正在加载场景/ });
 const editor = (page: Page) => page.getByRole('textbox', { name: '场景 JSON 编辑器' });
@@ -43,6 +100,11 @@ const tokenInput = (page: Page) => page.locator('#admin-token');
 const saveToken = (page: Page) => page.getByRole('button', { name: '保存管理员令牌' });
 const clearToken = (page: Page) => page.getByRole('button', { name: '清除管理员令牌' });
 const tokenStatus = (page: Page) => page.locator('#admin-token-status');
+const runActions = (page: Page) => page.getByRole('button', { name: '打开运行操作菜单' });
+const closeRunActions = (page: Page) => page.getByRole('button', { name: '关闭运行操作菜单' });
+const clearLocal = (page: Page) => page.getByRole('menuitem', { name: '清空本地数据' });
+const deleteServerData = (page: Page) => page.getByRole('menuitem', { name: '删除服务器数据' });
+const storedToken = (page: Page) => page.evaluate(key => window.localStorage.getItem(key), TOKEN_KEY);
 
 /** Opens Settings on `base` and waits for the form, which follows GET /scenario. */
 async function openSettings(page: Page, base: string): Promise<void> {
@@ -69,6 +131,75 @@ function recordRequests(page: Page): Request[] {
 }
 
 const isDiskWrite = (request: Request) => request.method() === 'POST' && new URL(request.url()).pathname === '/scenario/store';
+const isServerWipe = (request: Request) => new URL(request.url()).pathname === '/admin/data/wipe';
+const isRename = (request: Request) => request.method() === 'POST' && new URL(request.url()).pathname === `/scenarios/${COMPILED_ID}/rename`;
+const isScenarioDelete = (request: Request) => request.method() === 'DELETE' && new URL(request.url()).pathname === `/admin/scenarios/${COMPILED_ID}`;
+
+/** Saves `token` through the field in Settings. */
+async function saveTokenInSettings(page: Page, token: string): Promise<void> {
+  await openSettings(page, ADMIN_BASE);
+  await tokenInput(page).fill(token);
+  await saveToken(page).click();
+  await expect(tokenStatus(page)).toHaveText(/此浏览器已保存管理员令牌/);
+}
+
+/** The name every visitor sees for the compiled scenario, or undefined when it is not listed. */
+async function compiledName(page: Page): Promise<string | undefined> {
+  const body = await (await page.request.get(`${ADMIN_BASE}/scenarios`)).json() as { scenarios: Array<{ id: string; name: string }> };
+  return body.scenarios.find(scenario => scenario.id === COMPILED_ID)?.name;
+}
+
+/** Opens the compiled scenario's details from the Quickstart catalog. */
+async function openCompiledDetails(page: Page): Promise<Locator> {
+  await expect.poll(() => compiledName(page), 'the compiled scenario is in the catalog').toBe(COMPILED_NAME);
+  await page.goto(`${ADMIN_BASE}/sim?tab=quickstart`);
+  await page.getByRole('button', { name: `查看“${COMPILED_NAME}”详情` }).click();
+  const details = page.getByRole('dialog', { name: `Scenario detail: ${COMPILED_NAME}` });
+  await expect(details).toBeVisible();
+  return details;
+}
+
+/** Runs `body` on a page of a new touch-screen context of `viewport`, closed after. */
+async function withTouchPage(browser: Browser, viewport: { width: number; height: number }, body: (page: Page) => Promise<void>): Promise<void> {
+  const context = await browser.newContext({ viewport, hasTouch: true });
+  try {
+    await body(await context.newPage());
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * The open run actions menu, with a token saved and no run: Clear local data
+ * then 删除服务器数据, in one column that starts inside the window, each
+ * on one line with text of 14 px or more and at least `minTargetPx` tall.
+ */
+async function expectRunActionsMenu(page: Page, { minTargetPx }: { minTargetPx: number }): Promise<void> {
+  const width = page.viewportSize()!.width;
+  const items = page.getByRole('menuitem');
+  await expect(items).toHaveText(['清空本地数据', '删除服务器数据']);
+  // The menu hangs from its trigger's right edge and widens to the left, so
+  // its longest item must not push its left edge out of the window.
+  const menu = (await page.getByRole('menu').filter({ has: clearLocal(page) }).boundingBox())!;
+  const trigger = (await closeRunActions(page).boundingBox())!;
+  expect(Math.abs(menu.x + menu.width - (trigger.x + trigger.width)), `${width}px: the menu ends at its trigger's right edge`).toBeLessThanOrEqual(1);
+  expect(menu.x, `${width}px: the menu starts inside the window`).toBeGreaterThanOrEqual(0);
+  const first = (await items.first().boundingBox())!;
+  for (const item of await items.all()) {
+    const name = `${width}px ${(await item.textContent()) ?? ''}`;
+    const found = (await item.boundingBox())!;
+    expect(Math.abs(found.x - first.x), `${name}: one column`).toBeLessThanOrEqual(1);
+    expect(await item.evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize)), `${name}: text size`).toBeGreaterThanOrEqual(14);
+    expect(found.height, `${name}: target height`).toBeGreaterThanOrEqual(minTargetPx);
+    // The line boxes of the item's text: one top edge is one line.
+    const lines = await item.evaluate(element => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      return new Set(Array.from(range.getClientRects(), rect => Math.round(rect.top))).size;
+    });
+    expect(lines, `${name}: one line`).toBe(1);
+  }
+}
 
 /**
  * The scenario files the admin-write server wrote at or after `since`. Its
@@ -149,7 +280,7 @@ test.describe('Admin token field @admin', () => {
     };
     const fontPx = (locator: Locator) => locator.evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
 
-    for (const width of [320, 360, 390, 430, 480, 768]) {
+    for (const width of [320, 360, 390, 430, 480, 667, 768]) {
       await page.setViewportSize({ width, height: 800 });
       await openSettings(page, ADMIN_BASE);
       await tokenInput(page).scrollIntoViewIfNeeded();
@@ -174,9 +305,10 @@ test.describe('Admin token field @admin', () => {
       // Room to type in.
       expect(input.width, `${width}px: input width`).toBeGreaterThanOrEqual(80);
 
-      if (width <= 480) {
+      // A phone held either way: 667 px is a phone held sideways.
+      if (width <= 768) {
         for (const control of [input, save, clear]) {
-          expect(control.height, `${width}px: 44 px targets on a phone`).toBeGreaterThanOrEqual(44);
+          expect(control.height, `${width}px: 44 px targets on a phone or a small tablet`).toBeGreaterThanOrEqual(44);
         }
       }
 
@@ -219,45 +351,355 @@ test.describe('Admin token field @admin', () => {
     await expect(page.getByText(SAVED)).toBeVisible();
   });
 
-  test('a token the server refuses on the server wipe is dropped, and the page says where to enter it', async ({ page }) => {
-    page.on('dialog', dialog => dialog.accept());
+  test('Clear local data sends no server wipe, with a token saved or not, and its question says it lets go of this browser\'s run on the server', async ({ page }) => {
+    const questions: string[] = [];
+    page.on('dialog', dialog => { questions.push(dialog.message()); void dialog.accept(); });
+    const requests = recordRequests(page);
     await openSettings(page, ADMIN_BASE);
-    await tokenInput(page).fill('not-the-token');
-    await saveToken(page).click();
+
+    await runActions(page).click();
+    await clearLocal(page).click();
+    await expect.poll(() => questions.length).toBe(1);
+    expect(questions[0]).toBe(CLEAR_QUESTION);
+
+    // A token saved, a wrong one: a server wipe, were one sent, would remove nothing.
+    await saveTokenInSettings(page, WRONG);
+    await runActions(page).click();
+    await clearLocal(page).click();
+    await expect.poll(() => questions.length).toBe(2);
+    expect(questions[1]).toBe(CLEAR_QUESTION);
+    await expect(page.getByText('浏览器缓存已清除，服务器保存的运行历史未更改。').first()).toBeVisible();
+
+    // Nothing went to the server, and the token stays.
+    expect(requests.filter(isServerWipe)).toEqual([]);
+    expect(await storedToken(page)).toBe(WRONG);
     await expect(tokenStatus(page)).toHaveText(/此浏览器已保存管理员令牌/);
-
-    await page.getByRole('button', { name: '打开运行操作菜单' }).click();
-    await page.getByRole('menuitem', { name: '清空本地数据' }).click();
-
-    await expect(page.getByText(`未执行服务器清除：管理员令牌被拒绝，已清除该令牌。${WHERE}`).first()).toBeVisible();
-    await expect(tokenStatus(page)).toHaveText(/此浏览器尚未保存管理员令牌/);
-    expect(await page.evaluate(key => window.localStorage.getItem(key), TOKEN_KEY)).toBeNull();
   });
 
-  test('Clear local data asks in words that match what the click does, with and without a token', async ({ page }) => {
-    // Every question is declined, so nothing is cleared here or on the server.
+  test('Clear local data in the RUN menu\'s local history says it lets go of this browser\'s run on the server, and sends nothing when declined', async ({ page }) => {
+    // One run kept in this browser's local history, so the RUN menu shows the section and its Clear local data.
+    const createdAt = Date.now() - 60_000;
+    const ring = [{
+      id: createdAt,
+      createdAt: new Date(createdAt).toISOString(),
+      events: [],
+      results: [],
+      verdict: null,
+      scenarioShortName: 'mars',
+      summary: { actorNames: [], turnCount: 1, eventCount: 0 },
+    }];
+    await page.addInitScript(value => { window.localStorage.setItem('paracosm-local-history-v2', value); }, JSON.stringify(ring));
     const questions: string[] = [];
     page.on('dialog', dialog => { questions.push(dialog.message()); void dialog.dismiss(); });
-    const askToClear = async () => {
-      await page.getByRole('button', { name: '打开运行操作菜单' }).click();
-      await page.getByRole('menuitem', { name: '清空本地数据' }).click();
-    };
+    const requests = recordRequests(page);
     await openSettings(page, ADMIN_BASE);
 
-    // No token: the click clears this browser only, and the question says the server's data is kept.
-    await askToClear();
+    await page.getByRole('button', { name: '运行', exact: true }).click();
+    const runMenu = page.getByRole('menu', { name: '运行操作' });
+    // The section opens expanded.
+    await expect(runMenu.getByRole('menuitem', { name: /本地历史/ })).toHaveAttribute('aria-expanded', 'true');
+    const clear = runMenu.getByRole('button', { name: '清空本地数据', exact: true });
+    await expect(clear).toHaveAttribute('title', HISTORY_CLEAR_TITLE);
+    await clear.click();
     await expect.poll(() => questions.length).toBe(1);
-    expect(questions[0]).toContain('服务器保存的运行、会话和磁盘记录将保留。');
+    expect(questions[0]).toBe(HISTORY_CLEAR_QUESTION);
+    // Declined: nothing went to the server.
+    expect(requests.filter(request => request.method() === 'POST' && new URL(request.url()).pathname === '/clear')).toEqual([]);
+  });
 
-    // A token saved: the same click also sends the server wipe, so the question says that instead.
-    await tokenInput(page).fill(TOKEN);
+  test('删除服务器数据 shows only with a token saved, looks as Clear local data does, asks in its own words, and a refused token is dropped', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 800 });
+    const questions: string[] = [];
+    let accept = false;
+    page.on('dialog', dialog => { questions.push(dialog.message()); void (accept ? dialog.accept() : dialog.dismiss()); });
+    const requests = recordRequests(page);
+
+    // No token saved: the menu holds Clear local data and not the server item.
+    await openSettings(page, ADMIN_BASE);
+    await runActions(page).click();
+    await expect(clearLocal(page)).toBeVisible();
+    await expect(deleteServerData(page)).toHaveCount(0);
+    await closeRunActions(page).click();
+
+    await saveTokenInSettings(page, WRONG);
+    await runActions(page).click();
+    await expect(deleteServerData(page)).toBeVisible();
+
+    // The menu's destructive item, repeated: the same look, one column, one line each at 320 px.
+    const look = (item: Locator) => item.evaluate(element => {
+      const style = getComputedStyle(element);
+      return [style.color, style.backgroundColor, style.fontFamily, style.fontSize, style.fontWeight, style.padding, style.textAlign, style.borderRadius].join(' | ');
+    });
+    expect(await look(deleteServerData(page))).toBe(await look(clearLocal(page)));
+    const clearBox = (await clearLocal(page).boundingBox())!;
+    const deleteBox = (await deleteServerData(page).boundingBox())!;
+    expect(Math.abs(deleteBox.x - clearBox.x), 'one column').toBeLessThanOrEqual(1);
+    expect(deleteBox.y, 'below Clear local data').toBeGreaterThanOrEqual(clearBox.y + clearBox.height);
+    expect(Math.abs(deleteBox.height - clearBox.height), 'one line, as Clear local data').toBeLessThanOrEqual(1);
+
+    // Declined: its question names what it deletes, for whom, and what happens to the pages showing a finished run, and nothing is sent.
+    await deleteServerData(page).click();
+    await expect.poll(() => questions.length).toBe(1);
+    expect(questions[0]).toBe(WIPE_QUESTION);
+    expect(requests.filter(isServerWipe)).toEqual([]);
+    expect(await storedToken(page)).toBe(WRONG);
+
+    // Accepted with the wrong token: the server refuses, the token is dropped, and the page says where it goes.
+    accept = true;
+    await runActions(page).click();
+    await deleteServerData(page).click();
+    await expect(page.getByText(`未删除服务器数据：管理员令牌被拒绝，已清除该令牌。 ${WHERE}`).first()).toBeVisible();
+    expect(requests.filter(isServerWipe).map(request => request.headers()['x-admin-token'])).toEqual([WRONG]);
+    await expect(tokenStatus(page)).toHaveText(/此浏览器尚未保存管理员令牌/);
+    expect(await storedToken(page)).toBeNull();
+  });
+
+  test('a rename refused for its token drops that token, says where to enter it, and keeps the name', async ({ page }) => {
+    const requests = recordRequests(page);
+    await saveTokenInSettings(page, WRONG);
+    const details = await openCompiledDetails(page);
+
+    await details.getByRole('button', { name: `Rename ${COMPILED_NAME}` }).click();
+    await details.getByRole('textbox', { name: '新场景名称' }).fill('A new name');
+    await details.getByRole('button', { name: '保存', exact: true }).click();
+
+    await expect(details.getByRole('alert')).toHaveText(REFUSED_IN_DRAWER);
+    // The one rename carried the token the server refused.
+    expect(requests.filter(isRename).map(request => request.headers()['x-admin-token'])).toEqual([WRONG]);
+    // With no token left the open form's Save cannot send anything, so it is off, and says why.
+    const save = details.getByRole('button', { name: '保存', exact: true });
+    await expect(save).toBeDisabled();
+    await expect(save).toHaveAccessibleDescription(REFUSED_IN_DRAWER);
+    expect(await storedToken(page)).toBeNull();
+    expect(await compiledName(page)).toBe(COMPILED_NAME);
+  });
+
+  test('a rename refused after a newer token was saved keeps that token in the details, and Save sends it', async ({ page }) => {
+    // The first rename is held on its way out, then reaches the server, which refuses its token.
+    let letGo!: () => void;
+    const heldBack = new Promise<void>(resolve => { letGo = resolve; });
+    const sent: Array<string | undefined> = [];
+    await page.route(`${ADMIN_BASE}/scenarios/${COMPILED_ID}/rename`, async route => {
+      sent.push(route.request().headers()['x-admin-token']);
+      if (sent.length === 1) {
+        await heldBack;
+        await route.continue();
+        return;
+      }
+      // The second is answered here, so the shared scenario keeps its name for the other tests.
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: COMPILED_ID, name: 'A new name' }) });
+    });
+    await saveTokenInSettings(page, WRONG);
+    const details = await openCompiledDetails(page);
+
+    await details.getByRole('button', { name: `Rename ${COMPILED_NAME}` }).click();
+    await details.getByRole('textbox', { name: '新场景名称' }).fill('A new name');
+    await details.getByRole('button', { name: '保存', exact: true }).click();
+    await expect.poll(() => sent.length).toBe(1);
+
+    // A newer token is saved while the rename is out, as another tab of this browser saves one.
+    await page.evaluate(([key, token]) => window.localStorage.setItem(key, token), [TOKEN_KEY, TOKEN] as const);
+    letGo();
+    await expect(details.getByRole('alert')).toHaveText(refusedWithNewerToken('rename', 'Save'));
+    expect(await storedToken(page)).toBe(TOKEN);
+
+    await details.getByRole('button', { name: '保存', exact: true }).click();
+    await expect.poll(() => sent).toEqual([WRONG, TOKEN]);
+    // The details take the new name, as their heading and their dialog's name.
+    await expect(page.getByRole('dialog', { name: 'Scenario detail: A new name' }).getByRole('heading', { name: 'A new name' })).toBeVisible();
+    expect(await compiledName(page)).toBe(COMPILED_NAME);
+  });
+
+  test('a delete refused after a newer token was saved keeps that token and the Delete button', async ({ page }) => {
+    page.on('dialog', dialog => void dialog.accept());
+    let letGo!: () => void;
+    const heldBack = new Promise<void>(resolve => { letGo = resolve; });
+    let deletes = 0;
+    await page.route(`${ADMIN_BASE}/admin/scenarios/${COMPILED_ID}`, async route => {
+      if (route.request().method() === 'DELETE' && ++deletes === 1) await heldBack;
+      await route.continue();
+    });
+    await saveTokenInSettings(page, WRONG);
+    const details = await openCompiledDetails(page);
+
+    await details.getByRole('button', { name: `Delete scenario ${COMPILED_NAME}` }).click();
+    await expect.poll(() => deletes).toBe(1);
+    await page.evaluate(([key, token]) => window.localStorage.setItem(key, token), [TOKEN_KEY, TOKEN] as const);
+    letGo();
+
+    await expect(details.getByRole('alert')).toHaveText(refusedWithNewerToken('delete', 'Delete'));
+    await expect(details.getByRole('button', { name: `Delete scenario ${COMPILED_NAME}` })).toBeVisible();
+    expect(await storedToken(page)).toBe(TOKEN);
+    expect(await compiledName(page)).toBe(COMPILED_NAME);
+  });
+
+  test('a delete refused for its token drops that token, says where to enter it, and keeps the scenario', async ({ page }) => {
+    page.on('dialog', dialog => void dialog.accept());
+    const requests = recordRequests(page);
+    await saveTokenInSettings(page, WRONG);
+    const details = await openCompiledDetails(page);
+
+    await details.getByRole('button', { name: `Delete scenario ${COMPILED_NAME}` }).click();
+
+    await expect(details.getByRole('alert')).toHaveText(REFUSED_IN_DRAWER);
+    // The one delete carried the token the server refused.
+    expect(requests.filter(isScenarioDelete).map(request => request.headers()['x-admin-token'])).toEqual([WRONG]);
+    await expect(details.getByRole('button', { name: `Delete scenario ${COMPILED_NAME}` })).toHaveCount(0);
+    expect(await storedToken(page)).toBeNull();
+    expect(await compiledName(page)).toBe(COMPILED_NAME);
+  });
+
+  test('删除服务器数据 whose answer cannot be read says the outcome is not known', async ({ page }) => {
+    page.on('dialog', dialog => void dialog.accept());
+    // A 200 whose body is not JSON: the server may have deleted its data, and nothing here says otherwise.
+    await page.route(`${ADMIN_BASE}/admin/data/wipe`, route => route.fulfill({ status: 200, contentType: 'application/json', body: 'not json' }));
+    await saveTokenInSettings(page, WRONG);
+    await runActions(page).click();
+    await deleteServerData(page).click();
+
+    await expect(page.getByText(WIPE_NOT_KNOWN).first()).toBeVisible();
+    await expect(page.getByText(/Server data not deleted/)).toHaveCount(0);
+  });
+
+  test('删除服务器数据 answered with a server error says some data may be deleted, and does not say it was kept', async ({ page }) => {
+    page.on('dialog', dialog => void dialog.accept());
+    // The answer the server gives when one of its stores fails part-way:
+    // a 500 naming the error. What it deleted before the failure stays deleted.
+    const error = 'Error: session store unavailable';
+    await page.route(`${ADMIN_BASE}/admin/data/wipe`, route => route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error }) }));
+    await saveTokenInSettings(page, WRONG);
+    await runActions(page).click();
+    await deleteServerData(page).click();
+
+    await expect(page.getByText(wipeStoppedOnError(error)).first()).toBeVisible();
+    await expect(page.getByText(/服务器数据已保留/)).toHaveCount(0);
+    await expect(page.getByText(/Server data not deleted/)).toHaveCount(0);
+  });
+
+  test('删除服务器数据 refused after a newer token was saved keeps that token and says so', async ({ page }) => {
+    page.on('dialog', dialog => void dialog.accept());
+    // The wipe is held on its way out, then reaches the server, which refuses its token.
+    let letGo!: () => void;
+    const heldBack = new Promise<void>(resolve => { letGo = resolve; });
+    const sent: Array<string | undefined> = [];
+    await page.route(`${ADMIN_BASE}/admin/data/wipe`, async route => {
+      sent.push(route.request().headers()['x-admin-token']);
+      await heldBack;
+      await route.continue();
+    });
+    await saveTokenInSettings(page, WRONG);
+    await runActions(page).click();
+    await deleteServerData(page).click();
+    await expect.poll(() => sent).toEqual([WRONG]);
+
+    // A newer token is saved while the wipe is out, as another tab of this browser saves one.
+    await page.evaluate(([key, token]) => window.localStorage.setItem(key, token), [TOKEN_KEY, TOKEN] as const);
+    letGo();
+    await expect(page.getByText(WIPE_REFUSED_WITH_NEWER_TOKEN).first()).toBeVisible();
+    await expect(page.getByText(/has been cleared/)).toHaveCount(0);
+    expect(await storedToken(page)).toBe(TOKEN);
+  });
+
+  test('the run actions menu has text of 14 px or more on one line per item, 44 px targets at 768 px and under, and on a touch screen held sideways it and the token field have 44 px targets', async ({ page, browser }) => {
+    // With a mouse: the menu's items keep their order and column, one line
+    // each, with 14 px text at every width, and are 44 px targets in a
+    // window 768 px wide or less.
+    await saveTokenInSettings(page, WRONG);
+    for (const [width, minTargetPx] of [[1280, 0], [768, 44], [667, 44], [390, 44], [320, 44]] as const) {
+      await page.setViewportSize({ width, height: 800 });
+      await runActions(page).click();
+      await expect(deleteServerData(page)).toBeVisible();
+      await expectRunActionsMenu(page, { minTargetPx });
+      await closeRunActions(page).click();
+    }
+
+    // A phone held sideways, 852 by 393: wider than 768 px, with a coarse pointer.
+    await withTouchPage(browser, { width: 852, height: 393 }, async touch => {
+      await touch.addInitScript(([key, token]) => window.localStorage.setItem(key, token), [TOKEN_KEY, WRONG] as const);
+      await openSettings(touch, ADMIN_BASE);
+      expect(await touch.evaluate(() => window.matchMedia('(pointer: coarse)').matches), 'the page sees a coarse pointer').toBe(true);
+
+      await tokenInput(touch).scrollIntoViewIfNeeded();
+      const input = (await tokenInput(touch).boundingBox())!;
+      for (const [name, control] of [['the token input', tokenInput(touch)], ['Save', saveToken(touch)], ['Clear', clearToken(touch)]] as const) {
+        const found = (await control.boundingBox())!;
+        expect(found.height, `852px touch: ${name} is a 44 px target`).toBeGreaterThanOrEqual(44);
+        expect(Math.abs(found.y - input.y), `852px touch: ${name} on the input's row`).toBeLessThanOrEqual(1);
+      }
+
+      await runActions(touch).click();
+      await expect(deleteServerData(touch)).toBeVisible();
+      await expectRunActionsMenu(touch, { minTargetPx: 44 });
+    });
+  });
+
+  test('删除服务器数据 shows once a failed admin-config request is asked again when the menu opens', async ({ page }) => {
+    // A token is saved before the page loads, and every admin-config request of that load fails.
+    await page.addInitScript(([key, token]) => window.localStorage.setItem(key, token), [TOKEN_KEY, WRONG] as const);
+    let failing = true;
+    let asked = 0;
+    await page.route(`${ADMIN_BASE}/admin-config`, route => {
+      asked += 1;
+      return failing ? route.abort() : route.continue();
+    });
+    await page.goto(`${ADMIN_BASE}/sim?tab=settings`);
+    await expect(settingsLaunch(page)).toBeEnabled();
+    await expect.poll(() => asked, 'the page, Settings and the editor each asked').toBeGreaterThanOrEqual(3);
+    await runActions(page).click();
+    await expect(clearLocal(page)).toBeVisible();
+    await expect(deleteServerData(page)).toHaveCount(0);
+    await closeRunActions(page).click();
+
+    // The server answers again, and the page asks again the next time the menu opens.
+    failing = false;
+    const before = asked;
+    await runActions(page).click();
+    await expect.poll(() => asked).toBeGreaterThan(before);
+    await expect(deleteServerData(page)).toBeVisible();
+  });
+
+  test('a token holding a character a request header cannot carry is refused at Save, with the characters a token may hold', async ({ page }) => {
+    await openSettings(page, ADMIN_BASE);
+    await tokenInput(page).fill(UNSENDABLE_TOKEN);
+    await saveToken(page).click();
+
+    await expect(tokenGroup(page).getByRole('alert')).toHaveText(UNSENDABLE);
+    await expect(tokenStatus(page)).toHaveText(/此浏览器尚未保存管理员令牌/);
+    expect(await storedToken(page)).toBeNull();
+  });
+
+  test('a stored token holding a character a request header cannot carry is dropped on its first use, with the same words', async ({ page }) => {
+    // Stored before Save refused such a token.
+    await openSettings(page, ADMIN_BASE);
+    await page.evaluate(([key, value]) => window.localStorage.setItem(key, value), [TOKEN_KEY, UNSENDABLE_TOKEN]);
+    const requests = recordRequests(page);
+    await openSettings(page, ADMIN_BASE);
+    await expect(tokenStatus(page)).toHaveText(/此浏览器已保存管理员令牌/);
+
+    await fillEditor(page);
+    await saveToDisk(page).click();
+
+    await expect(page.getByText(`${UNSENDABLE} ${WHERE}`)).toBeVisible();
+    await expect(tokenStatus(page)).toHaveText(/此浏览器尚未保存管理员令牌/);
+    expect(await storedToken(page)).toBeNull();
+    expect(requests.filter(isDiskWrite)).toEqual([]);
+  });
+
+  test('text typed in the field and not saved stays out of the page markup', async ({ page }) => {
+    const typed = 'typed-and-not-saved';
+    await openSettings(page, ADMIN_BASE);
+    await tokenInput(page).fill(typed);
+    await expect(tokenInput(page)).toHaveValue(typed);
+    await expect(saveToken(page)).toBeEnabled();
+
+    expect(await tokenInput(page).getAttribute('value') ?? '', 'the input\'s value attribute').not.toContain(typed);
+    expect(await page.evaluate(() => document.documentElement.outerHTML), 'the page markup').not.toContain(typed);
+
+    // Saving still takes what was typed, and empties the input.
     await saveToken(page).click();
     await expect(tokenStatus(page)).toHaveText(/此浏览器已保存管理员令牌/);
-    await askToClear();
-    await expect.poll(() => questions.length).toBe(2);
-    expect(questions[1]).toContain('请求服务器删除所有访客的运行记录、已保存会话和运行输出文件');
-    expect(questions[1]).not.toContain('将保留');
-    await expect(tokenStatus(page)).toHaveText(/此浏览器已保存管理员令牌/);
+    expect(await storedToken(page)).toBe(typed);
+    await expect(tokenInput(page)).toHaveValue('');
   });
 
   test('a token entered where an older one is stored and the new one cannot be is the one sent', async ({ page }) => {
@@ -345,5 +787,13 @@ test.describe('Admin token field @admin', () => {
     await expect(tokenGroup(page)).toHaveCount(0);
     await expect(tokenInput(page)).toHaveCount(0);
     await expect(saveToDisk(page)).toHaveCount(0);
+
+    // A token left in this browser does not bring the server item into the menu.
+    await page.evaluate(key => window.localStorage.setItem(key, 'a-token-from-elsewhere'), TOKEN_KEY);
+    await page.reload();
+    await expect(settingsLaunch(page)).toBeEnabled();
+    await runActions(page).click();
+    await expect(clearLocal(page)).toBeVisible();
+    await expect(deleteServerData(page)).toHaveCount(0);
   });
 });

@@ -328,15 +328,20 @@ export function RunMenu({
                     <button
                       type="button"
                       className={historyStyles.historyClearAll}
-                      title="清除此浏览器的已保存运行、事件缓存和当前仿真状态。服务器数据可在 ⋯ 菜单中选择全部清除。"
+                      title="清除此浏览器的全部状态：保存的运行列表、事件缓存和当前仿真状态。还会释放服务器上属于此浏览器的当前运行；若仍在运行，将停止它。运行历史、已保存会话及输出文件会保留；启用管理员写入且已保存令牌时，可在 ⋯ 菜单中选择“删除服务器数据”删除这些内容。"
                       onClick={() => {
+                        // As Clear local data in the run actions menu, this
+                        // posts POST /clear, which lets go of this browser's
+                        // run on the server and stops it while it runs, so
+                        // the question says so.
                         if (
                           window.confirm(
-                            "清除浏览器全部本地状态？\n\n" +
-                            "  • 已保存的运行列表（此下拉菜单）\n" +
-                            "  • 事件缓存（仿真／星座／日志）\n" +
+                            '清除浏览器全部本地状态？\n\n' +
+                            '  • 已保存的运行列表（此下拉菜单）\n' +
+                            '  • 事件缓存（仿真／星座／日志）\n' +
                             '  • 当前事件流状态\n\n' +
-                            '服务器保存的运行不受影响（如需清除，请使用 ⋯ 菜单中的“全部清除”）。\n\n此操作无法撤销。',
+                            "还会释放服务器上属于此浏览器的当前运行；若仍在运行，将停止该运行。\n\n" +
+                            '运行历史、已保存会话和磁盘记录文件会保留（可通过 ⋯ 菜单中可见的“删除服务器数据”删除）。\n\n此操作无法撤销。',
                           )
                         ) {
                           onClearHistory();

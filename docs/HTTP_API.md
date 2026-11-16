@@ -11,6 +11,25 @@ For the SDK (`WorldModel.simulate()`, `WorldModel.batch()`, `WorldModel.interven
 - Local: `http://localhost:3456` (override with `PORT`, set in the environment or in a `.env` file in the directory you start the server from)
 - All `/api/v1/runs*` and `/api/v1/bundles/*` routes return **403 `run_history_routes_disabled`** when the server is started with `PARACOSM_ENABLE_RUN_HISTORY_ROUTES=false`. Default is `true` except in `hosted_demo` mode.
 - Routes are CORS-permissive (`Access-Control-Allow-Origin: *`) for local dashboard development.
+- A local server (neither `PARACOSM_HOSTED_DEMO` nor `PARACOSM_PLATFORM_API` set) answers **403 `cross_site_refused`** to any request sent to a name it is not served under: its `Host` must be a loopback name (`localhost`, `127.0.0.1`, `[::1]`), an IP address, or the name `HOST` gives, whatever `Origin` says, so a site that points a name of its own at the machine is refused. It also answers 403 to any request whose `Origin` is not a loopback address (any port) or the host the request was sent to, `Origin: null` included. Requests with no `Origin` (same-origin reads, curl, scripts) to such a name pass.
+- `paracosm dashboard` listens on `127.0.0.1` on a local server; set `HOST` (for example `HOST=0.0.0.0` in a container or for a LAN demo) to listen elsewhere. The hosted demo and the platform API mode listen on every interface unless `HOST` is set.
+- In `platform_api` mode every `/api/v1/*` route except `GET /api/v1/demo/status` takes the admin credential, however the request target that names it is written: `ADMIN_WRITE=true`, `ADMIN_TOKEN` set, and a matching `X-Admin-Token` header (403 without `ADMIN_WRITE`, 503 without `ADMIN_TOKEN`, 401 without a matching header).
+
+## Run history in `hosted_demo` mode
+
+In `hosted_demo` mode the run-history routes are off unless `PARACOSM_ENABLE_RUN_HISTORY_ROUTES=true` turns them on. With them on, each visitor reaches their own runs:
+
+- A run is recorded for the visitor who started or imported it. The visitor is the one the `paracosm_visitor` cookie names, the same visitor `GET /sessions` lists saved sessions for. The store keeps a SHA-256 of the visitor id with the run, never the cookie value, and no answer holds it.
+- `GET /api/v1/runs` and `GET /api/v1/runs/aggregate` hold the caller's runs alone; `total`, `hasMore` and every filter work inside them.
+- `GET`, `HEAD`, `/swarm`, `/replay` and `/replay-result` for a run another visitor holds answer exactly as they do for a run id no run has (`404`).
+- `GET /api/v1/bundles/:bundleId` and its `/aggregate` answer with the caller's members of the bundle. A bundle with none of them answers `404`, as a bundle no run is in does.
+- `POST /api/v1/library/import` stores a run as the caller's. A caller that sent no cookie gets a `paracosm_visitor` cookie with the answer. Each import is stored under a run id of the caller's own, made from the caller and the artifact's `metadata.runId`, and the stored copy carries that id in its `metadata.runId`; the response's `runId` is the id to read it by. The same artifact imported twice by one visitor is one run (`alreadyExisted: true` the second time). An artifact whose run id is one of the caller's own runs answers `alreadyExisted: true` with that id. An artifact whose run id another visitor's run holds is imported as any other is. `addToBundle` puts the caller's runs under that bundle id; each visitor reads their own runs in it.
+- A caller that sent no cookie lists no run and reads none.
+- A request that carries the admin credential (`ADMIN_WRITE=true`, `ADMIN_TOKEN` set, and a matching `X-Admin-Token` header) reaches every run, and its imports keep the run id their artifact carries.
+- A run recorded with no visitor, which is every run recorded before runs had owners, is reached with the admin credential alone.
+- Every answer of these routes carries `Cache-Control: no-store` and `Vary: Cookie`.
+
+A local server and `platform_api` mode answer every caller that reaches the routes with every run.
 
 ## Endpoint index
 
@@ -76,7 +95,7 @@ List runs newest-first with optional filters.
 }
 ```
 
-Note: `artifactPath` is stripped from the public projection of every record. Use `GET /api/v1/runs/:runId` to load the artifact JSON.
+Note: `artifactPath` is stripped from the public projection of every record, including bundle members. Artifacts in run answers, `/simulate`, `/api/quickstart/simulate-intervention`, `/results` and SSE `result` frames (including saved-session and held-run replay) omit `scenarioExtensions.outputPath`. Use `GET /api/v1/runs/:runId` to load the artifact JSON.
 
 ## `GET /api/v1/runs/aggregate`
 
@@ -122,7 +141,7 @@ Single run record plus the full RunArtifact loaded from disk.
 - `410 artifact_unreadable` — file was preserved but is missing or unreadable on disk
 - `410 artifact_outside_runs_dir` — the record's artifact path resolves outside the server's runs directory (`PARACOSM_OUTPUT_DIR`, else `<cwd>/output`, links resolved); the file is not read. A record imported before imports wrote their own copy can carry such a path.
 
-The runs directory is resolved from the environment the server was started with. The server's own runs (`/setup`, `/simulate` and digital-twin runs) write their output files there, as imports do, so every record the server stores points into it.
+The runs directory is resolved from the environment the server was started with. The server's own runs (`/setup` and `/simulate`) write their output files there, as imports do, so every record the server stores points into it. A digital-twin run through `/api/quickstart/simulate-intervention` returns its artifact without writing an output file. Like any run, its stream frames are held in `<APP_DIR>/.live-runs/<key>.json` until the run is dropped. Those frames do not include the subject.
 
 The server resolves the path, opens the resolved file once without following a link at its last component, checks that the path still resolves inside the runs directory to that same open file, and reads from it. On Linux it also reads the path the kernel holds for the open file (`/proc/self/fd/<n>`) and refuses the file when that path is outside the runs directory, so a parent directory swapped between the checks cannot point the read elsewhere. An entry that changes between the check and the read answers `410 artifact_unreadable`, or `410 artifact_outside_runs_dir` when it then resolves outside the runs directory.
 
@@ -219,6 +238,7 @@ Record a client-side replay outcome (used by the dashboard's verification loop w
 - `400 invalid_json` — body did not parse
 - `400 matches must be a boolean` — `matches` field missing or wrong type
 - `404 not_found` — unknown `runId`
+- `413 body_too_large` — the body is over 16 KiB (16,384 bytes); nothing is recorded
 
 ## `GET /api/v1/bundles/:bundleId`
 
@@ -268,6 +288,8 @@ Import an externally-produced RunArtifact (Studio JSON drop, shared export, repl
 The server keeps its own copy of each imported artifact: it writes the artifact to a new file, `v3-imported-<hash of runId>-<random suffix>.json`, in its runs directory (`PARACOSM_OUTPUT_DIR`, else `<cwd>/output`) and the record's artifact path points at that file. The file is created exclusively: an entry already at that name, a link included, is never followed or overwritten. No file path is taken from the request; a `scenarioExtensions.outputPath` in the imported artifact is dropped from the stored copy. `GET /api/v1/runs/:runId` then serves the imported artifact.
 
 When two imports of one `runId` arrive together, the record stored first is kept with its file; the other import answers `alreadyExisted: true` and removes the file it wrote. An import whose record cannot be read back right after its insert keeps its file and answers `alreadyExisted: false`.
+
+The server writes the copy as compact JSON. One client address imports at most `PARACOSM_IMPORTS_PER_DAY` new runs a day (UTC), 500 unless set; a run id the store already holds is not counted. An import past the limit answers `429` with `Retry-After` set to the seconds until the next UTC midnight and `{ "error": "Daily import limit reached. Try again tomorrow." }`, with `bundleId` and `insertedSoFar` for a bundle part of which was stored before the limit.
 
 The output-retention sweep at boot (`OUTPUT_RETENTION_DAYS`, default 30, removes `v3-*.json` files older than that) and `POST /admin/data/wipe` with `wipeOutput: true` (removes `v3-*.json` files) work on the same runs directory, so they remove imported copies as they do run output. Neither removes any other file in the directory.
 
@@ -335,7 +357,7 @@ Always reachable (not gated by `paracosmRoutesEnabled`). Lets a public-demo clie
 }
 ```
 
-`mode` is one of `local`, `hosted_demo`, `platform_api`. `replayAvailable` is `false` only in `platform_api` mode (where replay needs an authenticated path that is not yet exposed). `authenticatedApiAvailable` is `true` only in `platform_api` mode.
+`mode` is one of `local`, `hosted_demo`, `platform_api`. `replayAvailable` is `false` only in `platform_api` mode (where replay needs an authenticated path that is not yet exposed). `authenticatedApiAvailable` is `true` only in `platform_api` mode with `ADMIN_WRITE=true` and `ADMIN_TOKEN` set, the credential `/api/v1` takes there.
 
 ## `POST /scenario/store`
 
@@ -352,7 +374,7 @@ The memory store holds a scenario of at most 256 KiB of JSON (`MEMORY_SCENARIO_M
 
 With `saveToDisk: true` the server writes the scenario to `<scenarios folder>/<id>.json`, where the boot loader reads it after a restart, and, when it is runnable, puts it in the catalog every visitor reads; it does not also hold it in memory. The disk write takes the admin credential the `/admin/*` routes take: the server started with `ADMIN_WRITE=true` and `ADMIN_TOKEN` set, and the request's `X-Admin-Token` header equal to `ADMIN_TOKEN` (compared in constant time). Its id must be 1 to 128 letters, digits, hyphens or underscores, starting with a letter or digit, and must name one file directly in the scenarios folder. A refused request stores nothing, in memory or on disk.
 
-The dashboard sends the header from the token an operator enters in Settings, in the Admin Token field. The field shows only when `GET /admin-config` answers `adminWrite: true`. It is a password field with Save and Clear; the token is kept in that browser's localStorage under `paracosm:adminToken` (in memory until the page reloads, where the browser cannot store it) and is sent as `X-Admin-Token` on this disk write, on `POST /admin/data/wipe` and on `DELETE /admin/scenarios/:id` only. A `401` from any of the three clears the token it refused and names the field in its message. With a token saved, the dashboard's Clear local data also sends `POST /admin/data/wipe`, and its question says so before anything is cleared.
+The dashboard sends the header from the token an operator enters in Settings, in the Admin Token field. The field shows only when `GET /admin-config` answers `adminWrite: true`. It is a password field with Save and Clear; the token is kept in that browser's localStorage under `paracosm:adminToken` (in memory until the page reloads, where the browser cannot store it) and is sent as `X-Admin-Token` on four calls only: this disk write (Save to Disk in the scenario editor), `POST /admin/data/wipe` (Delete server data in the run actions menu), and `POST /scenarios/:id/rename` and `DELETE /admin/scenarios/:id` (Rename and Delete in a scenario's details). A `401` from any of the four clears the token it was sent with, and its message ends by saying where to enter the token. A token saved while the call was out is not the refused one: it is kept, and the message says the server refused the token the call was sent with and that the newer one is saved. A request header carries characters up to U+00FF only, so Save refuses a token holding any other character, or a control character, and says which characters a token may hold: U+0020 to U+007E and U+00A0 to U+00FF. A call that finds such a token stored clears it with the same words and sends nothing. Clear local data in the run actions menu clears that browser's cached data, with a token saved or not, and sends `POST /clear`, which lets go of that browser's own run on the server and stops it when it is running, so a reload does not replay the events just cleared; run history, saved sessions and output files are kept. Its question says so. Clear local data in the RUN menu's local history sends the same `POST /clear` as well as emptying that browser's saved-runs ring, and its tooltip and question say so too. Delete server data, beside it in the same menu, shows only where `adminWrite` is true and a token is saved; it sends `POST /admin/data/wipe` with `wipeRuns`, `wipeSessions` and `wipeOutput`, after a question that says it deletes the server's stored runs, saved sessions and run output files for every visitor, and that every page showing a finished run the server holds, the asking page included, empties its view of it: the wipe drops those runs and tells their pages with `run_cleared`. A finished Digital Twin's result is a view of its run and empties with it. A run in progress keeps running. When the dashboard's `GET /admin-config` request fails, it asks again the next time the run actions menu opens. When the wipe's answer does not arrive or cannot be read, the dashboard says the outcome could not be confirmed. When the server answers the wipe with an error of its own (a `5xx` other than the `503` of a server with no `ADMIN_TOKEN`), the dashboard shows the error and says the server may have deleted some of its data before it: the wipe deletes store by store and restores nothing.
 
 **Request body**
 
@@ -420,6 +442,37 @@ A `text/event-stream`: `status`, one `progress` event per hook, a `compile_valid
 
 ---
 
+## `POST /scenarios/:id/rename`
+
+Changes the display name (`labels.name`) of a compiled scenario, the name every visitor sees, and writes the scenario's file under `<scenarios folder>/compiled/` so the name holds after a restart. The id never changes. It takes the admin credential the `/admin/*` routes take: the server started with `ADMIN_WRITE=true` and `ADMIN_TOKEN` set, and the request's `X-Admin-Token` header equal to `ADMIN_TOKEN`. The dashboard's scenario drawer shows the rename control only when an admin token is saved in the browser, as it does the delete control. A rename the server refuses with `401` clears the token it was sent with and says where to enter one, as the delete does.
+
+**Request body**
+
+```json
+{ "name": "Pandemic Sim" }
+```
+
+The name loses control characters and `<` `>`, its runs of whitespace become one space, and it is cut to 100 characters.
+
+**200 response**
+
+```json
+{ "id": "dual-superintelligence-council-x9k2", "name": "Pandemic Sim" }
+```
+
+**Status codes**
+
+- `200` — renamed and written
+- `400 invalid_path` — the path holds a percent escape that does not decode
+- `400 cannot_rename_non_compiled` — a built-in or a scenario from the scenarios folder
+- `400 invalid_json_body` or `400 name_required` — no JSON body, or a name that is empty once cleaned
+- `401 Invalid or missing X-Admin-Token header` — no header or a wrong token
+- `403 ADMIN_WRITE not enabled on this server` — a server started without `ADMIN_WRITE=true`
+- `404 scenario_not_found` — no scenario has that id
+- `503` — a server with `ADMIN_WRITE=true` and no `ADMIN_TOKEN` (fail closed)
+
+---
+
 ## Error envelope
 
 Every error response is JSON-encoded with at minimum an `error` field. Most also include a contextual key (`runId`, `scenarioId`, `path`) to help clients build readable messages.
@@ -429,6 +482,8 @@ Every error response is JSON-encoded with at minimum an `error` field. Most also
 ```
 
 Unknown routes under `/api/v1/` return `404 unknown_platform_route` with the requested path echoed.
+
+A request whose path holds a percent escape that does not decode (`/scenarios/%E0`, `/scenarios/%ZZ`) answers `400 invalid_path`, whatever the route. A path the URL parser refuses, such as `//`, is answered by the routes after the platform routes, which give `404`. An error a route does not handle answers `500 internal_error` and is logged; the server goes on answering other requests.
 
 ## Related docs
 
@@ -441,9 +496,11 @@ The dashboard at `/sim` also accepts a client-side query-param contract for shar
 
 | Param      | Required | Behaviour |
 | ---------- | -------- | --------- |
-| `?load=`   | yes      | URL of a remote `.json` save (http/https only, CORS-readable). |
+| `?load=`   | yes      | URL of a remote `.json` save (http/https only, CORS-readable). A file on another site is fetched only after the visitor answers a question that names that site; Cancel fetches nothing. A file that a redirect serves from another origin than the link's is not loaded. |
 | `?tab=`    | no       | Tab to land on after the load resolves: `sim` (default), `viz`, `reports`, `chat`, `library`, `settings`, `studio`. |
-| `?autoload=` | no     | `1` or `true` skips the F9 preview-confirm modal. |
+| `?autoload=` | no     | `1` or `true` skips the F9 preview-confirm modal. For a file on another site, the question naming the site is still asked first. |
 | `?replay=` | no       | Session ID from a server-stored run. Switches the SSE source to `/sessions/:id/replay` instead of fetching a remote file. Pairs with `?tab=` the same way. |
+
+A loaded run's provider error banner links only to the provider key and billing pages the server itself sends (`platform.openai.com`, `console.anthropic.com`); any other address in the file is shown as text.
 
 Full example walkthrough: [Cookbook → Sharing a run via deep link](./COOKBOOK.md#sharing-a-run-via-deep-link-loadurltabautoload).

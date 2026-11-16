@@ -396,7 +396,7 @@ await wm.simulate({ actor: releaseDirector, maxTurns: 6, seed: 42 });
 
 事件导演生成事件 → 确定性内核推进 → 各部门并行分析 → 决策者选择 → 结果分类 → 内核应用效果 → 成员反应 → 记忆整合 → 人格漂移。
 
-部门分析期间可在进程内的 `node:vm` 上下文中生成并运行工具，工具生成由大模型审查。导演、部门、决策者、反应和最终裁决等结构化模型输出均经过 Zod 校验，失败后携带反馈重试。相关定义见 [src/runtime/validators/](src/runtime/validators/)，详细流程见 [架构文档](docs/ARCHITECTURE.md)。
+部门分析期间可在进程内独立的 `node:vm` 上下文中生成并运行工具，工具生成由大模型审查。工具必须以同步的 `execute(input)` 返回结果，不支持 `async`、`import`、`Promise`、`Proxy`、`Reflect` 或类型化数组。导演、部门、决策者、反应和最终裁决等结构化模型输出均经过 Zod 校验，失败后携带反馈重试。相关定义见 [src/runtime/validators/](src/runtime/validators/)，详细流程见 [架构文档](docs/ARCHITECTURE.md)。
 
 ## 外部知识与资料增强
 
@@ -414,7 +414,9 @@ HTTP 服务提供 `/api/v1/*` 的读取和回放接口；`POST /simulate` 需开
 
 运行历史与保存会话使用 SQLite，通过 `@framers/sql-storage-adapter` 访问。无法加载原生 `better-sqlite3` 时尝试 `sql.js`。运行历史位于 `APP_DIR` 下的 `data/runs.db`，未设 `APP_DIR` 时使用工作目录；可通过 `PARACOSM_RUN_HISTORY_DB_PATH` 修改历史库位置。会话位于 `data/sessions.db`。`STORAGE_ADAPTER` 与 `DATABASE_URL` 不控制这两个数据库。
 
-管理员写入默认关闭。`/admin/sessions/save`、`/admin/data/wipe`、`DELETE /admin/scenarios/:id`，以及 `POST /scenario/store` 的磁盘保存操作，需要 `ADMIN_WRITE=true`，并在 `X-Admin-Token` 请求头携带 `ADMIN_TOKEN`。开启后，控制台“设置”显示“管理员令牌”输入框，可为当前浏览器保存令牌。
+管理员写入默认关闭。`/admin/sessions/save`、`/admin/data/wipe`、`DELETE /admin/scenarios/:id`、`POST /scenarios/:id/rename`，以及 `POST /scenario/store` 的磁盘保存操作，需要 `ADMIN_WRITE=true`，并在 `X-Admin-Token` 请求头携带 `ADMIN_TOKEN`。开启后，控制台“设置”显示“管理员令牌”输入框，可为当前浏览器保存令牌。
+
+“清空本地数据”与“删除服务器数据”是独立操作：前者清理浏览器缓存，释放服务器上属于此浏览器的当前运行，运行中则停止它，保留历史、会话与输出文件；后者需要管理员权限，删除服务器上所有访客的历史、会话与输出，并清空对应已完成运行的页面视图，正在进行的运行继续执行。
 
 ## 项目结构
 
@@ -476,7 +478,7 @@ Paracosm 使用 AgentOS 完成智能体编排、模型调用、工具生成和�
 | --- | --- | --- |
 | 访问方式 | [上游演示站](https://paracosm.agentos.sh/sim) | 本地或服务器，默认端口 3456 |
 | 模型密钥 | 使用演示站密钥，或在设置中输入自己的密钥 | 使用自己的环境配置或会话密钥 |
-| 限制 | 使用站点密钥时有回合、人数、部门及每日运行限制 | 没有托管演示配额；各接口仍有参数范围及服务限流 |
+| 限制 | 使用站点密钥时有回合、人数、部门、决策者数量（两位）及每日运行限制；数字孪生也计入每日次数。快速开始的编译、资料读取、角色和 URL 请求另有限流；实时搜索仅使用访客提供的搜索密钥 | 没有托管演示配额；各接口仍有参数范围及服务限流 |
 | 费用 | 可试用，具体以演示站为准 | 软件采用 Apache-2.0；模型费用由提供方收取 |
 
 `runMany()` 和 `WorldModel.quickstart()` 接受 2 至 6 个角色；`run()` 运行两个角色并返回第一个结果。控制台普通运行支持 2 至 300 个角色，分支可以使用 1 个角色。服务使用自身密钥时，`RATE_LIMIT` 控制每个 IP 每天运行次数，未设置时为 1，设为 `0` 可关闭该限流。SDK 的单次仿真参数与控制台配额不同，具体以接口校验为准。

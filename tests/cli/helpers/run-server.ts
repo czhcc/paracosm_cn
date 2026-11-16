@@ -14,6 +14,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createMarsServer, type CreateMarsServerOptions, type MarsServer } from '../../../src/server/server-app.js';
 import { createNoopRunHistoryStore } from '../../../src/server/stores/run-history.js';
+import { openSessionStore } from '../../../src/server/stores/session.js';
 import type { NormalizedSimulationConfig } from '../../../src/cli/sim-config.js';
 import type { BroadcastFn } from '../../../src/cli/pair-runner.js';
 import type { ScenarioPackage } from '../../../src/engine/types.js';
@@ -100,6 +101,7 @@ export async function startServer(options: RunServerOptions = {}): Promise<RunSe
     env: { ...process.env, APP_DIR: appDir, PARACOSM_HOSTED_DEMO: '', ...options.env },
     maxSimsPerDay: options.maxSimsPerDay ?? 0,
     runHistoryStore: createNoopRunHistoryStore(),
+    sessionStore: openSessionStore(join(appDir, 'data', 'sessions.db')),
     runPairSimulations: async (config: NormalizedSimulationConfig, broadcast: BroadcastFn, signal?: AbortSignal, scenario?: ScenarioPackage) => {
       launches.push({ config, scenario, signal });
       await options.runner?.(config, broadcast, scenario, signal);
@@ -137,6 +139,9 @@ export async function startServer(options: RunServerOptions = {}): Promise<RunSe
       server.closeAllConnections?.();
       server.close();
       await once(server, 'close');
+      // SQLite holds an open file on Windows; close the fixture's store
+      // before withVisitors removes its temporary directory.
+      await serverOptions.sessionStore?.close();
     },
   };
 }

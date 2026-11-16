@@ -1,3 +1,4 @@
+import { withoutOutputPath } from '../server/services/run-record.js';
 import { DEFAULT_KEY_PERSONNEL, type NormalizedSimulationConfig } from './sim-config.js';
 import { marsScenario } from '../engine/scenarios/index.js';
 import { apiKeyForProvider } from '../engine/provider/credentials.js';
@@ -223,6 +224,12 @@ export interface RunnerOptions {
    * else `<cwd>/output`. The server passes its runs directory.
    */
   outputDir?: string;
+  /**
+   * The environment each leader's web search reads a search key from when
+   * the run's config names none; see the orchestrator's `searchEnv`.
+   * Omitted, `process.env`.
+   */
+  searchEnv?: NodeJS.ProcessEnv;
 }
 
 export async function runPairSimulations(
@@ -254,11 +261,13 @@ export async function runPairSimulations(
    */
   onArtifact?: (artifact: import('../engine/schema/index.js').RunArtifact, leader: import('../runtime/orchestrator/index.js').ActorConfig) => void | Promise<void>,
   runnerOptions: RunnerOptions = {},
+  /** Optional engine implementation; defaults to the runtime orchestrator. */
+  runSimulationImpl?: typeof import('../runtime/orchestrator/index.js').runSimulation,
 ): Promise<void> {
   const { actors, turns, seed, startTime, liveSearch, customEvents } = simConfig;
   broadcast('status', { phase: 'starting', maxTurns: turns, customEvents });
 
-  const { runSimulation } = await import('../runtime/orchestrator/index.js');
+  const runSimulation = runSimulationImpl ?? (await import('../runtime/orchestrator/index.js')).runSimulation;
   // Per-actor SSE channels: pull leader from each event so subscribers
   // on /events?actor=<leaderName> can filter the stream server-side.
   // Orchestrator emits events with `{ type, leader: leader.name, data }`
@@ -308,6 +317,7 @@ export async function runPairSimulations(
       tavilyKey: simConfig.tavilyKey,
       cohereKey: simConfig.cohereKey,
       outputDir: runnerOptions.outputDir,
+      searchEnv: runnerOptions.searchEnv,
     }).then(async result => {
       broadcast('result', {
         leader: tag,
@@ -323,7 +333,7 @@ export async function runPairSimulations(
         // without reconstructing from the event stream. Skipped when
         // captureSnapshots is off to keep the SSE payload lean on
         // hosted-demo runs that don't need fork capability.
-        artifact: simConfig.captureSnapshots ? result : undefined,
+        artifact: simConfig.captureSnapshots ? withoutOutputPath(result) : undefined,
       });
       if (onArtifact) {
         try { await onArtifact(result, leader); } catch (err) {
@@ -397,6 +407,8 @@ export async function runForkSimulation(
   /** Optional callback fired after the forked artifact completes. */
   onArtifact?: (artifact: import('../engine/schema/index.js').RunArtifact, leader: import('../runtime/orchestrator/index.js').ActorConfig) => void | Promise<void>,
   runnerOptions: RunnerOptions = {},
+  /** Optional engine implementation; defaults to the runtime orchestrator. */
+  runSimulationImpl?: typeof import('../runtime/orchestrator/index.js').runSimulation,
 ): Promise<void> {
   if (!simConfig.forkFrom) {
     throw new Error('runForkSimulation called without simConfig.forkFrom set');
@@ -468,7 +480,8 @@ export async function runForkSimulation(
       tavilyKey: simConfig.tavilyKey,
       cohereKey: simConfig.cohereKey,
       outputDir: runnerOptions.outputDir,
-    });
+      searchEnv: runnerOptions.searchEnv,
+    }, runSimulationImpl);
     broadcast('result', {
       leader: leaderTag(leader, 0),
       summary: {
@@ -483,7 +496,7 @@ export async function runForkSimulation(
       // simulate call above); emit the full artifact so the dashboard
       // can keep forking recursively without the event-stream
       // reconstruction the spec originally assumed.
-      artifact: result,
+      artifact: withoutOutputPath(result),
     });
     if (onArtifact) {
       try { await onArtifact(result, leader); } catch (err) {
@@ -593,6 +606,7 @@ export async function runBatchSimulations(
       tavilyKey: simConfig.tavilyKey,
       cohereKey: simConfig.cohereKey,
       outputDir: runnerOptions.outputDir,
+      searchEnv: runnerOptions.searchEnv,
     }).then(async result => {
       broadcast('result', {
         leader: tag,
@@ -604,7 +618,7 @@ export async function runBatchSimulations(
           citations: result.citations?.length ?? 0,
         },
         fingerprint: result.fingerprint ?? null,
-        artifact: simConfig.captureSnapshots ? result : undefined,
+        artifact: simConfig.captureSnapshots ? withoutOutputPath(result) : undefined,
       });
       if (onArtifact) {
         try { await onArtifact(result, leader); } catch (err) {

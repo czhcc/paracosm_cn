@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
+  ADMIN_TOKEN_UNSENDABLE,
   adminTokenState,
   clearAdminToken,
   saveAdminToken,
@@ -18,34 +19,54 @@ const STATUS: Record<AdminTokenState, string> = {
  * Where the operator enters the server's admin token.
  *
  * Settings shows it only on a server with admin writes on. The token is
- * written through admin-token.ts, which the three admin calls read; this
+ * written through admin-token.ts, which the four admin calls read; this
  * field never holds a saved token in its input and never shows one back.
  * The input and its two buttons stay on one row at every width.
+ *
+ * The input is uncontrolled: React mirrors a controlled input's value into
+ * its value attribute, which would put typed text in the page markup. The
+ * component keeps only whether anything is typed, for the Save button.
  */
 export function AdminTokenField() {
-  const [draft, setDraft] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [typed, setTyped] = useState(false);
   const [state, setState] = useState<AdminTokenState>(() => adminTokenState());
+  const [refusal, setRefusal] = useState<string | null>(null);
 
   // A call the server refused clears the token; so can another tab.
   useEffect(() => subscribeAdminToken(() => setState(adminTokenState())), []);
 
+  const empty = () => {
+    if (inputRef.current) inputRef.current.value = '';
+    setTyped(false);
+  };
+
   const save = () => {
-    if (!draft.trim()) return;
-    setState(saveAdminToken(draft));
-    setDraft('');
+    const value = inputRef.current?.value ?? '';
+    if (!value.trim()) return;
+    const saved = saveAdminToken(value);
+    if (saved === 'unsendable') {
+      // Kept in the input, so a mistyped character can be put right.
+      setRefusal(ADMIN_TOKEN_UNSENDABLE);
+      return;
+    }
+    setRefusal(null);
+    setState(saved);
+    empty();
   };
 
   const clear = () => {
     clearAdminToken();
     setState('none');
-    setDraft('');
+    setRefusal(null);
+    empty();
   };
 
   return (
     <div>
       <p className={styles.intro}>
-        本服务器的管理写入操作需要 <code>ADMIN_TOKEN</code>，包括下方场景编辑器的“保存到磁盘”、
-        “清空本地数据”触发的服务器数据清除，以及场景详情中的“删除”。输入一次即可保存到此浏览器。
+        本服务器的管理写入操作需要 <code>ADMIN_TOKEN</code>：包括下方场景编辑器的“保存到磁盘”、
+        运行操作菜单中的“删除服务器数据”，以及场景详情中的“重命名”和“删除”。输入一次即可保存到此浏览器。
         控制台仅在这些请求中通过 <code>X-Admin-Token</code> 请求头发送令牌。
       </p>
       <label htmlFor="admin-token" className={styles.label}>此服务器的管理员令牌</label>
@@ -55,8 +76,8 @@ export function AdminTokenField() {
           type="password"
           autoComplete="off"
           spellCheck={false}
-          value={draft}
-          onChange={e => setDraft(e.target.value)}
+          ref={inputRef}
+          onChange={e => { setTyped(e.target.value.trim() !== ''); setRefusal(null); }}
           onKeyDown={e => { if (e.key === 'Enter') save(); }}
           placeholder={state === 'none' ? '尚未输入' : '已保存'}
           aria-describedby="admin-token-status"
@@ -65,7 +86,7 @@ export function AdminTokenField() {
         <button
           type="button"
           onClick={save}
-          disabled={!draft.trim()}
+          disabled={!typed}
           className={[styles.btn, styles.amber].join(' ')}
           aria-label="保存管理员令牌"
         >
@@ -74,7 +95,7 @@ export function AdminTokenField() {
         <button
           type="button"
           onClick={clear}
-          disabled={state === 'none' && !draft}
+          disabled={state === 'none' && !typed}
           className={styles.btn}
           aria-label="清除管理员令牌"
         >
@@ -82,6 +103,7 @@ export function AdminTokenField() {
         </button>
       </div>
       <div id="admin-token-status" role="status" className={styles.status}>{STATUS[state]}</div>
+      {refusal && <p role="alert" className={styles.refusal}>{refusal}</p>}
     </div>
   );
 }
