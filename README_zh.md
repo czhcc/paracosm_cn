@@ -396,7 +396,7 @@ await wm.simulate({ actor: releaseDirector, maxTurns: 6, seed: 42 });
 
 事件导演生成事件 → 确定性内核推进 → 各部门并行分析 → 决策者选择 → 结果分类 → 内核应用效果 → 成员反应 → 记忆整合 → 人格漂移。
 
-部门分析期间可在进程内独立的 `node:vm` 上下文中生成并运行工具，工具生成由大模型审查。工具必须以同步的 `execute(input)` 返回结果，不支持 `async`、`import`、`Promise`、`Proxy`、`Reflect` 或类型化数组。导演、部门、决策者、反应和最终裁决等结构化模型输出均经过 Zod 校验，失败后携带反馈重试。相关定义见 [src/runtime/validators/](src/runtime/validators/)，详细流程见 [架构文档](docs/ARCHITECTURE.md)。
+部门分析期间可生成工具，并通过 AgentOS 的 QuickJS WebAssembly 执行器运行。每次调用使用独立实例，限时 10 秒、内存上限 128 MB，JSON 结果上限 1 MB；工具生成由大模型审查。工具必须以同步的 `execute(input)` 返回结果，不支持 `async`、`import`、定时器、`Proxy` 或 `Reflect`，也不授予网络、文件和加密访问能力。导演、部门、决策者、反应和最终裁决等结构化模型输出均经过 Zod 校验，失败后携带反馈重试。相关定义见 [src/runtime/validators/](src/runtime/validators/)，详细流程见 [架构文档](docs/ARCHITECTURE.md)。
 
 ## 外部知识与资料增强
 

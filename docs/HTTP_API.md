@@ -11,8 +11,9 @@ For the SDK (`WorldModel.simulate()`, `WorldModel.batch()`, `WorldModel.interven
 - Local: `http://localhost:3456` (override with `PORT`, set in the environment or in a `.env` file in the directory you start the server from)
 - All `/api/v1/runs*` and `/api/v1/bundles/*` routes return **403 `run_history_routes_disabled`** when the server is started with `PARACOSM_ENABLE_RUN_HISTORY_ROUTES=false`. Default is `true` except in `hosted_demo` mode.
 - Routes are CORS-permissive (`Access-Control-Allow-Origin: *`) for local dashboard development.
-- A local server (neither `PARACOSM_HOSTED_DEMO` nor `PARACOSM_PLATFORM_API` set) answers **403 `cross_site_refused`** to any request sent to a name it is not served under: its `Host` must be a loopback name (`localhost`, `127.0.0.1`, `[::1]`), an IP address, or the name `HOST` gives, whatever `Origin` says, so a site that points a name of its own at the machine is refused. It also answers 403 to any request whose `Origin` is not a loopback address (any port) or the host the request was sent to, `Origin: null` included. Requests with no `Origin` (same-origin reads, curl, scripts) to such a name pass.
-- `paracosm dashboard` listens on `127.0.0.1` on a local server; set `HOST` (for example `HOST=0.0.0.0` in a container or for a LAN demo) to listen elsewhere. The hosted demo and the platform API mode listen on every interface unless `HOST` is set.
+- A local server (neither `PARACOSM_HOSTED_DEMO` nor `PARACOSM_PLATFORM_API` set) answers **403 `cross_site_refused`** to any request, the CORS preflight included, sent to a name it does not answer: its `Host` must be a loopback name (`localhost`, `127.0.0.1`, `[::1]`), an IP address, the name `HOST` gives or a name `PARACOSM_ALLOWED_HOSTS` lists (an internationalized name in its ASCII form, `xn--...`), on any port, whatever `Origin` says. It also answers 403 to any request but the preflight whose `Origin` is not a loopback address (any port) or the host the request was sent to, `Origin: null` included. Requests with no `Origin` (same-origin reads, curl, scripts) to such a name pass.
+- `paracosm dashboard` listens on `127.0.0.1` on a local server; set `HOST` (for example `HOST=0.0.0.0` in a container or for a LAN demo) to listen elsewhere. The hosted demo and the platform API mode listen on every interface unless `HOST` is set. To reach a local server by a name while it listens on an address, list the name in `PARACOSM_ALLOWED_HOSTS` (empty by default; comma-separated names, no port). Behind a proxy, also have the proxy pass the browser's `Host` header unchanged, name and port (nginx: `proxy_set_header Host $http_host;`); a `Host` without the page's port works only for a page on its scheme's default port.
+- On the hosted demo, a `POST` from a page on another site answers **403 `cross_site_refused`** on `/setup`, `/chat` and `/simulate` (where enabled) without the caller's own provider key; on `/compile` without one or with a `seedText` or `seedUrl` the host's search or scraping keys would read; and on every `/api/quickstart/*` route and `/scenario/switch` always. An `Origin` that `PARACOSM_ALLOWED_ORIGINS` lists counts as the demo's own first; when it lists origins, a request whose `Origin` is any other origin (not `null`) is another site's, whatever `Sec-Fetch-Site` says. Otherwise `Sec-Fetch-Site: cross-site` or `same-site` names another site, and `same-origin` or `none` passes. With no known `Sec-Fetch-Site`, `Origin` must be absent or an HTTP(S) URL whose host and port match `Host`; `Origin: null` is refused. Requests with neither header (curl, scripts) are answered as before. `PARACOSM_ALLOWED_ORIGINS` is hosted-demo-only and empty by default: comma-separated origins (`https://host` or `https://host:port`, also `http:`), with no path, trailing slash, user part or explicit default port, an internationalized name in its ASCII form (`xn--...`). Invalid entries are dropped. The deploy lists the demo's own public origin so its pages pass even when a proxy rewrites `Host`.
 - In `platform_api` mode every `/api/v1/*` route except `GET /api/v1/demo/status` takes the admin credential, however the request target that names it is written: `ADMIN_WRITE=true`, `ADMIN_TOKEN` set, and a matching `X-Admin-Token` header (403 without `ADMIN_WRITE`, 503 without `ADMIN_TOKEN`, 401 without a matching header).
 
 ## Run history in `hosted_demo` mode
@@ -47,6 +48,7 @@ A local server and `platform_api` mode answer every caller that reaches the rout
 | GET    | `/api/v1/demo/status` | Public-demo capability flags (always reachable) |
 | POST   | `/scenario/store` | Store a scenario in this visitor's memory; with `saveToDisk`, write it to the scenarios folder and the shared catalog instead (admin credential) |
 | POST   | `/compile` | Compile a scenario JSON into the shared catalog under an id that names nothing yet |
+| POST   | `/api/event` | Hosted demo only: one page view from the consent bar, forwarded as the public page it names to the site's Plausible count |
 
 ---
 
@@ -359,6 +361,28 @@ Always reachable (not gated by `paracosmRoutesEnabled`). Lets a public-demo clie
 
 `mode` is one of `local`, `hosted_demo`, `platform_api`. `replayAvailable` is `false` only in `platform_api` mode (where replay needs an authenticated path that is not yet exposed). `authenticatedApiAvailable` is `true` only in `platform_api` mode with `ADMIN_WRITE=true` and `ADMIN_TOKEN` set, the credential `/api/v1` takes there.
 
+## `POST /api/event`
+
+Served on the hosted demo alone (`PARACOSM_HOSTED_DEMO=true`); elsewhere the path answers `404`. The consent bar's script (`assets/consent/consent.js`) sends one page view per path while the visitor's count purpose is on, and the server forwards it to the shared Plausible instance with the visitor's `User-Agent` and address, as Plausible's [events API](https://plausible.io/docs/events-api) asks. The address is the connection's, or the `PARACOSM_CLIENT_IP_HEADER` header's value as the rate limits read it. The count limit below keys on it as the other per-client limits do (an IPv6 address by its /64), holds it in memory only, and drops it when its minute ends.
+
+**Request body** (any content type; at most 4,096 bytes)
+
+```json
+{ "n": "pageview", "u": "/sim" }
+```
+
+`u` is the page's path. The server forwards one of the site's public pages in its place, on the counted domain: `/` (for `/` and `/index.html`), `/sim` (for `/sim` and any path under it, whose rest is never sent), or a built API docs page under its own path. A query string or fragment never leaves the server. No referrer is sent: the server ignores any other field of the body.
+
+**Responses**
+
+- `202`: the instance took the page view
+- `204`: nothing was forwarded, because the request sent a privacy signal (`Sec-GPC: 1` or `DNT: 1`), came from a page on another site (the rule in "Base URL and gating"), or named a path that is no page of the site
+- `400 invalid_event`: the body is not a page view of a path, or the request has no `User-Agent`
+- `405`: a method other than `POST`
+- `413 body_too_large`: the body is over 4,096 bytes
+- `429 too_many_events`: the address (an IPv6 address by its /64) has sent 120 page views in its current minute, or 32 forwards are open at once; nothing is forwarded, and `Retry-After` is 60 seconds
+- `502`: the instance did not take it (refused, unreachable or slower than 5 seconds)
+
 ## `POST /scenario/store`
 
 The dashboard's scenario editor route. Any visitor can store a scenario JSON in memory. The stored scenario is the visitor's own: the visitor is the `paracosm_visitor` cookie the dashboard gives a browser, and every caller that sends no such cookie is one visitor, the anonymous one. A `paracosm_visitor` cookie whose value is not a UUID counts as no cookie, so that caller is the anonymous visitor too. When the JSON is a runnable scenario package, that visitor's `GET /scenarios` lists it with `source: "memory"`, and their `GET /scenarios/:id`, `POST /scenario/switch`, `GET /scenario?id=`, `POST /setup` and the Quickstart routes take its id. No other visitor lists, reads or runs it, and `GET /admin-config` lists each visitor's own stored ids under `memoryScenarios`.
@@ -405,21 +429,24 @@ The dashboard sends the header from the token an operator enters in Settings, in
 
 At boot the server re-compiles the drafts the compile-from-seed flow saved under `<scenarios folder>/compiled/`, newest first, at most 50 (`COMPILED_SCENARIOS_CAP`); a draft whose id is outside the pattern above is skipped with a log line naming its file, and the drafts past the cap are left unread, in one log line. A draft whose id the catalog already holds (a built-in or a scenario from the scenarios folder) is left out with a log line and is not compiled: the catalog's scenario stays.
 
+The shared catalog holds at most 50 compiled scenarios (`COMPILED_SCENARIOS_CAP`), whatever compiled them: Quickstart compiles, `POST /compile`, and the saved drafts boot re-compiles, which count from the start of boot. When a compile takes the catalog past 50, one compiled scenario leaves: on the hosted demo the oldest of the client address that holds the most (each draft loaded at boot counts as an address of its own), elsewhere the oldest. A scenario that a run the server holds is in never leaves; when such runs hold every other compiled scenario, none leaves, so the catalog passes 50 only when `PARACOSM_MAX_RUNS` and `PARACOSM_MAX_HELD_RUNS` together reach 50. A scenario that leaves goes as `DELETE /admin/scenarios/:id` takes it, its file included: a pick of it reads as no pick and gets the default, a request that names it answers as one that names an unknown id, and for 31 days, or until the server restarts, no compile lands under its id: `POST /compile` answers `409` and the Quickstart takes the next free id. A visitor's own copy held in memory (`POST /scenario/store` without `saveToDisk`) may use the id, and only that visitor sees it. The folder `<scenarios folder>/compiled/` holds the files of the compiled scenarios in the catalog. Its clean-up, which runs while the folder holds more than 50, deletes the oldest `<id>.json` files whose JSON holds that same id and whose scenario is neither a compiled scenario in the catalog nor a draft boot is re-compiling. A disk save (`saveToDisk`) under the id of a compiled scenario or a draft boot is re-compiling deletes that scenario's file in `compiled/`. When the saved JSON is not a runnable package (`switchable: false`), the save also takes the compiled scenario out of the catalog and ends boot's re-compile of it; the boot loader reads the saved file at the next restart when it is runnable or carries `dataDrivenHooks`.
+
 ## `POST /compile`
 
-The scenario editor's compile route. It compiles the scenario JSON in `scenario` and puts the result in the shared catalog under the JSON's `id`, with `source: "compiled"`, where every visitor's `GET /scenarios` lists it. It becomes nobody's pick: the editor that compiled it posts `/scenario/switch` with the id.
+The scenario editor's compile route. It compiles the scenario JSON in `scenario` and puts the result in the shared catalog under the JSON's `id`, with `source: "compiled"`, where every visitor's `GET /scenarios` lists it. It becomes nobody's pick: the editor that compiled it posts `/scenario/switch` with the id. The catalog holds at most 50 compiled scenarios; past that one leaves, as the boot paragraph under [`POST /scenario/store`](#post-scenariostore) says.
 
 A compile never replaces a scenario. The server answers `409` when the id is taken, which is any of:
 
 - the shared catalog holds it: a built-in, a scenario from the scenarios folder, or a compiled scenario, whoever compiled it, the caller included;
 - it is the id of a saved compiled draft the server is still re-compiling after a restart;
+- it is the id of a compiled scenario that left the catalog to make room, for 31 days after it left or until the server restarts;
 - another visitor holds it in memory (`POST /scenario/store`).
 
 The refusal comes before the stream starts, before the compiler runs and before the request counts toward the day's compiles. To change a compiled scenario, compile it under a new id. An id that only the caller stored in memory is free: the compiled scenario lands in the catalog and the stored copy leaves the memory store.
 
 The id is checked again when the compile finishes. If something took it while the compile ran, the stream ends with an `error` event that carries the same message, and the catalog is unchanged.
 
-The Quickstart compile (`POST /api/quickstart/compile-from-seed`) picks the scenario's id itself. When that id is taken, the scenario lands under the next free id (`<id>-2`, then `<id>-3`), with the id cut short where it must be so the whole is at most 64 characters, the longest id the Quickstart routes take, and the status answer's `scenarioId` and `scenario.id` report the id it landed under.
+The Quickstart compile (`POST /api/quickstart/compile-from-seed`) picks the scenario's id itself. When that id is taken, the scenario lands under the next free id (`<id>-2`, then `<id>-3`), with the id cut short where it must be so the whole is at most 64 characters, the longest id the Quickstart routes take, and the status answer's `scenarioId` and `scenario.id` report the id it landed under. A finished compile whose scenario left the catalog to make room answers its status with `status: "error"` and no scenario, and the same seed sent again starts a new compile. At most 4 such compiles are pending at once (503 with `Retry-After: 60` above it), and one pending for 10 minutes ends with `status: "error"` and is never installed.
 
 **Request body**
 
@@ -437,6 +464,8 @@ A `text/event-stream`: `status`, one `progress` event per hook, a `compile_valid
 
 - `200`: the stream above
 - `400 scenario JSON object required`: no `scenario` object in the body
+- `413 A scenario sent to /compile is at most 256 KiB of JSON.`: the `scenario` is over 256 KiB (262,144 bytes) of JSON; refused before the 409 check, the stream and the day's compiles
+- `403 cross_site_refused`: on the hosted demo, a request from a page on another site with no key of its own, or with a seed the host's search or scraping keys would read
 - `409 "<id>" is taken on this server. Give your scenario an id of its own.`: the id is taken, as above
 - `429`: on the hosted demo, the address is past its compiles for the day and the request carries no API key of its own
 
@@ -468,7 +497,7 @@ The name loses control characters and `<` `>`, its runs of whitespace become one
 - `400 invalid_json_body` or `400 name_required` — no JSON body, or a name that is empty once cleaned
 - `401 Invalid or missing X-Admin-Token header` — no header or a wrong token
 - `403 ADMIN_WRITE not enabled on this server` — a server started without `ADMIN_WRITE=true`
-- `404 scenario_not_found` — no scenario has that id
+- `404 scenario_not_found` — no scenario has that id, or the scenario left the catalog before the request's body arrived
 - `503` — a server with `ADMIN_WRITE=true` and no `ADMIN_TOKEN` (fail closed)
 
 ---

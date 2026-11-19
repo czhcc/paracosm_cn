@@ -9,24 +9,30 @@ importers:
   .:
     dependencies:
       '@framers/agentos':
-        specifier: ^0.19.0
-        version: 0.19.0(better-sqlite3@12.11.1)(express@5.3.0)(react@19.3.1)(typescript@5.9.3)
+        specifier: ^0.19.3
+        version: 0.19.3(@jitl/quickjs-wasmfile-release-sync@0.32.0)(better-sqlite3@12.11.1)(express@5.3.0)(quickjs-emscripten-core@0.32.0)(react@19.3.1)(typescript@5.9.3)
       '@framers/sql-storage-adapter':
-        specifier: ^0.9.5
-        version: 0.9.5(better-sqlite3@12.11.1)
+        specifier: ^0.9.7
+        version: 0.9.7(better-sqlite3@12.11.1)
+      '@jitl/quickjs-wasmfile-release-sync':
+        specifier: 0.32.0
+        version: 0.32.0
       better-sqlite3:
         specifier: ^12.11.1
         version: 12.11.1
+      quickjs-emscripten-core:
+        specifier: 0.32.0
+        version: 0.32.0
       resend:
-        specifier: ^6.38.0
-        version: 6.38.0
+        specifier: ^6.38.1
+        version: 6.39.0
       zod:
         specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
       '@playwright/test':
-        specifier: ^1.65.0
-        version: 1.65.0
+        specifier: ^1.65.1
+        version: 1.65.1
       '@types/node':
         specifier: ^26.6.6
         version: 26.6.6
@@ -210,8 +216,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@framers/agentos@0.19.0':
-    resolution: {integrity: sha512-Po+JAaWNCYQiK1IAozHnnBucTCdmcvhDMj0J9MBMhLi3KMU4sEiGZzLUKdpLr0Xs6rIGGnMZlhfWO9M3ydzSAg==}
+  '@framers/agentos@0.19.3':
+    resolution: {integrity: sha512-UnTXVbBvo7kfx8960w0vPl50rYnBa3HKfsJIX2tv4i8cdQDH+mQHfVY2Hzi73rSvdHHWbvmO2tN9NBhv+gaFNw==}
     engines: {node: '>=22'}
     peerDependencies:
       '@jitl/quickjs-wasmfile-release-sync': 0.32.0
@@ -256,8 +262,8 @@ packages:
       tesseract.js:
         optional: true
 
-  '@framers/sql-storage-adapter@0.9.5':
-    resolution: {integrity: sha512-S8sbQGzJ/VAXYQqwlIGxQM3RKjob5Z9QdpTyrgl/5XX57ZCz3jZhj7SvU3tuxejAihG1FHEnZ+RJPmRJTY7BhQ==}
+  '@framers/sql-storage-adapter@0.9.7':
+    resolution: {integrity: sha512-GXQaUCgYPjfGZIv9Ry20GbUxrIJzwuXEfOuGD7TqqVLdT5A+nko7Co56MOGNo2gN9CPU+q/9FgEbp6IJdLjOuA==}
     peerDependencies:
       '@aws-sdk/client-s3': ^3.0.0
       '@capacitor-community/sqlite': ^6.0.0 || ^7.0.0 || ^8.0.0
@@ -440,6 +446,12 @@ packages:
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
     engines: {node: '>=18.0.0'}
 
+  '@jitl/quickjs-ffi-types@0.32.0':
+    resolution: {integrity: sha512-v9T+GQpmk43VDJ7d72sf0Nexhk+ArvtUihW27dy7lqAl0zBObFKtSBBIm5RBjwIhE8VwsPPm9PNuvPvNqLWUEg==}
+
+  '@jitl/quickjs-wasmfile-release-sync@0.32.0':
+    resolution: {integrity: sha512-BKNDI/TPBfGlLNGYpLrhcDGXmIk4xHm4MRAisOBnOzpXVn9HZWsfmMAc9WMBrAHjvvds6HOikKeaOBKdPdpVrg==}
+
   '@mongodb-js/saslprep@1.6.3':
     resolution: {integrity: sha512-aHGFvT95c82CoQ7hb6qXpz8Hcc5PJb3ZtQ+P01QDBbyQday0mjcrJPeNJOHCgWe0pGX0zKmKP+1mWi/I/BCX9Q==}
 
@@ -491,8 +503,8 @@ packages:
   '@pinojs/redact@0.4.0':
     resolution: {integrity: sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg==}
 
-  '@playwright/test@1.65.0':
-    resolution: {integrity: sha512-iGURLGuKDLakSEl7Pgfv8h7f+XLT+V861Wfhz0zlEl5nyFuKUopdkFBPKqTllTUp06aOwPuH8iuUEb3yp3MpbQ==}
+  '@playwright/test@1.65.1':
+    resolution: {integrity: sha512-y+NCIRm2LvY4slUVWvGh1nujJ8RF/hEisIsq2mtUPgdQC4L701bq5hZGMhrpeXjACvwvO9tj5dJqhvM6TP9lbw==}
     engines: {node: '>=20'}
     hasBin: true
 
@@ -1333,13 +1345,13 @@ packages:
   platform@1.3.6:
     resolution: {integrity: sha512-fnWVljUchTro6RiCFvCXBbNhJc2NijN7oIQxbwsyL0buWJPG85v81ehlHI9fXrJsMNgTofEoWIQeClKpgxFLrg==}
 
-  playwright-core@1.65.0:
-    resolution: {integrity: sha512-vNSKgH6YqtN7cdT/L334zo0a+YwkrpicyrHJlWWPIm/Q+Nn2SWInil01oT0mbu96U4GgoRtCYQD9CzJQgju+lA==}
+  playwright-core@1.65.1:
+    resolution: {integrity: sha512-hqPpz7blSMPxWVdoeE1yiBSzXsKiVOd2k+kjCvmUywD2GPO2Dd9HfcWnq9NN0GHbNZDFgZ9JfBFr+X5/BLo0qw==}
     engines: {node: '>=20'}
     hasBin: true
 
-  playwright@1.65.0:
-    resolution: {integrity: sha512-F3AMWcR44qMBt4kq+6Kb6mX7bjGXshktKFOPULd7reED6ZJWevjbNRqysP7q+AATE9kdPEZBibex1BYsvpVoeA==}
+  playwright@1.65.1:
+    resolution: {integrity: sha512-vJ1FuoOrNwOKHUIVEvSt3jT1L+wjjDpwhwIstKtfvTh8XIG4FG4bIFuvNdMxi81LGfAhUgUZleVFaOLY4RIUUw==}
     engines: {node: '>=20'}
     hasBin: true
 
@@ -1408,6 +1420,9 @@ packages:
   quick-format-unescaped@4.0.4:
     resolution: {integrity: sha512-tYC1Q1hgyRuHgloV/YXs2w15unPVh8qfu/qCTfhTYamaw7fyhumKa2yGpdSo87vY32rIclj+4fWYQXUMs9EHvg==}
 
+  quickjs-emscripten-core@0.32.0:
+    resolution: {integrity: sha512-QFnPfjFey8EqknSrSxe1hZrf1/8z7/6s1QzGOmKo6++02r7QRRX7ZoyNaZh7JuVjWsVW87KnQrbZqnHkOAzUyg==}
+
   range-parser@1.3.0:
     resolution: {integrity: sha512-hek2mFQpPuI4E1BBKrSto+BU3e3x4xuarsbiwr3+lf7p44juvFMV0XFWQAP3xUyqXA4RrXLIoaSUGbSt056ZMw==}
     engines: {node: '>= 0.6'}
@@ -1441,8 +1456,8 @@ packages:
     resolution: {integrity: sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==}
     engines: {node: '>=0.10.0'}
 
-  resend@6.38.0:
-    resolution: {integrity: sha512-+t1bz6unmYcyYrLqrZtkn73ODZhUgKJTViuRf+a4ewgo3mT/Bpg64WkBtAVQlXQcmUkeuorO1eLAd2+1h4jgNQ==}
+  resend@6.39.0:
+    resolution: {integrity: sha512-szNf/OR2I5rreOt5dQr7+aZLGFhkNJ0pSjzQIkU1oIrfh7kMZFDJQ3/Cc9s1yVeapafYFg0/aNyj41lsbHPeUw==}
     engines: {node: '>=20'}
     peerDependencies:
       '@react-email/render': '*'
@@ -1838,9 +1853,9 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
-  '@framers/agentos@0.19.0(better-sqlite3@12.11.1)(express@5.3.0)(react@19.3.1)(typescript@5.9.3)':
+  '@framers/agentos@0.19.3(@jitl/quickjs-wasmfile-release-sync@0.32.0)(better-sqlite3@12.11.1)(express@5.3.0)(quickjs-emscripten-core@0.32.0)(react@19.3.1)(typescript@5.9.3)':
     dependencies:
-      '@framers/sql-storage-adapter': 0.9.5(better-sqlite3@12.11.1)
+      '@framers/sql-storage-adapter': 0.9.7(better-sqlite3@12.11.1)
       '@opentelemetry/api': 1.10.0
       '@opentelemetry/api-logs': 0.201.1
       ajv: 8.20.0
@@ -1864,7 +1879,9 @@ snapshots:
       zod-to-json-schema: 3.25.2(zod@4.6.7)
     optionalDependencies:
       '@huggingface/transformers': 3.8.1
+      '@jitl/quickjs-wasmfile-release-sync': 0.32.0
       compromise: 14.20.0
+      quickjs-emscripten-core: 0.32.0
     transitivePeerDependencies:
       - '@aws-sdk/client-s3'
       - '@aws-sdk/credential-providers'
@@ -1887,7 +1904,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@framers/sql-storage-adapter@0.9.5(better-sqlite3@12.11.1)':
+  '@framers/sql-storage-adapter@0.9.7(better-sqlite3@12.11.1)':
     dependencies:
       '@types/sql.js': 1.4.11
       pg: 8.23.1
@@ -2018,6 +2035,12 @@ snapshots:
       minipass: 7.1.3
     optional: true
 
+  '@jitl/quickjs-ffi-types@0.32.0': {}
+
+  '@jitl/quickjs-wasmfile-release-sync@0.32.0':
+    dependencies:
+      '@jitl/quickjs-ffi-types': 0.32.0
+
   '@mongodb-js/saslprep@1.6.3':
     dependencies:
       sparse-bitfield: 3.0.3
@@ -2068,9 +2091,9 @@ snapshots:
 
   '@pinojs/redact@0.4.0': {}
 
-  '@playwright/test@1.65.0':
+  '@playwright/test@1.65.1':
     dependencies:
-      playwright: 1.65.0
+      playwright: 1.65.1
 
   '@protobufjs/aspromise@1.1.2':
     optional: true
@@ -2972,11 +2995,11 @@ snapshots:
   platform@1.3.6:
     optional: true
 
-  playwright-core@1.65.0: {}
+  playwright-core@1.65.1: {}
 
-  playwright@1.65.0:
+  playwright@1.65.1:
     dependencies:
-      playwright-core: 1.65.0
+      playwright-core: 1.65.1
 
   postal-mime@2.7.6: {}
 
@@ -3051,6 +3074,10 @@ snapshots:
 
   quick-format-unescaped@4.0.4: {}
 
+  quickjs-emscripten-core@0.32.0:
+    dependencies:
+      '@jitl/quickjs-ffi-types': 0.32.0
+
   range-parser@1.3.0: {}
 
   raw-body@3.0.2:
@@ -3098,7 +3125,7 @@ snapshots:
 
   require-from-string@2.0.2: {}
 
-  resend@6.38.0:
+  resend@6.39.0:
     dependencies:
       postal-mime: 2.7.6
       standardwebhooks: 1.1.1

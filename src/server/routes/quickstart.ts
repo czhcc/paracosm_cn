@@ -258,14 +258,11 @@ export interface QuickstartDeps {
   compileFn?: typeof compileFromSeed;
   /**
    * Limits for a server that bills the host's keys (the hosted demo).
-   * Absent, every route runs as asked. Each refusal function returns the
-   * answer to write, or null to go on.
+   * Each refusal function returns the answer to write, or null to go on.
    */
   hostLimits?: {
     /** Charges a new compile-from-seed against the caller's compile limit. */
     admitCompile: () => QuickstartRefusal | null;
-    /** The most compile-from-seed jobs pending at once, server-wide. */
-    maxPendingCompiles: number;
     /** Charges a grounding, actor or URL request against the caller's Quickstart limit. */
     admitCall: () => QuickstartRefusal | null;
     /** Charges the caller's run of the day; `refund` gives it back when the run cannot open. */
@@ -345,10 +342,13 @@ export async function handleFetchSeed(
  *
  * Job state is in-memory; resolved jobs are kept for 10 minutes so a
  * slow user retry hits the cached scenario instantly. Beyond that the
- * compiled scenario is still in customScenarioCatalog (via
- * installCompiledScenario); the job map is purely the compile-pipeline
- * deduplicator.
+ * compiled scenario is in customScenarioCatalog (via
+ * installCompiledScenario), unless it left the catalog to make room; the
+ * job map is purely the compile-pipeline deduplicator. A job pending for
+ * more than 10 minutes ends as an error. Its result is never installed,
+ * even if nobody polls before the compile finishes.
  */
+export const MAX_PENDING_COMPILES = 4;
 const JOB_TTL_MS = 10 * 60 * 1000;
 
 type JobStatus = 'pending' | 'done' | 'error';
@@ -367,6 +367,16 @@ interface CompileJob {
 const compileJobs = new Map<string, CompileJob>();
 const jobBySignature = new Map<string, string>();
 
+/** Ends finished jobs holding this exact package when it leaves the catalog to make room. */
+export function endFinishedJobsOf(scenario: ScenarioPackage): void {
+  for (const job of compileJobs.values()) {
+    if (job.status !== 'done' || job.scenario !== scenario) continue;
+    job.status = 'error';
+    job.error = 'This scenario left the catalog to make room. Compile it again.';
+    delete job.scenario;
+  }
+}
+
 function compileSignature(input: {
   seedText: string;
   sourceUrl?: string;
@@ -383,9 +393,20 @@ function compileSignature(input: {
   })).digest('hex');
 }
 
+/** End an overdue job before counting it or accepting its result. */
+function isPending(job: CompileJob, now: number): boolean {
+  if (job.status !== 'pending') return false;
+  if (now - job.startedAt <= JOB_TTL_MS) return true;
+  job.status = 'error';
+  job.error = 'The compile did not finish in 10 minutes. Try again.';
+  job.resolvedAt = now;
+  return false;
+}
+
 function sweepStaleJobs(): void {
   const now = Date.now();
   for (const [jobId, job] of compileJobs) {
+    if (isPending(job, now)) continue;
     if (job.resolvedAt && now - job.resolvedAt > JOB_TTL_MS) {
       compileJobs.delete(jobId);
       if (jobBySignature.get(job.signature) === jobId) {
@@ -461,16 +482,17 @@ export async function handleCompileFromSeed(
     }
   }
 
+  let pending = 0;
+  for (const job of compileJobs.values()) if (job.status === 'pending') pending += 1;
+  if (pending >= MAX_PENDING_COMPILES) {
+    res.writeHead(503, { 'Content-Type': 'application/json', 'Retry-After': '60' });
+    res.end(JSON.stringify({
+      error: `The server is compiling ${pending} scenarios right now, the most it compiles at once. Try again in a minute.`,
+    }));
+    return;
+  }
+
   if (deps.hostLimits) {
-    let pending = 0;
-    for (const job of compileJobs.values()) if (job.status === 'pending') pending += 1;
-    if (pending >= deps.hostLimits.maxPendingCompiles) {
-      res.writeHead(503, { 'Content-Type': 'application/json', 'Retry-After': '60' });
-      res.end(JSON.stringify({
-        error: `The server is compiling ${pending} scenarios right now, the most it compiles at once. Try again in a minute.`,
-      }));
-      return;
-    }
     const refused = deps.hostLimits.admitCompile();
     if (refused) {
       writeRefusal(res, refused);
@@ -498,7 +520,7 @@ export async function handleCompileFromSeed(
     draftModel: deps.defaultModel,
   }).then((scenario) => {
     const stored = compileJobs.get(jobId);
-    if (!stored) return; // Swept out by TTL while still pending — exotic.
+    if (!stored || !isPending(stored, Date.now())) return;
     // The job reports the scenario as installed, whose id the server may
     // have changed to a free one.
     stored.scenario = deps.installCompiledScenario(scenario, parsed.data.seedText) ?? scenario;
@@ -506,7 +528,7 @@ export async function handleCompileFromSeed(
     stored.resolvedAt = Date.now();
   }).catch((err: unknown) => {
     const stored = compileJobs.get(jobId);
-    if (!stored) return;
+    if (!stored || !isPending(stored, Date.now())) return;
     stored.status = 'error';
     stored.error = err instanceof Error ? err.message : String(err);
     stored.resolvedAt = Date.now();
@@ -642,7 +664,9 @@ export async function handleGroundScenario(
     // a free-form metadata slot today; this in-memory side-channel is
     // intentionally scoped to the server process so a restart drops
     // citations along with the scenario itself.
-    deps.recordGroundingCitations?.(scenario.id, result.citations);
+    if (deps.getScenarioById(scenario.id) === scenario) {
+      deps.recordGroundingCitations?.(scenario.id, result.citations);
+    }
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       citations: result.citations,

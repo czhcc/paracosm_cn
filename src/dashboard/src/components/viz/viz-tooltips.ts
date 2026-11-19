@@ -12,7 +12,7 @@
 export const VIZ_TOOLTIPS = {
   'tab.living': "此回合仍然存活、显示在场景网格中的成员。",
   'tab.mood': "各决策者的综合情绪分布：充满希望／平静／焦虑／消极。",
-  'tab.forge': "成员本回合在 V8 沙箱中动态创建的计算工具。",
+  'tab.forge': "成员本回合在 QuickJS WebAssembly 沙箱中动态创建的计算工具。",
   'tab.ecology': "资源与环境指标：功率、食物、水和辐射。",
   'tab.divergence': "各回合中两侧各项指标的差值。",
   'badge.forge': "本回合的工具创建尝试，点击工具创建查看详情。",

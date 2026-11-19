@@ -110,7 +110,7 @@ export function QuickstartResults({ actors, artifacts, sessionId, onSwap }: Quic
           <span className={styles.summaryNum}>{summary.totalCitations}</span>
           <span className={styles.summaryLabel}>条引用 · 网络研究</span>
         </div>
-        <div className={styles.summaryStat} title="当部门需要现有代码未提供的计算时，AgentOS 在 node:vm 沙箱中动态创建工具。工具须通过安全性与正确性审查后才能参与决策。">
+        <div className={styles.summaryStat} title="当部门需要现有代码未提供的计算时，AgentOS 会在运行时创建工具，并在 QuickJS WebAssembly 沙箱中执行。工具须通过安全性与正确性审查后才能参与决策。">
           <span className={styles.summaryNum}>{summary.totalTools}</span>
           <span className={styles.summaryLabel}>个生成工具 · AgentOS 沙箱</span>
         </div>

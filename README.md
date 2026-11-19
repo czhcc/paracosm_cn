@@ -306,13 +306,14 @@ The CLI looks for `actors.json` via `--actors`, then `./actors.json`, then `./co
 
 The dashboard ships two ways to produce a shareable run link, both landing the viewer on the visualization tab with no upload step.
 
-**From the dashboard UI** — three places now copy `paracosm.agentos.sh/sim?replay=<sessionId>&tab=viz` to the clipboard:
+**From the dashboard UI** — four places copy `paracosm.agentos.sh/sim?replay=<sessionId>&tab=viz` to the clipboard:
 
 - **TopBar overflow menu** (⋯ → Share viz link) — for the run you're currently watching, including replays loaded from a previously shared link.
+- **Run detail drawer** (Library → Open → Share viz link) — for the run the drawer shows.
 - **Quickstart actor cards** — per-actor "Copy viz share link" button.
 - **Library row Share button** — for any historical run whose broadcast session was successfully linked at save time (any run completed after this feature shipped). Library rows from before the link wire-up render without the Share button.
 
-All three routes hit the public `/sessions/:id/replay` SSE endpoint so the viewer streams the stored run directly.
+All four routes hit the public `/sessions/:id/replay` SSE endpoint so the viewer streams the stored run directly. Anyone who has the link and can reach the dashboard that made it can watch the run; a link made on a dashboard served at `localhost` opens only on that computer. The TopBar menu and the run drawer show the link in a field after the press, with whether it was copied and who can open it; when the browser refuses the clipboard or does not answer within three seconds, the note says so and the link stays in the field to copy by hand.
 
 **By URL construction** — any remote `.json` save can be turned into a deep link that fetches, parses, and lands on the tab you choose. No upload step, no preview modal. A file on another site than the dashboard's is fetched after the viewer answers one question that names that site.
 
@@ -452,7 +453,7 @@ Numbers assume 6 turns, 5 departments, 100 agents, up to 3 events per turn. Forg
 
 ## How a turn runs
 
-Director event → Kernel advance (deterministic, seeded) → Department analysis in parallel (with optional runtime tool forging in an in-process `node:vm` context; an LLM judge approves each forge) → Commander decision (HEXACO-weighted) → Outcome classification → Kernel effects → Agent reactions → Memory consolidation → Personality drift.
+Director event → Kernel advance (deterministic, seeded) → Department analysis in parallel (with optional runtime tool forging, each call in a QuickJS WebAssembly instance of its own; an LLM judge approves each forge) → Commander decision (HEXACO-weighted) → Outcome classification → Kernel effects → Agent reactions → Memory consolidation → Personality drift.
 
 Every structured LLM call (director, departments, commander, reactions, verdict) is Zod-validated with retry-with-feedback. Schemas under [`src/runtime/validators/`](src/runtime/validators/). Full per-stage breakdown in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
@@ -531,7 +532,7 @@ Paracosm uses [AgentOS](https://agentos.sh/en) for agent orchestration, LLM disp
 |------------------------------|-----------------------------------------------------------------------|
 | `agent()`                    | Commander, department, and Event Director agents                      |
 | `generateText()`             | LLM calls for event generation and tool evaluation                    |
-| `EmergentCapabilityEngine`   | Runtime tool forging in a node:vm context of its own, in process      |
+| `EmergentCapabilityEngine`   | Runtime tool forging; forged code runs in AgentOS's `QuickJSExecutor` |
 | `EmergentJudge`              | LLM-as-judge safety review of forged tools                            |
 | `WebSearchService`           | Multi-provider seed enrichment with Firecrawl, Tavily, Serper, Brave  |
 | `AgentMemory`                | Per-run citation memory with full-text recall                         |
@@ -542,7 +543,7 @@ Paracosm uses [AgentOS](https://agentos.sh/en) for agent orchestration, LLM disp
 
 | | Hosted demo | Your own install (Apache-2.0) |
 |---|---|---|
-| Where | [paracosm.agentos.sh/sim](https://paracosm.agentos.sh/sim), in the browser, without an account. | Your machine or server: `npm install paracosm` for the SDK and the CLI, `paracosm dashboard` for the same dashboard at `http://localhost:3456`. |
+| Where | [paracosm.agentos.sh/sim](https://paracosm.agentos.sh/sim), in the browser, without an account. | Your machine or server: `npm install paracosm` for the SDK and the CLI, `paracosm dashboard` for the same dashboard at `http://localhost:3456`. To reach it by another name (a LAN name, a server behind a proxy), list the name in `PARACOSM_ALLOWED_HOSTS`, and from another machine also set `HOST=0.0.0.0`. |
 | Model keys | The host's keys, or your own OpenAI or Anthropic key entered in Settings. | Your own keys, from the environment or a `.env` file. |
 | Limits | Runs on the host's keys are capped in turns, population, departments and leaders (two), and each IP address has a daily run limit, which a Digital Twin run also counts against. Quickstart compiles count against a daily compile limit, and its grounding, actor and URL requests against a daily limit of their own. Your own key lifts the run caps and the run limit for a run you start (a Digital Twin run takes no key, so it always counts); live search there runs only on search keys you bring. | No hosted quotas: the SDK and `paracosm run` cap no turns, population, departments or daily runs. The API has its own bounds: `runMany()` and `WorldModel.quickstart()` take 2 to 6 actors and throw outside that range, `run()` runs two and returns the first, and a dashboard run takes 2 to 300 actors (a fork takes 1). The dashboard server limits runs on its own keys to `RATE_LIMIT` per IP address per day (1 when unset); `RATE_LIMIT=0` turns the limit off. |
 | Cost | Free to try. | Free. You pay your model provider for the runs you make. |
@@ -580,6 +581,8 @@ Commercial, partnership and sponsorship inquiries go to [team@frame.dev](mailto:
 ## License
 
 Apache-2.0
+
+The landing page, the dashboard and the API docs load their fonts from the site itself: Inter and JetBrains Mono, in `assets/fonts/`, from the `@fontsource-variable/inter` and `@fontsource-variable/jetbrains-mono` packages. Both fonts are under the [SIL Open Font License 1.1](https://openfontlicense.org/open-font-license-official-text/); the licence texts are `assets/fonts/LICENSE-Inter.txt` and `assets/fonts/LICENSE-JetBrains-Mono.txt`.
 
 ---
 

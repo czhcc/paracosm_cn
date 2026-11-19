@@ -1,7 +1,7 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { isIP } from 'node:net';
-import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, unlinkSync, createReadStream, type Stats } from 'node:fs';
-import { resolve, dirname, sep } from 'node:path';
+import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, unlinkSync, createReadStream, realpathSync, type Stats } from 'node:fs';
+import { resolve, dirname, relative, sep } from 'node:path';
 import { pipeline } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
@@ -11,7 +11,7 @@ import { runPairSimulations, runForkSimulation, runBatchSimulations, type Broadc
 import {
   handleFetchSeed, handleCompileFromSeed, handleCompileFromSeedStatus,
   handleGenerateActors, handleGroundScenario, handleSimulateIntervention,
-  QUICKSTART_SCENARIO_ID_MAX,
+  QUICKSTART_SCENARIO_ID_MAX, endFinishedJobsOf,
   type QuickstartDeps,
 } from './routes/quickstart.js';
 import { WorldModel } from '../runtime/world-model/index.js';
@@ -32,6 +32,7 @@ import {
   loadDiskCustomScenarios,
 } from '../cli/custom-scenarios.js';
 import {
+  COMPILED_SCENARIOS_CAP,
   deletePersistedCompiledScenario,
   loadPersistedCompiledDrafts,
   persistCompiledScenario,
@@ -55,7 +56,19 @@ import { createCompilerTelemetry, type CompilerTelemetry } from '../engine/compi
 import { openSessionStore, type SessionStore, type TimestampedEvent } from './stores/session.js';
 import { generateSessionTitle } from './session-title.js';
 import { resolveServerMode } from './server-mode.js';
-import { withSiteAnalytics } from './site-analytics.js';
+import {
+  countAddresses,
+  COUNT_FORWARDS_AT_ONCE,
+  countEventFrom,
+  CountEventLimit,
+  forwardCountEvent,
+  PLAUSIBLE_EVENT_URL,
+  parseSiteAnalyticsIds,
+  readSiteAnalyticsIds,
+  sendsPrivacySignal,
+  withSiteAnalytics,
+  type SiteAnalyticsIds,
+} from './site-analytics.js';
 import { createRunRecord, hashActorConfig, publicResultFrame } from './services/run-record.js';
 import { enrichRunRecordFromArtifact } from './services/enrich-run-record.js';
 import { isRunOutputFileName, resolveRunsDir } from './services/run-artifact-file.js';
@@ -121,6 +134,9 @@ function projectScenarioForClient(sc: ScenarioPackage) {
 export const SCENARIO_PICK_COOKIE = 'paracosm_scenario';
 /** Thirty days, in seconds: a returning visitor finds the scenario they picked. */
 const SCENARIO_PICK_MAX_AGE_SECONDS = 2_592_000;
+// A pick cookie lives 30 days. The extra day covers a cookie set by a
+// request that resolved the scenario before it left the catalog.
+const RETIRED_SCENARIO_ID_MS = (SCENARIO_PICK_MAX_AGE_SECONDS + 86_400) * 1000;
 /**
  * The longest cookie value held as a pick. RFC 6265 section 6.1 asks a
  * browser for at least 4096 bytes per cookie, name and attributes
@@ -222,15 +238,97 @@ function hostHeaderName(value: string | undefined): string {
   }
 }
 
+/** The additional origins whose pages the hosted demo answers on its own keys. */
+function readAllowedOrigins(env: NodeJS.ProcessEnv): ReadonlySet<string> {
+  const origins = new Set<string>();
+  let dropped = 0;
+  for (const entry of (env.PARACOSM_ALLOWED_ORIGINS ?? '').split(',')) {
+    const piece = entry.trim();
+    if (!piece) continue;
+    try {
+      const parsed = new URL(piece);
+      if ((parsed.protocol === 'http:' || parsed.protocol === 'https:') && parsed.origin === piece.toLowerCase()) {
+        origins.add(piece.toLowerCase());
+        continue;
+      }
+    } catch {
+      // Count an entry that does not parse with the other invalid entries.
+    }
+    dropped++;
+  }
+  if (dropped > 0) console.warn(`[origin] PARACOSM_ALLOWED_ORIGINS: dropped ${dropped} entries that are not origins (https://host or https://host:port)`);
+  return origins;
+}
+
+/** The additional host names a local server answers, on any port. */
+function readAllowedHosts(env: NodeJS.ProcessEnv): ReadonlySet<string> {
+  const hosts = new Set<string>();
+  let dropped = 0;
+  for (const entry of (env.PARACOSM_ALLOWED_HOSTS ?? '').split(',')) {
+    const piece = entry.trim();
+    if (!piece) continue;
+    if (hostHeaderName(piece) === piece.toLowerCase()) hosts.add(piece.toLowerCase());
+    else dropped++;
+  }
+  if (dropped > 0) console.warn(`[host] PARACOSM_ALLOWED_HOSTS: dropped ${dropped} entries that are not host names (a name with no port)`);
+  return hosts;
+}
+
 /**
- * Whether a local server answers this request.
+ * Listed origins take precedence over fetch metadata, with Origin as the fallback.
+ * With origins listed, a request whose Origin is any other origin (not `null`)
+ * is another site's, whatever Sec-Fetch-Site says.
+ */
+function fromAnotherSite(req: IncomingMessage, allowedOrigins: ReadonlySet<string>): boolean {
+  const origin = req.headers.origin;
+  if (origin !== undefined && allowedOrigins.has(origin.toLowerCase())) return false;
+  if (origin !== undefined && allowedOrigins.size > 0 && origin.trim().toLowerCase() !== 'null') return true;
+  const site = req.headers['sec-fetch-site'];
+  switch (typeof site === 'string' ? site.trim().toLowerCase() : '') {
+    case 'cross-site':
+    case 'same-site':
+      return true;
+    case 'same-origin':
+    case 'none':
+      return false;
+  }
+  if (origin === undefined) return false;
+  try {
+    const parsed = new URL(origin);
+    return (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') ||
+      parsed.host !== (req.headers.host ?? '').toLowerCase();
+  } catch {
+    return true;
+  }
+}
+
+/** Uses the compiler's seed test, including truthy values that are not strings. */
+function compileUsesHostSearch(body: Record<string, unknown>, env: NodeJS.ProcessEnv): boolean {
+  const seeded = Boolean(body.seedText || body.seedUrl);
+  const scrapes = Boolean(body.seedUrl) && normalizeCredential(env.FIRECRAWL_API_KEY) !== undefined;
+  return seeded && ((body.webSearch ?? true) !== false || scrapes);
+}
+
+/**
+ * Whether a local server answers the name this request was sent to.
  *
  * The name the request was sent to (its `Host`) must be one the server is
- * served under: a loopback name, an address literal, or the name `HOST`
+ * served under: a loopback name, an address literal, a listed name, or the name `HOST`
  * gives. A site that points a name of its own at this machine (DNS
  * rebinding) sends that name in `Host`, and in `Origin` when it sends one,
  * so a name is never taken because the two agree. An address literal names
  * this machine itself, and no other site's page can be served from it.
+ */
+function localHostKnown(hostHeader: string | undefined, servedHost: string, allowedHosts: ReadonlySet<string>): boolean {
+  const name = hostHeaderName(hostHeader);
+  if (!name) return false;
+  const served = hostHeaderName(servedHost.trim());
+  return LOOPBACK_HOSTNAMES.has(name) || isIP(name.replace(/^\[|\]$/g, '')) !== 0 ||
+    (served.length > 0 && name === served) || allowedHosts.has(name);
+}
+
+/**
+ * Whether a local server answers this request: first its Host is known.
  *
  * Then the request carries no Origin (a same-origin GET, curl, a script),
  * or its Origin is a loopback address on any port (the dashboard itself,
@@ -238,11 +336,8 @@ function hostHeaderName(value: string | undefined): string {
  * (the dashboard served under its address or its `HOST` name).
  * `Origin: null` and any other site are refused.
  */
-export function localOriginAllowed(req: IncomingMessage, servedHost = ''): boolean {
-  const name = hostHeaderName(req.headers.host);
-  const served = hostHeaderName(servedHost.trim());
-  const knownName = LOOPBACK_HOSTNAMES.has(name) || isIP(name.replace(/^\[|\]$/g, '')) !== 0 || (served.length > 0 && name === served);
-  if (!knownName) return false;
+export function localOriginAllowed(req: IncomingMessage, servedHost = '', allowedHosts: ReadonlySet<string> = new Set()): boolean {
+  if (!localHostKnown(req.headers.host, servedHost, allowedHosts)) return false;
   const origin = req.headers.origin;
   if (origin === undefined) return true;
   let parsed: URL;
@@ -512,6 +607,18 @@ export interface CreateMarsServerOptions {
    * engine. Absent: the compile, which calls a model on its first use.
    */
   getDigitalTwinWorld?: () => Promise<WorldModel | null>;
+  /**
+   * The hosted demo's Google Analytics and Clarity ids. Absent: the ids the
+   * dashboard's build wrote into its site-analytics.json
+   * (src/server/site-analytics.ts). A test gives made-up ones.
+   */
+  siteAnalyticsIds?: SiteAnalyticsIds;
+  /**
+   * Where the hosted demo's `POST /api/event` forwards page views. Absent:
+   * the shared Plausible instance (PLAUSIBLE_EVENT_URL). A test gives a
+   * local sink, so nothing it sends is counted.
+   */
+  countEventUrl?: string;
 }
 
 /**
@@ -689,12 +796,21 @@ export function buildResultsPayloadFromEventBuffer(eventBuffer: readonly string[
 export function createMarsServer(options: CreateMarsServerOptions = {}): MarsServer {
   const env = options.env ?? process.env;
   const serverMode = resolveServerMode(env);
+  const allowedOrigins = serverMode === 'hosted_demo' ? readAllowedOrigins(env) : new Set<string>();
+  const allowedHosts = serverMode === 'local_demo' ? readAllowedHosts(env) : new Set<string>();
   // The one directory run output, imported artifacts, run reads, the
   // retention sweep and the output wipe all use.
   const runsDir = resolveRunsDir(env);
   // Visitor analytics run on the hosted demo at paracosm.agentos.sh only; a
-  // copy run from the package or a clone sends its pages without them.
+  // copy run from the package or a clone sends its pages without them. Each
+  // runs only under the visitor's yes to its purpose (src/server/site-analytics.ts).
   const siteAnalytics = serverMode === 'hosted_demo';
+  const countEventUrl = options.countEventUrl ?? PLAUSIBLE_EVENT_URL;
+  /** When the last failed forward of a page view was logged; one line a minute at most. */
+  let countForwardWarnedAt = 0;
+  /** The page views forwarded per address this minute, and the forwards open now. */
+  const countEventLimit = new CountEventLimit();
+  let countForwardsOpen = 0;
   const pickCookieSecure = serverMode === 'hosted_demo';
   /** The visitor whose compile installed each compiled scenario's brief. */
   const compiledBriefOwners = new Map<string, string>();
@@ -798,6 +914,10 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     : 5 * 1024 * 1024;
   const maxRequestBodyBytes = options.maxRequestBodyBytes ?? defaultMaxRequestBodyBytes;
   const scenarioDir = options.scenarioDir ?? resolve(__dirname, '..', '..', 'scenarios');
+  // A hosted install keeps administrator saves in its writable state tree.
+  const scenarioStoreDir = env.PARACOSM_SCENARIO_STORE_DIR
+    ? resolve(env.PARACOSM_SCENARIO_STORE_DIR)
+    : scenarioDir;
   // Rate-limit state survives pm2 restarts via a JSON file alongside
   // the repo. Without this, a restart gives every blocked IP a full
   // fresh quota. APP_DIR is the install location on the Linode
@@ -822,19 +942,19 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
   // address (PARACOSM_CLIENT_IP_HEADER). Unset: the connection's address.
   const clientIpHeader = readClientIpHeader(env);
 
+  /** The most web searches one /compile runs on the hosted demo. */
+  const HOSTED_COMPILE_MAX_SEARCHES = 5;
+
   /**
    * The Quickstart routes' limits on the hosted demo, where every
    * Quickstart call bills the host's keys (the routes take no caller key):
    * a compile counts against the caller's daily compile limit, as /compile
-   * does, with at most MAX_PENDING_QUICKSTART_COMPILES pending server-wide;
+   * does;
    * the grounding, actor and URL routes against a daily Quickstart limit of
    * their own; a Digital Twin run against the day's run limit, as /setup
    * does, on the demo's turn cap and the economy tier. Elsewhere the
-   * operator's keys pay, and the routes run as asked.
+   * operator's keys pay.
    */
-  const MAX_PENDING_QUICKSTART_COMPILES = 4;
-  /** The most web searches one /compile runs on the hosted demo. */
-  const HOSTED_COMPILE_MAX_SEARCHES = 5;
   const quickstartHostLimits = (req: IncomingMessage): QuickstartDeps['hostLimits'] => {
     const limiter = rateLimiter;
     if (serverMode !== 'hosted_demo' || !limiter) return undefined;
@@ -856,7 +976,6 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         console.log(`  [rate-limit] Quickstart compile blocked (${decision.limit}/${decision.limit} used)`);
         return refusal(decision, 'compiles', String(Math.max(1, Math.ceil((decision.resetAt - Date.now()) / 1000))));
       },
-      maxPendingCompiles: MAX_PENDING_QUICKSTART_COMPILES,
       admitCall: () => {
         const decision = limiter.consumeQuickstart(ip);
         if (decision.allowed) return null;
@@ -1087,9 +1206,13 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
   // (64 MiB) of buffers, and written to ${APP_DIR}/.live-runs/ so a restart
   // (a deploy, a pm2 reload, a crash) does not evaporate a finished run from
   // its visitor's /chat and /results.
+  let legacyBufferPath = resolve(env.APP_DIR || '.', '.event-buffer.json');
+  // A root-owned application directory may expose a link to writable state.
+  // Delete the legacy data there while leaving the application tree alone.
+  try { legacyBufferPath = realpathSync(legacyBufferPath); } catch { /* no legacy data */ }
   const liveRuns = new LiveRunRegistry({
     dir: resolve(env.APP_DIR || '.', '.live-runs'),
-    legacyBufferPath: resolve(env.APP_DIR || '.', '.event-buffer.json'),
+    legacyBufferPath,
     maxRuns: Math.max(1, options.maxRuns ?? readLimitFromEnv(env, 'PARACOSM_MAX_RUNS', 3)),
     maxHeldRuns: options.maxHeldRuns ?? readLimitFromEnv(env, 'PARACOSM_MAX_HELD_RUNS', 10),
     maxHeldRunBytes: options.maxHeldRunBytes ?? readLimitFromEnv(env, 'PARACOSM_MAX_HELD_RUN_BYTES', 67_108_864),
@@ -1169,6 +1292,11 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
   // for specific IDs. New builtins ship by adding one more
   // customScenarioCatalog.set(id, { scenario, source: 'builtin' }) here.
   const customScenarioCatalog = loadDiskCustomScenarios(scenarioDir);
+  if (scenarioStoreDir !== scenarioDir) {
+    for (const [id, entry] of loadDiskCustomScenarios(scenarioStoreDir)) {
+      customScenarioCatalog.set(id, entry);
+    }
+  }
   // The two builtins are JSON as well. src/engine/scenarios/index.ts lifts
   // scenarios/mars.json and scenarios/lunar.json, with their knowledge
   // bundles, when it is imported, and the per-agent physics the data-driven
@@ -1194,6 +1322,16 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
   // than a CustomScenarioEntry extension so the existing entry shape
   // and every consumer of `customScenarioCatalog` stays unchanged.
   const compiledScenarioMeta = new Map<string, PersistedCompiledMeta>();
+  const compiledEntryInfo = new Map<string, { enteredAt: number; address: string | null }>();
+  // Digests keep each retired id the same size, regardless of its length.
+  const retiredScenarioIds = new Map<string, number>();
+  const pruneRetiredScenarioIds = (): void => {
+    const now = Date.now();
+    for (const [digest, retiredAt] of retiredScenarioIds) {
+      if (now - retiredAt < RETIRED_SCENARIO_ID_MS) break;
+      retiredScenarioIds.delete(digest);
+    }
+  };
 
   // Ids of the persisted compiled drafts boot is still re-compiling. Filled
   // before the first compile starts and emptied one id at a time as each
@@ -1214,16 +1352,76 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     dropFromEveryMemoryStore(id);
   };
 
+  /** The saved drafts that folder clean-up must keep. */
+  const keep = (id: string): boolean =>
+    customScenarioCatalog.get(id)?.source === 'compiled' || hydratingScenarioIds.has(id);
+
+  /** Removes one compiled entry or waiting draft and retires its id. */
+  const evictCompiled = (id: string): void => {
+    const entry = customScenarioCatalog.get(id);
+    if (entry?.source === 'compiled') customScenarioCatalog.delete(id);
+    hydratingScenarioIds.delete(id);
+    compiledScenarioMeta.delete(id);
+    compiledBriefOwners.delete(id);
+    groundingCitationsByScenarioId.delete(id);
+    compiledEntryInfo.delete(id);
+    deletePersistedCompiledScenario(scenarioDir, id);
+    pruneRetiredScenarioIds();
+    const digest = createHash('sha256').update(id).digest('hex');
+    retiredScenarioIds.delete(digest);
+    retiredScenarioIds.set(digest, Date.now());
+    if (entry?.source === 'compiled') endFinishedJobsOf(entry.scenario);
+    console.log(`[scenarios] ${JSON.stringify(id)} left the catalog to keep it at ${COMPILED_SCENARIOS_CAP} compiled scenarios`);
+  };
+
+  /** Makes room after a compile, preserving the new entry and every run's scenario. */
+  const makeRoomAfter = (enteredId: string): void => {
+    const compiledIds = new Set([
+      ...[...customScenarioCatalog].filter(([, entry]) => entry.source === 'compiled').map(([id]) => id),
+      ...[...hydratingScenarioIds].filter(id => !customScenarioCatalog.has(id)),
+    ]);
+    const protectedIds = liveRuns.scenarioIdsInRuns();
+    while (compiledIds.size > COMPILED_SCENARIOS_CAP) {
+      const addressCounts = new Map<string, number>();
+      if (serverMode === 'hosted_demo') {
+        for (const id of compiledIds) {
+          const address = compiledEntryInfo.get(id)?.address;
+          if (address != null) addressCounts.set(address, (addressCounts.get(address) ?? 0) + 1);
+        }
+      }
+      // Map order breaks equal timestamps. Null addresses each hold one.
+      let oldest: { id: string; enteredAt: number; count: number } | undefined;
+      for (const [id, info] of compiledEntryInfo) {
+        if (!compiledIds.has(id) || id === enteredId || protectedIds.has(id)) continue;
+        const count = serverMode === 'hosted_demo' && info.address !== null
+          ? addressCounts.get(info.address) ?? 1 : 1;
+        if (!oldest || count > oldest.count || (count === oldest.count && info.enteredAt < oldest.enteredAt)) {
+          oldest = { id, enteredAt: info.enteredAt, count };
+        }
+      }
+      if (!oldest) {
+        console.log(`[scenarios] kept ${compiledIds.size} compiled scenarios, over the cap of ${COMPILED_SCENARIOS_CAP}: every other one is in a run the server holds`);
+        break;
+      }
+      evictCompiled(oldest.id);
+      compiledIds.delete(oldest.id);
+    }
+  };
+
   /**
    * Whether `id` already names a scenario for someone other than
    * `visitorId` alone: the catalog holds it (a built-in, a curated or a
    * compiled scenario, which any visitor may have picked), boot is still
-   * re-compiling it, or another visitor holds it in memory. A compile never
+   * re-compiling it, its retired digest is held for a recent eviction, or
+   * another visitor holds it in memory. A compile never
    * lands under such an id, so it never changes what an id already names
    * for another visitor.
    */
   const scenarioIdTaken = (visitorId: string, id: string): boolean => {
     if (customScenarioCatalog.has(id) || hydratingScenarioIds.has(id)) return true;
+    pruneRetiredScenarioIds();
+    const retiredAt = retiredScenarioIds.get(createHash('sha256').update(id).digest('hex'));
+    if (retiredAt !== undefined && Date.now() - retiredAt < RETIRED_SCENARIO_ID_MS) return true;
     dropIdleMemoryScenarios();
     for (const [holder, own] of memoryScenarios) {
       if (holder !== visitorId && own.has(id)) return true;
@@ -1255,7 +1453,10 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       return false;
     });
     if (drafts.length === 0) return;
-    for (const { id } of drafts) hydratingScenarioIds.add(id);
+    for (const { id, meta } of drafts) {
+      hydratingScenarioIds.add(id);
+      compiledEntryInfo.set(id, { enteredAt: Date.parse(meta.compiledAt) || 0, address: null });
+    }
     console.log(`[scenarios] re-compiling ${drafts.length} persisted compiled draft(s) from disk…`);
     // Wrap the dynamic import + per-draft loop in its own try-catch
     // so a module-resolution failure (deploy with broken compiler
@@ -1273,10 +1474,18 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         ?? (await import('../engine/compiler/index.js')).compileScenario;
       for (const { id, draft, meta } of drafts) {
         try {
+          if (!hydratingScenarioIds.has(id)) {
+            console.log(`[scenarios] left out the persisted compiled draft ${id}: it left the catalog while boot re-compiled it`);
+            continue;
+          }
           // Cache: true means we hit the local hook-source cache. With
           // a warm cache this is ~10ms per draft; with a cold cache the
           // hooks regenerate via LLM at the going rate.
           const compiled = await compileScenario(draft as Record<string, unknown>, { cache: true });
+          if (!hydratingScenarioIds.has(id)) {
+            console.log(`[scenarios] left out the persisted compiled draft ${id}: it left the catalog while boot re-compiled it`);
+            continue;
+          }
           // Checked again under the compiled id: an earlier draft of this
           // loop, or a scenario saved while this one compiled, may hold it.
           if (customScenarioCatalog.has(compiled.id)) {
@@ -1284,12 +1493,18 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
             continue;
           }
           enterCatalog(compiled.id, { scenario: compiled, source: 'compiled' });
+          if (compiled.id !== id) {
+            compiledEntryInfo.set(compiled.id, compiledEntryInfo.get(id)!);
+            hydratingScenarioIds.delete(id);
+          }
           compiledScenarioMeta.set(compiled.id, meta);
+          makeRoomAfter(compiled.id);
           console.log(`[scenarios] hydrated ${compiled.id} (${meta.compiledAt})`);
         } catch (err) {
           console.warn(`[scenarios] failed to re-compile persisted draft ${id}:`, err);
         } finally {
           hydratingScenarioIds.delete(id);
+          if (customScenarioCatalog.get(id)?.source !== 'compiled') compiledEntryInfo.delete(id);
         }
       }
     } catch (err) {
@@ -1297,6 +1512,9 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     } finally {
       // Nothing is loading any more: a pick that never landed reads as
       // unknown, so its visitor gets the default.
+      for (const id of hydratingScenarioIds) {
+        if (customScenarioCatalog.get(id)?.source !== 'compiled') compiledEntryInfo.delete(id);
+      }
       hydratingScenarioIds.clear();
     }
   })();
@@ -1807,6 +2025,24 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     'Access-Control-Allow-Origin': '*',
   };
 
+  const writeCrossSiteRefusal = (res: ServerResponse): void => {
+    console.warn("[origin] refused a request from another site on the host's keys");
+    res.writeHead(403, { 'Content-Type': 'application/json', ...corsHeaders });
+    res.end(JSON.stringify({
+      error: 'cross_site_refused',
+      message: "此请求来自其他网站的页面。托管演示仅接受本站页面的请求，或调用方在 /setup、/compile、/chat 中使用自有模型密钥的请求（/compile 还要求不提供会调用服务器搜索或抓取服务的种子资料）。",
+    }));
+  };
+
+  const writeLocalRefusal = (res: ServerResponse, logLine: string): void => {
+    console.warn(logLine);
+    res.writeHead(403, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      error: 'cross_site_refused',
+      message: '本地服务器仅接受本站页面或 localhost 发出的请求，目标须为回环地址、服务器地址、HOST 指定的名称或 PARACOSM_ALLOWED_HOSTS 中的名称。',
+    }));
+  };
+
   /** Answers a run the server has no room for: 503 with the run cap. Nothing has been charged to the caller. */
   const writeRunCapacityRefusal = (res: ServerResponse, err: RunCapacityError): void => {
     res.writeHead(503, {
@@ -1844,7 +2080,102 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     res.end(JSON.stringify({ error: `Unknown run: ${key}` }));
   };
 
+  /**
+   * What the consent bar on the page a request gets is given: the analytics
+   * ids (the option, or the dashboard build's site-analytics.json, read per
+   * page as the landing page is), whether the request sent a privacy signal,
+   * and the version its asset addresses carry.
+   */
+  const analyticsPage = (req: IncomingMessage) => ({
+    ids: options.siteAnalyticsIds
+      ? parseSiteAnalyticsIds(options.siteAnalyticsIds)
+      : readSiteAnalyticsIds(resolve(__dirname, '../dashboard/dist')),
+    signal: sendsPrivacySignal(req),
+    assetVersion: PARACOSM_VERSION,
+  });
+
+  /** Whether a path names an API docs page TypeDoc built, inside docs/api. */
+  const isDocsPage = (pathname: string): boolean => {
+    const docsDir = resolve(__dirname, '..', '..', 'docs', 'api');
+    const filePath = resolve(docsDir, pathname.replace(/^\/docs\//, ''));
+    if (!filePath.startsWith(docsDir + sep)) return false;
+    try {
+      return statSync(filePath).isFile();
+    } catch {
+      return false;
+    }
+  };
+
+  /**
+   * POST /api/event on the hosted demo: one page view from the consent bar's
+   * script (assets/consent/consent.js), forwarded to the shared Plausible
+   * instance as the public page it names (countEventFrom), with nothing of
+   * the referring page, and with the visitor's full User-Agent header and
+   * one address, as its events API asks. A request from another site, one that
+   * sends a privacy signal, or a path that is no page of the site is
+   * answered 204 and forwards nothing. Past COUNT_EVENTS_PER_MINUTE from one
+   * address (an IPv6 address by its /64), or COUNT_FORWARDS_AT_ONCE forwards
+   * open, it answers 429 and forwards nothing.
+   */
+  const handleCountEvent = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
+    if (req.method !== 'POST') {
+      res.writeHead(405, { Allow: 'POST', 'Cache-Control': 'no-store' });
+      res.end();
+      return;
+    }
+    if (fromAnotherSite(req, allowedOrigins) || sendsPrivacySignal(req)) {
+      res.writeHead(204, { 'Cache-Control': 'no-store' });
+      res.end();
+      return;
+    }
+    let event: ReturnType<typeof countEventFrom>;
+    try {
+      event = countEventFrom(await readBody(req, 4096), isDocsPage);
+    } catch (error) {
+      // The answer names the refusal alone, never the error's text.
+      const tooLarge = error instanceof RequestBodyTooLargeError;
+      res.writeHead(tooLarge ? 413 : 400, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify({ error: tooLarge ? 'body_too_large' : 'invalid_event' }));
+      return;
+    }
+    if (event === 'unlisted') {
+      res.writeHead(204, { 'Cache-Control': 'no-store' });
+      res.end();
+      return;
+    }
+    const userAgent = typeof req.headers['user-agent'] === 'string' ? req.headers['user-agent'] : '';
+    if (!event || !userAgent) {
+      res.writeHead(400, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify({ error: 'invalid_event' }));
+      return;
+    }
+    const { limitKey, address } = countAddresses(req, clientIpHeader);
+    if (countForwardsOpen >= COUNT_FORWARDS_AT_ONCE || !countEventLimit.take(limitKey)) {
+      res.writeHead(429, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Retry-After': '60' });
+      res.end(JSON.stringify({ error: 'too_many_events' }));
+      return;
+    }
+    countForwardsOpen += 1;
+    let accepted = false;
+    try {
+      accepted = await forwardCountEvent(countEventUrl, event, { userAgent, address });
+    } finally {
+      countForwardsOpen -= 1;
+    }
+    if (!accepted && Date.now() - countForwardWarnedAt > 60_000) {
+      countForwardWarnedAt = Date.now();
+      console.warn('  [analytics] The Plausible instance did not accept a page view; further failures this minute are not logged.');
+    }
+    res.writeHead(accepted ? 202 : 502, { 'Cache-Control': 'no-store' });
+    res.end();
+  };
+
   const handleRequest = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
+    if (serverMode === 'local_demo' && !localHostKnown(req.headers.host, env.HOST ?? '', allowedHosts)) {
+      writeLocalRefusal(res, '[host] refused a request sent to a name this local server does not answer');
+      return;
+    }
+
     // CORS preflight for browser-based requests across the public API.
     // DELETE is in the allow-list because /admin/scenarios/:id is a
     // cross-origin candidate for the embedded landing-page demos;
@@ -1865,10 +2196,15 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     // A local server answers its own pages and other local ports alone: a
     // request a browser sends from a page on another site carries that
     // site's Origin, and is refused before any route reads or spends.
-    if (serverMode === 'local_demo' && !localOriginAllowed(req, env.HOST ?? '')) {
-      console.warn('[origin] refused a request from another site on a local server');
-      res.writeHead(403, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'cross_site_refused', message: '本地服务器仅接受来自本站页面或 localhost 的请求，且目标地址须为回环地址、服务器地址或 HOST 指定的名称。' }));
+    if (serverMode === 'local_demo' && !localOriginAllowed(req, env.HOST ?? '', allowedHosts)) {
+      writeLocalRefusal(res, '[origin] refused a request from another site on a local server');
+      return;
+    }
+
+    if (serverMode === 'hosted_demo' && req.method === 'POST' &&
+        (req.url?.startsWith('/api/quickstart/') || req.url === '/scenario/switch') &&
+        fromAnotherSite(req, allowedOrigins)) {
+      writeCrossSiteRefusal(res);
       return;
     }
 
@@ -1876,6 +2212,12 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     if (!pathDecodes(req.url)) {
       res.writeHead(400, { 'Content-Type': 'application/json', ...corsHeaders });
       res.end(JSON.stringify({ error: 'invalid_path', message: '请求路径包含无法解码的百分号转义。' }));
+      return;
+    }
+
+    // The consent bar's page views, on the hosted demo only.
+    if (siteAnalytics && (req.url ?? '').split('?')[0] === '/api/event') {
+      await handleCountEvent(req, res);
       return;
     }
 
@@ -2116,9 +2458,10 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       const active = 'scenario' in pick ? pick.scenario.id : 'loading' in pick ? pick.loading : marsScenario.id;
       // Best-effort run-count enrichment. Aggregate one query per
       // scenario id rather than one bulk because aggregateStats
-      // already accepts a scenarioId filter; the cost is bounded by
-      // catalog size (≤50 + a couple builtins) so the fan-out stays
-      // reasonable.
+      // already accepts a scenarioId filter. The catalog holds at most 50
+      // compiled entries, or one more than the compiled scenarios the
+      // server's runs have held, beside the built-ins, the scenarios folder
+      // and this visitor's own memory scenarios.
       if (runHistoryStore?.aggregateStats) {
         await Promise.all(entries.map(async (entry) => {
           try {
@@ -2178,6 +2521,11 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         res.end(JSON.stringify({ error: 'invalid_json_body' }));
         return;
       }
+      if (customScenarioCatalog.get(id) !== entry) {
+        res.writeHead(404, { 'Content-Type': 'application/json', ...corsHeaders });
+        res.end(JSON.stringify({ error: 'scenario_not_found', id }));
+        return;
+      }
       const rawName = typeof body.name === 'string' ? body.name : '';
       // Sanitize: strip control chars (0x00-0x1F + DEL) + HTML
       // angle-brackets so a crafted name never sneaks markup into
@@ -2207,7 +2555,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       // we re-read the meta map so the on-disk file never loses the
       // original seed prompt the user submitted.
       const existingMeta = compiledScenarioMeta.get(id);
-      const persistResult = persistCompiledScenario(scenarioDir, sc, existingMeta?.seedText ?? null);
+      const persistResult = persistCompiledScenario(scenarioDir, sc, existingMeta?.seedText ?? null, keep);
       if (persistResult) {
         compiledScenarioMeta.set(id, persistResult.meta);
       }
@@ -2343,7 +2691,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     }
 
     // Store a scenario in this visitor's memory (any visitor) or, with
-    // saveToDisk, write it to <scenarioDir>/<id>.json and the catalog every
+    // saveToDisk, write it to <scenarioStoreDir>/<id>.json and the catalog every
     // visitor reads. The disk write takes the admin credential the /admin/*
     // routes take (requireAdminToken) and an id that names one file directly
     // in the scenarios folder (scenarioJsonPath). A memory store is the
@@ -2371,7 +2719,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
             console.warn('[scenarios] scenario disk write refused: admin credential missing, wrong or not configured');
             return;
           }
-          const diskPath = scenarioJsonPath(scenarioDir, scenarioJson.id);
+          const diskPath = scenarioJsonPath(scenarioStoreDir, scenarioJson.id);
           if (!diskPath) {
             console.warn('[scenarios] scenario disk write refused: the id is not a plain scenario id');
             res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -2379,9 +2727,26 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
             return;
           }
           const { writeFileSync, mkdirSync } = await import('node:fs');
-          mkdirSync(scenarioDir, { recursive: true });
+          mkdirSync(scenarioStoreDir, { recursive: true });
           writeFileSync(diskPath, JSON.stringify(scenarioJson, null, 2));
           savedToDisk = true;
+          // The saved file takes the id from a compiled scenario or a draft
+          // boot is re-compiling, runnable or not: its saved draft goes, so
+          // a restart never brings the compiled scenario back. A save that
+          // is not runnable also takes the compiled scenario out of the
+          // catalog and ends boot's re-compile of it; the file loads at the
+          // next restart when the boot loader can read it.
+          if (customScenarioCatalog.get(scenarioJson.id)?.source === 'compiled' || hydratingScenarioIds.has(scenarioJson.id)) {
+            deletePersistedCompiledScenario(scenarioDir, scenarioJson.id);
+            compiledScenarioMeta.delete(scenarioJson.id);
+            compiledBriefOwners.delete(scenarioJson.id);
+            compiledEntryInfo.delete(scenarioJson.id);
+            if (!switchable) {
+              if (customScenarioCatalog.get(scenarioJson.id)?.source === 'compiled') customScenarioCatalog.delete(scenarioJson.id);
+              groundingCitationsByScenarioId.delete(scenarioJson.id);
+              hydratingScenarioIds.delete(scenarioJson.id);
+            }
+          }
           if (switchable) {
             enterCatalog(scenarioJson.id, {
               scenario: scenarioJson,
@@ -2505,7 +2870,8 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
             // scenario (a second request for a compile that already landed)
             // keeps its id.
             let sc = compiledFromSeed;
-            if (customScenarioCatalog.get(sc.id)?.scenario !== sc && scenarioIdTaken(quickstartVisitor, sc.id)) {
+            if (customScenarioCatalog.get(sc.id)?.scenario === sc) return sc;
+            if (scenarioIdTaken(quickstartVisitor, sc.id)) {
               const takenId = sc.id;
               const withSuffix = (n: number): string => {
                 const tail = `-${n}`;
@@ -2521,6 +2887,11 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
             // compiled it gets it as their pick through pickHeaders on the
             // answers they receive.
             enterCatalog(sc.id, { scenario: sc, source: 'compiled' });
+            compiledEntryInfo.set(sc.id, {
+              enteredAt: Date.now(),
+              address: serverMode === 'hosted_demo' ? IpRateLimiter.getIp(req, clientIpHeader) : null,
+            });
+            makeRoomAfter(sc.id);
             // Auto-persist to disk so the catalog survives server
             // restarts. The hooks themselves are excluded (functions
             // don't serialize) but compileScenario regenerates them
@@ -2536,7 +2907,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
             // timestamp here would drift by however long writeFileSync
             // took to flush. A failed write still records the meta in
             // memory, so /setup carries the brief into the run either way.
-            const persistResult = persistCompiledScenario(scenarioDir, sc, seed);
+            const persistResult = persistCompiledScenario(scenarioDir, sc, seed, keep);
             compiledScenarioMeta.set(sc.id, persistResult?.meta ?? { compiledAt: new Date().toISOString(), seedText: seed });
             return sc;
           },
@@ -2660,6 +3031,10 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
           anthropicKey: normalizeCredential(userAnthropicKey),
         };
         const hasUserKeys = hasProviderCredentials(simulateCredentials);
+        if (serverMode === 'hosted_demo' && !hasUserKeys && fromAnotherSite(req, allowedOrigins)) {
+          writeCrossSiteRefusal(res);
+          return;
+        }
         // Rate limit with BYO-key bypass, matching the /setup pattern.
         // `.check()` alone is advisory; `.record()` consumes the slot.
         if (rateLimiter && !hasUserKeys) {
@@ -2713,10 +3088,22 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
           res.end(JSON.stringify({ error: 'scenario JSON object required' }));
           return;
         }
+        if (Buffer.byteLength(JSON.stringify(scenarioJson)) > MEMORY_SCENARIO_MAX_BYTES) {
+          console.warn('[scenarios] compile refused: over the size a compile takes');
+          res.writeHead(413, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: `提交到 /compile 的场景 JSON 不得超过 ${MEMORY_SCENARIO_MAX_BYTES / 1024} KiB。` }));
+          return;
+        }
         const compileCredentials = {
           apiKey: normalizeCredential(apiKey),
           anthropicKey: normalizeCredential(anthropicKey),
         };
+        if (serverMode === 'hosted_demo' &&
+            (!hasProviderCredentials(compileCredentials) || compileUsesHostSearch(body, env)) &&
+            fromAnotherSite(req, allowedOrigins)) {
+          writeCrossSiteRefusal(res);
+          return;
+        }
 
         // A compile lands in the catalog every visitor reads, under the id
         // its JSON carries, so it takes only an id that names nothing yet
@@ -2871,6 +3258,11 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         // that compiled it posts /scenario/switch with the id from
         // `complete`, which makes it that visitor's pick.
         enterCatalog(compiled.id, { scenario: compiled, source: 'compiled' });
+        compiledEntryInfo.set(compiled.id, {
+          enteredAt: Date.now(),
+          address: serverMode === 'hosted_demo' ? IpRateLimiter.getIp(req, clientIpHeader) : null,
+        });
+        makeRoomAfter(compiled.id);
 
         // Snapshot compile telemetry into the ring buffer so /retry-stats
         // aggregates compile:* schemas alongside runtime schemas, and emit
@@ -3026,6 +3418,10 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
           anthropicKey: normalizeCredential(anthropicKey),
         };
         const chatUserKey = hasProviderCredentials(chatCredentials);
+        if (serverMode === 'hosted_demo' && !chatUserKey && fromAnotherSite(req, allowedOrigins)) {
+          writeCrossSiteRefusal(res);
+          return;
+        }
 
         // Rate-limit chat per IP per hour. Runs against the host's
         // key unless a session key was provided in the request body,
@@ -3395,6 +3791,9 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       const fileDeleted = deletePersistedCompiledScenario(scenarioDir, id);
       const catalogDeleted = customScenarioCatalog.delete(id);
       const metaDeleted = compiledScenarioMeta.delete(id);
+      compiledEntryInfo.delete(id);
+      compiledBriefOwners.delete(id);
+      groundingCitationsByScenarioId.delete(id);
       const memoryDeleted = dropFromMemory();
       console.log(`[scenarios] admin deleted ${id} (file=${fileDeleted} catalog=${catalogDeleted} meta=${metaDeleted} memory=${memoryDeleted})`);
       res.writeHead(200, { 'Content-Type': 'application/json', ...corsHeaders });
@@ -3665,6 +4064,10 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
           anthropicKey: normalizeCredential(config.anthropicKey),
         };
         const hasUserKeys = hasProviderCredentials(requestCredentials);
+        if (serverMode === 'hosted_demo' && !hasUserKeys && fromAnotherSite(req, allowedOrigins)) {
+          writeCrossSiteRefusal(res);
+          return;
+        }
         const rateIp = rateLimiter && !hasUserKeys ? IpRateLimiter.getIp(req, clientIpHeader) : null;
         /** Answers 429 and returns true when the caller's IP has used its runs of the day. */
         const overTheDay = (): boolean => {
@@ -4160,7 +4563,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
           PARACOSM_VERSION,
         );
         res.writeHead(200, { 'Content-Type': 'text/html', 'Cache-Control': 'no-cache' });
-        res.end(siteAnalytics ? withSiteAnalytics(page, 'all') : page);
+        res.end(siteAnalytics ? withSiteAnalytics(page, analyticsPage(req)) : page);
         return;
       }
     }
@@ -4168,6 +4571,11 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     // API docs (TypeDoc generated). Only /docs and paths under /docs/ reach
     // this route, and it serves only what resolves inside docs/api: the
     // request path arrives as the visitor sent it, `..` segments included.
+    // A real file is served first. A path that names no file answers 301 to
+    // `<path>.html` when that page exists, so a link written without `.html`
+    // finds its page; the page wins over a folder of the same name, as
+    // TypeDoc writes both modules.html and modules/. Then a folder serves
+    // its index.html.
     if (pathname === '/docs' || pathname.startsWith('/docs/')) {
       const docsDir = resolve(__dirname, '..', '..', 'docs', 'api');
       // The npm package does not ship docs/api, so an install sends the landing
@@ -4193,6 +4601,22 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         res.end('Not found');
         return;
       }
+      // A path that names no file: the page with `.html` added, one trailing
+      // slash dropped, answers 301. The target comes from the resolved path,
+      // so it stays inside docs/api.
+      const htmlPath = resolve(docsDir, docPath.slice(1).replace(/\/$/, '') + '.html');
+      const redirectToPage = (): boolean => {
+        let isPage = false;
+        try {
+          isPage = htmlPath.startsWith(docsDir + sep) && statSync(htmlPath).isFile();
+        } catch {}
+        if (!isPage) return false;
+        const queryAt = (req.url || '').indexOf('?');
+        const query = queryAt === -1 ? '' : (req.url || '').slice(queryAt);
+        res.writeHead(301, { Location: `/docs/${relative(docsDir, htmlPath).split(sep).join('/')}${query}` });
+        res.end();
+        return true;
+      };
       try {
         const { statSync } = await import('node:fs');
         const stat = statSync(filePath);
@@ -4219,7 +4643,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
             // TypeDoc toolbar + page title hidden via CSS (kept in DOM so JS doesn't crash)
             // Add our CSS override + fonts + favicon + inline mobile styles
             html = html.replace('</head>',
-              `<link rel="icon" href="/favicon.png" sizes="32x32"><link rel="icon" type="image/svg+xml" href="/icon.svg"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="/docs/assets/paracosm-override.css">
+              `<link rel="icon" href="/favicon.png" sizes="32x32"><link rel="icon" type="image/svg+xml" href="/icon.svg"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link href="/brand/fonts/fonts.css" rel="stylesheet"><link rel="stylesheet" href="/docs/assets/paracosm-override.css">
 <style>
 /* Hamburger button (hidden on desktop) */
 .pdh-hamburger{display:none;background:none;border:1px solid var(--color-text-aside);border-radius:6px;width:32px;height:32px;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:7px;flex-shrink:0;opacity:.6;transition:opacity .2s}
@@ -4360,12 +4784,12 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     <a href="https://www.npmjs.com/package/paracosm">npm</a>
     <a href="https://frame.dev">Frame.dev</a>
     <a href="https://frame.dev">Frame</a>
-    <a href="/#privacy">Privacy</a>
+    <a href="/#privacy">Privacy</a>${siteAnalytics ? '\n    <button type="button" class="pdf-consent" data-consent-open hidden>分析统计偏好</button>' : ''}
   </div>
   <span><span style="font-family:'JetBrains Mono','SF Mono',Menlo,monospace;font-weight:700;letter-spacing:.08em;font-size:10px">PARA<span style="color:#e8b44a">COSM</span></span> &middot; Apache-2.0 &middot; <a href="https://frame.dev">Frame.dev</a></span>
 </div></body>`);
             res.writeHead(200, { 'Content-Type': 'text/html', 'Cache-Control': 'no-cache' });
-            res.end(siteAnalytics ? withSiteAnalytics(html, 'all') : html);
+            res.end(siteAnalytics ? withSiteAnalytics(html, analyticsPage(req)) : html);
             return;
           }
 
@@ -4377,6 +4801,8 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
           res.end(content);
           return;
         }
+        // The page wins over a folder of the same name.
+        if (redirectToPage()) return;
         // Directory: try index.html
         if (stat.isDirectory()) {
           const indexPath = resolve(filePath, 'index.html');
@@ -4387,7 +4813,10 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
             return;
           }
         }
-      } catch {}
+      } catch {
+        // statSync throws when no file or folder has that name.
+        if (redirectToPage()) return;
+      }
     }
 
     // Vite assets (CSS, JS, fonts)
@@ -4437,8 +4866,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
           htmlHeaders['Set-Cookie'] = visitorCookie(randomUUID(), pickCookieSecure);
         }
         res.writeHead(200, htmlHeaders);
-        // The bundle loads Google Analytics and Clarity itself when deploy.yml builds it with their ids.
-        res.end(siteAnalytics ? withSiteAnalytics(html, 'plausible') : html);
+        res.end(siteAnalytics ? withSiteAnalytics(html, analyticsPage(req)) : html);
         return;
       }
       // A source checkout has no dashboard build until it runs one; the npm

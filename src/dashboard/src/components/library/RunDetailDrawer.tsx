@@ -8,6 +8,8 @@ import { ReportViewAdapter } from '../reports/ReportViewAdapter.js';
 import type { MetricSpec } from '../viz/kit/index.js';
 import type { RunRecord } from '../../../../server/services/run-record.js';
 import { buildReplayShareUrl } from '../../hooks/shareUrl.helpers';
+import { useShareLink } from '../../hooks/useShareLink';
+import { ShareLinkNote } from '../shared/ShareLinkNote';
 
 export interface RunDetailDrawerProps {
   runId: string | null;
@@ -28,6 +30,13 @@ export function RunDetailDrawer(props: RunDetailDrawerProps): JSX.Element {
   const { record, artifact, loading, error, status } = useRunArtifact(open ? runId : null);
   const drawerRef = React.useRef<HTMLDivElement | null>(null);
   const lastFocusedRef = React.useRef<HTMLElement | null>(null);
+  const shareLink = useShareLink();
+  const clearShareLink = shareLink.clear;
+
+  // A share note belongs to the run it was made for.
+  React.useEffect(() => {
+    clearShareLink();
+  }, [runId, open, clearShareLink]);
 
   React.useEffect(() => {
     if (record) onArtifactLoaded?.(record);
@@ -116,8 +125,9 @@ export function RunDetailDrawer(props: RunDetailDrawerProps): JSX.Element {
         <header className={styles.head}>
           <button onClick={onClose} className={styles.closeBtn} aria-label="关闭详情">×</button>
           {artifact && <ReplayPanel artifact={artifact} onReplayed={onReplayed} />}
-          {record?.sessionId && <ShareVizButton sessionId={record.sessionId} />}
+          {record?.sessionId && <ShareVizButton sessionId={record.sessionId} onShare={shareLink.share} />}
         </header>
+        {shareLink.shared && <ShareLinkNote shared={shareLink.shared} onClose={shareLink.clear} />}
 
         <section className={styles.body}>
           {loading && <p className={styles.placeholder}>加载中…</p>}
@@ -162,34 +172,19 @@ export function RunDetailDrawer(props: RunDetailDrawerProps): JSX.Element {
 }
 
 /**
- * Header-mounted "Share viz link" button for the run-detail drawer.
- * Mirrors the per-row Share button on RunCard so the drawer (which is
- * the deep-dive surface for a single run) carries the same affordance
- * without forcing the user to dismiss the drawer to share.
+ * Header-mounted "Share viz link" button for the run-detail drawer. The
+ * press copies a link that opens this run on the visualization tab; the
+ * drawer shows the link and what became of the copy under its header.
  */
-function ShareVizButton({ sessionId }: { sessionId: string }): JSX.Element {
-  const [copied, setCopied] = React.useState(false);
-  const handleClick = (): void => {
-    const url = buildReplayShareUrl(window.location.origin, sessionId, 'viz');
-    void navigator.clipboard.writeText(url).then(
-      () => {
-        setCopied(true);
-        window.setTimeout(() => setCopied(false), 1500);
-      },
-      () => {
-        // Silent clipboard failure — same handling as RunCard's Share.
-      },
-    );
-  };
+function ShareVizButton({ sessionId, onShare }: { sessionId: string; onShare: (url: string) => void }): JSX.Element {
   return (
     <button
       type="button"
-      onClick={handleClick}
-      aria-label="复制可直接打开此次运行可视化页面的链接"
-      title="复制可视化分享链接"
+      onClick={() => onShare(buildReplayShareUrl(window.location.origin, sessionId, 'viz'))}
+      title="复制可直接打开此次运行可视化页面的链接"
       className={styles.closeBtn}
     >
-      {copied ? 'Copied!' : "分享可视化链接"}
+      分享可视化链接
     </button>
   );
 }
