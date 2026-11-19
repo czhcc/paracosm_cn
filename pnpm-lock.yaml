@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@framers/agentos':
         specifier: ^0.19.3
-        version: 0.19.3(@jitl/quickjs-wasmfile-release-sync@0.32.0)(better-sqlite3@12.11.1)(express@5.3.0)(quickjs-emscripten-core@0.32.0)(react@19.3.1)(typescript@5.9.3)
+        version: 0.19.3(@jitl/quickjs-wasmfile-release-sync@0.32.0)(@napi-rs/canvas@1.1.1)(better-sqlite3@12.11.1)(debug@4.4.3(supports-color@8.1.1))(express@5.3.0(supports-color@8.1.1))(mediabunny@1.64.0)(quickjs-emscripten-core@0.32.0)(react@19.3.1)(supports-color@8.1.1)(typescript@6.0.3)
       '@framers/sql-storage-adapter':
         specifier: ^0.9.7
         version: 0.9.7(better-sqlite3@12.11.1)
@@ -50,10 +50,10 @@ importers:
         version: 4.23.15
       typedoc:
         specifier: ^0.28.20
-        version: 0.28.20(typescript@5.9.3)
+        version: 0.28.20(typescript@6.0.3)
       typescript:
-        specifier: ^5.4.0
-        version: 5.9.3
+        specifier: ^6.0.3
+        version: 6.0.3
 
 packages:
 
@@ -455,6 +455,81 @@ packages:
   '@mongodb-js/saslprep@1.6.3':
     resolution: {integrity: sha512-aHGFvT95c82CoQ7hb6qXpz8Hcc5PJb3ZtQ+P01QDBbyQday0mjcrJPeNJOHCgWe0pGX0zKmKP+1mWi/I/BCX9Q==}
 
+  '@napi-rs/canvas-android-arm64@1.1.1':
+    resolution: {integrity: sha512-rSEp3y+/YXw6TxSx4/NHSAFxumZrkMoXy2WiVqpKGT8oF5GHOUDzTKj45e5cvzophX4iFaxwKs3+/gNkJ7FmzQ==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [android]
+
+  '@napi-rs/canvas-darwin-arm64@1.1.1':
+    resolution: {integrity: sha512-NrPTZWpu0ywOGdp9JBDi46gABUzDJK6IzlP7cOEwaAuVVFM8KRakUWk12RK3YQ/Ea5FrNVTWUFTmkXVk4RfHqg==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@napi-rs/canvas-darwin-x64@1.1.1':
+    resolution: {integrity: sha512-p3DOT8VBfu8cR3SVBUs6cEzJmzwOUQkNfo1S4nKLgeKDsSlvn2oZsRaa9m0lfMccn1WbwtgKCEpJXmHhp++Zrg==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@napi-rs/canvas-linux-arm-gnueabihf@1.1.1':
+    resolution: {integrity: sha512-YWGJfMa8TtEhsHd/kDiyBFwT/dAbRQiXwsm0tDev4H5cJiyOk08CC83JihrwnUsePGjIvxC8/8g/zqKKuqjpQA==}
+    engines: {node: '>= 10'}
+    cpu: [arm]
+    os: [linux]
+
+  '@napi-rs/canvas-linux-arm64-gnu@1.1.1':
+    resolution: {integrity: sha512-q1HBkNmB9mc6SF6uSz2492qSgsB46MqS+n3bPbPCE0kUXmWAPkH9vDADeawbhepQYn8RhlV2V/P5u6nykFXbuQ==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@napi-rs/canvas-linux-arm64-musl@1.1.1':
+    resolution: {integrity: sha512-aF4RkTp2T45fERFPCIqbxeKVhvhHuXeyyk5/jdJ+N0tGLZy4NvMkIrBWt6GOCmAQ7H0G3M/O03hAsc4Li52q4A==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
+  '@napi-rs/canvas-linux-riscv64-gnu@1.1.1':
+    resolution: {integrity: sha512-rCU4Xo5h0AQFEaa9dNr7Kxbk4gke9Uyi/I6ZXuBGYPSNWxYmWRS6DkrxaSKUJyCgA7c8l6lZBYfx/FtbJo3fMA==}
+    engines: {node: '>= 10'}
+    cpu: [riscv64]
+    os: [linux]
+    libc: [glibc]
+
+  '@napi-rs/canvas-linux-x64-gnu@1.1.1':
+    resolution: {integrity: sha512-7bZfDI9lxKqj9wJRHiSQBimCRanxDGHYE7TugnOmFJ9ScpgFSsLHFQtOH9wvmbQvBwv5nBuDBGJlG0+7iGkN+w==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@napi-rs/canvas-linux-x64-musl@1.1.1':
+    resolution: {integrity: sha512-xaFof2p0aO7C7ziMCLeueve09PVEKYCebljLTL3nyxoaRsYpEnBrUBP1aVpfD1Nk464dc7/wPV23fkHdOBie2g==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  '@napi-rs/canvas-win32-arm64-msvc@1.1.1':
+    resolution: {integrity: sha512-wOLX/WRwWr0xGj2hnDf/t3tZfPlzzL9rGPsO1UnYSuNbRzwas/hC8JXnuhaEs8eCw+J+W4zxOJiVF4RxkvcMfw==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@napi-rs/canvas-win32-x64-msvc@1.1.1':
+    resolution: {integrity: sha512-6Ge1AF1SVO+Ypjaw9IPcApm95krR3GQ32HgVqlIckbN/WqUlWYS0hnb8ZIdu3e0IbutbJgd8D2qSeb2/Cdpbdw==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [win32]
+
+  '@napi-rs/canvas@1.1.1':
+    resolution: {integrity: sha512-UyNspnx0rXclATMOBXiWgy1xtWUSUDm4UOO6+YO8xzyVKaZRpvK+SlJSCtRoSI9J/mEqklJiPYtroN1B+hgLXg==}
+    engines: {node: '>= 10'}
+
   '@openredaction/core@1.1.5':
     resolution: {integrity: sha512-SpQTBhVV4p3rmge818NH6iJiL/fvwFlDvhGaejoL0wbzY7jRHIhU5vEf3KzNARsIZmpCJV1eHdiavIjQyN1hXQ==}
     engines: {node: '>=20.0.0'}
@@ -588,6 +663,12 @@ packages:
 
   '@stablelib/base64@1.0.1':
     resolution: {integrity: sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==}
+
+  '@types/dom-mediacapture-transform@0.1.12':
+    resolution: {integrity: sha512-d7/QsLRwF864A5mgIM/YrfiglHoYn7zgCcAoJgW404r+2DwnNr7EBbLnCWpmOMgH8y0te73L1AV6H1bmauaWFw==}
+
+  '@types/dom-webcodecs@0.1.13':
+    resolution: {integrity: sha512-O5hkiFIcjjszPIYyUSyvScyvrBoV3NOEEZx/pMlsu44TKzWNkLVBBxnxJz42in5n3QIolYOcBYFCPZZ0h8SkwQ==}
 
   '@types/emscripten@1.41.6':
     resolution: {integrity: sha512-uN+9i8bFT5CUcZfyIEYDrSueACEyKGbUs5kC/72DGlZZoinh84sJfVV0i8UOJD1asdzkvLPBRrKs41kZ8MdEXg==}
@@ -978,6 +1059,10 @@ packages:
   guid-typescript@1.0.9:
     resolution: {integrity: sha512-Y8T4vYhEfwJOTbouREvG+3XDsjr8E3kIr7uf+JZ0BYloFsttiHU0WfvANVsR7TxNUJa/WpCnw/Ino/p+DeBhBQ==}
 
+  has-flag@4.0.0:
+    resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
+    engines: {node: '>=8'}
+
   has-property-descriptors@1.0.2:
     resolution: {integrity: sha512-55JNKuIW+vq4Ke1BjOTjM2YctQIvCT7GFzHwmfZPGo5wnrgkid0YQtnAleFSqumZm4az3n2BS+erby5ipJdgrg==}
 
@@ -1110,6 +1195,9 @@ packages:
   media-typer@1.1.1:
     resolution: {integrity: sha512-yz3xRaG20c6/BOzvYoDaGtPmGscs7YivItZEEqe6GbwNfHuxu9YNmvnEkMzKldAGY4/80pRcQRZSEnhquk9XuQ==}
     engines: {node: '>= 0.8'}
+
+  mediabunny@1.64.0:
+    resolution: {integrity: sha512-ILat5qSwfmZjnYhk7Dc8uEvEQNtzXNxUVyfxR9Fp6JRa8Axsg5xE1EXwCTOzXJHhH/a2eyk6sZ1ffivCk4rIXg==}
 
   memjs@1.3.2:
     resolution: {integrity: sha512-qUEg2g8vxPe+zPn09KidjIStHPtoBO8Cttm8bgJFWWabbsjQ9Av9Ky+6UcvKx6ue0LLb/LEhtcyQpRyKfzeXcg==}
@@ -1601,6 +1689,10 @@ packages:
     resolution: {integrity: sha512-Lh1ZP+tj1TWnlw3RsR6eY/ARhZ3fIPrquE2Xts/wnGB7j1od2OZbCrWYsahkuaLqY7omsNKDUA6JITtE4elhfw==}
     engines: {node: '>=18'}
 
+  supports-color@8.1.1:
+    resolution: {integrity: sha512-MpUEN2OodtUzxvKQl72cUF7RQ5EiHsGvSsVG0ia9c5RbWGL2CI4C7EpPS8UTBIplnlzZiNuV56w+FuNxy3ty2Q==}
+    engines: {node: '>=10'}
+
   sylvester@0.0.12:
     resolution: {integrity: sha512-SzRP5LQ6Ts2G5NyAa/jg16s8e3R7rfdFjizy1zeoecYWw+nGL+YA1xZvW/+iJmidBGSdLkuvdwTYEyJEb+EiUw==}
     engines: {node: '>=0.2.6'}
@@ -1657,8 +1749,8 @@ packages:
     peerDependencies:
       typescript: 5.0.x || 5.1.x || 5.2.x || 5.3.x || 5.4.x || 5.5.x || 5.6.x || 5.7.x || 5.8.x || 5.9.x || 6.0.x
 
-  typescript@5.9.3:
-    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+  typescript@6.0.3:
+    resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -1853,25 +1945,25 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
-  '@framers/agentos@0.19.3(@jitl/quickjs-wasmfile-release-sync@0.32.0)(better-sqlite3@12.11.1)(express@5.3.0)(quickjs-emscripten-core@0.32.0)(react@19.3.1)(typescript@5.9.3)':
+  '@framers/agentos@0.19.3(@jitl/quickjs-wasmfile-release-sync@0.32.0)(@napi-rs/canvas@1.1.1)(better-sqlite3@12.11.1)(debug@4.4.3(supports-color@8.1.1))(express@5.3.0(supports-color@8.1.1))(mediabunny@1.64.0)(quickjs-emscripten-core@0.32.0)(react@19.3.1)(supports-color@8.1.1)(typescript@6.0.3)':
     dependencies:
       '@framers/sql-storage-adapter': 0.9.7(better-sqlite3@12.11.1)
       '@opentelemetry/api': 1.10.0
       '@opentelemetry/api-logs': 0.201.1
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
-      axios: 1.21.1
+      axios: 1.21.1(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
       execa: 10.2.1
       gray-matter: 4.0.3
       lru-cache: 11.5.3
       mammoth: 1.13.0
       minimatch: 10.2.6
-      natural: 6.12.0
-      openredaction: 1.1.5(express@5.3.0)(mammoth@1.13.0)(react@19.3.1)
+      natural: 6.12.0(supports-color@8.1.1)
+      openredaction: 1.1.5(express@5.3.0(supports-color@8.1.1))(mammoth@1.13.0)(react@19.3.1)
       pg: 8.23.1
       pino: 10.4.0
-      typescript: 5.9.3
-      unpdf: 1.9.1
+      typescript: 6.0.3
+      unpdf: 1.9.1(@napi-rs/canvas@1.1.1)
       uuid: 14.0.3
       ws: 8.22.2
       yaml: 2.9.1
@@ -1881,6 +1973,7 @@ snapshots:
       '@huggingface/transformers': 3.8.1
       '@jitl/quickjs-wasmfile-release-sync': 0.32.0
       compromise: 14.20.0
+      mediabunny: 1.64.0
       quickjs-emscripten-core: 0.32.0
     transitivePeerDependencies:
       - '@aws-sdk/client-s3'
@@ -2045,14 +2138,62 @@ snapshots:
     dependencies:
       sparse-bitfield: 3.0.3
 
+  '@napi-rs/canvas-android-arm64@1.1.1':
+    optional: true
+
+  '@napi-rs/canvas-darwin-arm64@1.1.1':
+    optional: true
+
+  '@napi-rs/canvas-darwin-x64@1.1.1':
+    optional: true
+
+  '@napi-rs/canvas-linux-arm-gnueabihf@1.1.1':
+    optional: true
+
+  '@napi-rs/canvas-linux-arm64-gnu@1.1.1':
+    optional: true
+
+  '@napi-rs/canvas-linux-arm64-musl@1.1.1':
+    optional: true
+
+  '@napi-rs/canvas-linux-riscv64-gnu@1.1.1':
+    optional: true
+
+  '@napi-rs/canvas-linux-x64-gnu@1.1.1':
+    optional: true
+
+  '@napi-rs/canvas-linux-x64-musl@1.1.1':
+    optional: true
+
+  '@napi-rs/canvas-win32-arm64-msvc@1.1.1':
+    optional: true
+
+  '@napi-rs/canvas-win32-x64-msvc@1.1.1':
+    optional: true
+
+  '@napi-rs/canvas@1.1.1':
+    optionalDependencies:
+      '@napi-rs/canvas-android-arm64': 1.1.1
+      '@napi-rs/canvas-darwin-arm64': 1.1.1
+      '@napi-rs/canvas-darwin-x64': 1.1.1
+      '@napi-rs/canvas-linux-arm-gnueabihf': 1.1.1
+      '@napi-rs/canvas-linux-arm64-gnu': 1.1.1
+      '@napi-rs/canvas-linux-arm64-musl': 1.1.1
+      '@napi-rs/canvas-linux-riscv64-gnu': 1.1.1
+      '@napi-rs/canvas-linux-x64-gnu': 1.1.1
+      '@napi-rs/canvas-linux-x64-musl': 1.1.1
+      '@napi-rs/canvas-win32-arm64-msvc': 1.1.1
+      '@napi-rs/canvas-win32-x64-msvc': 1.1.1
+    optional: true
+
   '@openredaction/core@1.1.5(mammoth@1.13.0)':
     optionalDependencies:
       mammoth: 1.13.0
 
-  '@openredaction/express@1.1.5(express@5.3.0)(mammoth@1.13.0)':
+  '@openredaction/express@1.1.5(express@5.3.0(supports-color@8.1.1))(mammoth@1.13.0)':
     dependencies:
       '@openredaction/core': 1.1.5(mammoth@1.13.0)
-      express: 5.3.0
+      express: 5.3.0(supports-color@8.1.1)
     transitivePeerDependencies:
       - mammoth
       - pdf-parse
@@ -2176,6 +2317,14 @@ snapshots:
 
   '@stablelib/base64@1.0.1': {}
 
+  '@types/dom-mediacapture-transform@0.1.12':
+    dependencies:
+      '@types/dom-webcodecs': 0.1.13
+    optional: true
+
+  '@types/dom-webcodecs@0.1.13':
+    optional: true
+
   '@types/emscripten@1.41.6': {}
 
   '@types/hast@3.0.5':
@@ -2218,9 +2367,9 @@ snapshots:
 
   afinn-165@1.0.4: {}
 
-  agent-base@6.0.2:
+  agent-base@6.0.2(supports-color@8.1.1):
     dependencies:
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -2249,11 +2398,11 @@ snapshots:
 
   atomic-sleep@1.0.0: {}
 
-  axios@1.21.1:
+  axios@1.21.1(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1):
     dependencies:
-      follow-redirects: 1.16.3
+      follow-redirects: 1.16.3(debug@4.4.3(supports-color@8.1.1))
       form-data: 4.0.6
-      https-proxy-agent: 5.0.1
+      https-proxy-agent: 5.0.1(supports-color@8.1.1)
       proxy-from-env: 2.1.0
     transitivePeerDependencies:
       - debug
@@ -2278,11 +2427,11 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
 
-  body-parser@2.4.0:
+  body-parser@2.4.0(supports-color@8.1.1):
     dependencies:
       bytes: 3.1.2
       content-type: 2.1.0
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
       http-errors: 2.0.1
       iconv-lite: 0.7.3
       on-finished: 2.4.2
@@ -2347,9 +2496,11 @@ snapshots:
 
   csstype@3.2.3: {}
 
-  debug@4.4.3:
+  debug@4.4.3(supports-color@8.1.1):
     dependencies:
       ms: 2.1.3
+    optionalDependencies:
+      supports-color: 8.1.1
 
   decompress-response@6.0.0:
     dependencies:
@@ -2480,20 +2631,20 @@ snapshots:
 
   expand-template@2.0.3: {}
 
-  express@5.3.0:
+  express@5.3.0(supports-color@8.1.1):
     dependencies:
       accepts: 2.0.0
-      body-parser: 2.4.0
+      body-parser: 2.4.0(supports-color@8.1.1)
       content-disposition: 2.0.1
       content-type: 2.1.0
       cookie: 0.7.2
       cookie-signature: 1.2.2
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
       depd: 2.0.0
       encodeurl: 2.0.1
       escape-html: 1.0.3
       etag: 1.8.1
-      finalhandler: 2.1.1
+      finalhandler: 2.1.1(supports-color@8.1.1)
       fresh: 2.0.0
       http-errors: 2.0.1
       merge-descriptors: 2.0.0
@@ -2504,9 +2655,9 @@ snapshots:
       proxy-addr: 2.0.8
       qs: 6.17.1
       range-parser: 1.3.0
-      router: 2.2.0
-      send: 1.2.1
-      serve-static: 2.2.1
+      router: 2.2.0(supports-color@8.1.1)
+      send: 1.2.1(supports-color@8.1.1)
+      serve-static: 2.2.1(supports-color@8.1.1)
       statuses: 2.0.2
       type-is: 2.1.0
       vary: 1.1.2
@@ -2529,9 +2680,9 @@ snapshots:
 
   file-uri-to-path@1.0.0: {}
 
-  finalhandler@2.1.1:
+  finalhandler@2.1.1(supports-color@8.1.1):
     dependencies:
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
       encodeurl: 2.0.1
       escape-html: 1.0.3
       on-finished: 2.4.2
@@ -2543,7 +2694,9 @@ snapshots:
   flatbuffers@25.9.23:
     optional: true
 
-  follow-redirects@1.16.3: {}
+  follow-redirects@1.16.3(debug@4.4.3(supports-color@8.1.1)):
+    optionalDependencies:
+      debug: 4.4.3(supports-color@8.1.1)
 
   form-data@4.0.6:
     dependencies:
@@ -2619,6 +2772,9 @@ snapshots:
   guid-typescript@1.0.9:
     optional: true
 
+  has-flag@4.0.0:
+    optional: true
+
   has-property-descriptors@1.0.2:
     dependencies:
       es-define-property: 1.0.1
@@ -2642,10 +2798,10 @@ snapshots:
       statuses: 2.0.2
       toidentifier: 1.0.1
 
-  https-proxy-agent@5.0.1:
+  https-proxy-agent@5.0.1(supports-color@8.1.1):
     dependencies:
-      agent-base: 6.0.2
-      debug: 4.4.3
+      agent-base: 6.0.2(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -2750,6 +2906,12 @@ snapshots:
 
   media-typer@1.1.1: {}
 
+  mediabunny@1.64.0:
+    dependencies:
+      '@types/dom-mediacapture-transform': 0.1.12
+      '@types/dom-webcodecs': 0.1.13
+    optional: true
+
   memjs@1.3.2: {}
 
   memory-pager@1.5.0: {}
@@ -2797,13 +2959,13 @@ snapshots:
       bson: 6.10.4
       mongodb-connection-string-url: 3.0.2
 
-  mongoose@8.24.8:
+  mongoose@8.24.8(supports-color@8.1.1):
     dependencies:
       bson: 6.10.4
       kareem: 2.6.3
       mongodb: 6.20.0
       mpath: 0.9.0
-      mquery: 5.0.1
+      mquery: 5.0.1(supports-color@8.1.1)
       ms: 2.1.3
       sift: 17.1.3
     transitivePeerDependencies:
@@ -2818,9 +2980,9 @@ snapshots:
 
   mpath@0.9.0: {}
 
-  mquery@5.0.1:
+  mquery@5.0.1(supports-color@8.1.1):
     dependencies:
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -2828,14 +2990,14 @@ snapshots:
 
   napi-build-utils@2.0.0: {}
 
-  natural@6.12.0:
+  natural@6.12.0(supports-color@8.1.1):
     dependencies:
       afinn-165: 1.0.4
       afinn-165-financialmarketnews: 3.0.0
       apparatus: 0.0.10
       dotenv: 16.6.1
       memjs: 1.3.2
-      mongoose: 8.24.8
+      mongoose: 8.24.8(supports-color@8.1.1)
       pg: 8.23.1
       redis: 4.7.1
       safe-stable-stringify: 2.5.0
@@ -2906,10 +3068,10 @@ snapshots:
       protobufjs: 7.6.6
     optional: true
 
-  openredaction@1.1.5(express@5.3.0)(mammoth@1.13.0)(react@19.3.1):
+  openredaction@1.1.5(express@5.3.0(supports-color@8.1.1))(mammoth@1.13.0)(react@19.3.1):
     dependencies:
       '@openredaction/core': 1.1.5(mammoth@1.13.0)
-      '@openredaction/express': 1.1.5(express@5.3.0)(mammoth@1.13.0)
+      '@openredaction/express': 1.1.5(express@5.3.0(supports-color@8.1.1))(mammoth@1.13.0)
       '@openredaction/react': 1.1.5(mammoth@1.13.0)(react@19.3.1)
       '@openredaction/server': 1.1.5(mammoth@1.13.0)
     optionalDependencies:
@@ -3140,9 +3302,9 @@ snapshots:
       sprintf-js: 1.1.3
     optional: true
 
-  router@2.2.0:
+  router@2.2.0(supports-color@8.1.1):
     dependencies:
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
       depd: 2.0.0
       is-promise: 4.0.0
       parseurl: 1.3.3
@@ -3168,9 +3330,9 @@ snapshots:
 
   semver@7.8.6: {}
 
-  send@1.2.1:
+  send@1.2.1(supports-color@8.1.1):
     dependencies:
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
       encodeurl: 2.0.1
       escape-html: 1.0.3
       etag: 1.8.1
@@ -3189,12 +3351,12 @@ snapshots:
       type-fest: 0.13.1
     optional: true
 
-  serve-static@2.2.1:
+  serve-static@2.2.1(supports-color@8.1.1):
     dependencies:
       encodeurl: 2.0.1
       escape-html: 1.0.3
       parseurl: 1.3.3
-      send: 1.2.1
+      send: 1.2.1(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -3317,6 +3479,11 @@ snapshots:
   suffix-thumb@6.1.0:
     optional: true
 
+  supports-color@8.1.1:
+    dependencies:
+      has-flag: 4.0.0
+    optional: true
+
   sylvester@0.0.12: {}
 
   tar-fs@2.1.5:
@@ -3377,16 +3544,16 @@ snapshots:
       media-typer: 1.1.1
       mime-types: 3.0.2
 
-  typedoc@0.28.20(typescript@5.9.3):
+  typedoc@0.28.20(typescript@6.0.3):
     dependencies:
       '@gerrit0/mini-shiki': 3.23.0
       lunr: 2.3.9
       markdown-it: 14.3.3
       minimatch: 10.2.6
-      typescript: 5.9.3
+      typescript: 6.0.3
       yaml: 2.9.1
 
-  typescript@5.9.3: {}
+  typescript@6.0.3: {}
 
   uc.micro@2.1.0: {}
 
@@ -3396,7 +3563,9 @@ snapshots:
 
   unicorn-magic@0.3.0: {}
 
-  unpdf@1.9.1: {}
+  unpdf@1.9.1(@napi-rs/canvas@1.1.1):
+    optionalDependencies:
+      '@napi-rs/canvas': 1.1.1
 
   unpipe@1.0.0: {}
 
