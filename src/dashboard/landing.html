@@ -318,7 +318,7 @@
 
   <div class="code-sec">
     <div class="code-block" style="margin-bottom:14px">
-      <div class="code-header"><span>Install (npm, pnpm, or bun)</span><button class="code-copy" onclick="copyCode(this,'npm install paracosm')">Copy</button></div>
+      <div class="code-header"><span>Install (npm, pnpm, or bun)</span><button class="code-copy" onclick="copyCode(this,'npm install paracosm')">复制</button></div>
       <div tabindex="0" class="code-body" id="install-code"><span class="cm"># ESM + subpath exports. Node 22+, Bun 1.x, or any TS runner with import-attributes.</span>
 npm install paracosm
 pnpm add paracosm
@@ -347,7 +347,7 @@ npm install -g paracosm</div>
       <!-- QUICKSTART -->
       <div class="tab-panel active" role="tabpanel" data-panel="quickstart">
         <div class="code-block" style="border:none;border-radius:0;margin:0">
-          <div class="code-header"><span>Three lines: brief to running simulation</span><button class="code-copy" onclick="copyCode(this, document.getElementById('quickstart-code').textContent)">Copy</button></div>
+          <div class="code-header"><span>Three lines: brief to running simulation</span><button class="code-copy" onclick="copyCode(this, document.getElementById('quickstart-code').textContent)">复制</button></div>
           <div tabindex="0" class="code-body" id="quickstart-code"><span class="cm">// Free-text brief in. 3 HEXACO actors, 3 RunArtifacts out — one line.</span>
 <span class="kw">import</span> { runMany } <span class="kw">from</span> <span class="str">'paracosm'</span>;
 
@@ -362,7 +362,7 @@ runs.<span class="fn">forEach</span>(({ actor, artifact }) =&gt; console.<span c
       <!-- MANUAL JSON -->
       <div class="tab-panel" role="tabpanel" data-panel="manual" style="display:none">
         <div class="code-block" style="border:none;border-radius:0;margin:0;border-bottom:1px solid var(--border)">
-          <div class="code-header"><span>my-world.json (durable contract)</span><button class="code-copy" onclick="copyCode(this, document.getElementById('manual-json-code').textContent)">Copy</button></div>
+          <div class="code-header"><span>my-world.json (durable contract)</span><button class="code-copy" onclick="copyCode(this, document.getElementById('manual-json-code').textContent)">复制</button></div>
           <div tabindex="0" class="code-body" id="manual-json-code"><span class="cm">// Hand-written contract. Departments + metrics + nouns + setup.</span>
 {
   <span class="str">"id"</span>: <span class="str">"submarine-habitat"</span>,
@@ -386,7 +386,7 @@ runs.<span class="fn">forEach</span>(({ actor, artifact }) =&gt; console.<span c
 }</div>
         </div>
         <div class="code-block" style="border:none;border-radius:0;margin:0">
-          <div class="code-header"><span>Compile + run</span><button class="code-copy" onclick="copyCode(this, document.getElementById('manual-ts-code').textContent)">Copy</button></div>
+          <div class="code-header"><span>Compile + run</span><button class="code-copy" onclick="copyCode(this, document.getElementById('manual-ts-code').textContent)">复制</button></div>
           <div tabindex="0" class="code-body" id="manual-ts-code"><span class="kw">import</span> { compileScenario, WorldModel } <span class="kw">from</span> <span class="str">'paracosm'</span>;
 <span class="kw">import</span> worldJson <span class="kw">from</span> <span class="str">'./my-world.json'</span> <span class="kw">with</span> { type: <span class="str">'json'</span> };
 
@@ -399,7 +399,7 @@ runs.<span class="fn">forEach</span>(({ actor, artifact }) =&gt; console.<span c
       <!-- GRANULAR -->
       <div class="tab-panel" role="tabpanel" data-panel="granular" style="display:none">
         <div class="code-block" style="border:none;border-radius:0;margin:0">
-          <div class="code-header"><span>All knobs: per-role models, cost preset, snapshots, custom events, abort</span><button class="code-copy" onclick="copyCode(this, document.getElementById('granular-code').textContent)">Copy</button></div>
+          <div class="code-header"><span>All knobs: per-role models, cost preset, snapshots, custom events, abort</span><button class="code-copy" onclick="copyCode(this, document.getElementById('granular-code').textContent)">复制</button></div>
           <div tabindex="0" class="code-body" id="granular-code"><span class="kw">import</span> { createParacosmClient, WorldModel } <span class="kw">from</span> <span class="str">'paracosm'</span>;
 
 <span class="cm">// Pin defaults once, override per-call.</span>
@@ -445,7 +445,7 @@ setTimeout(() =&gt; ctrl.<span class="fn">abort</span>(), <span class="num">120_
       <!-- COUNTERFACTUALS -->
       <div class="tab-panel" role="tabpanel" data-panel="counterfactuals" style="display:none">
         <div class="code-block" style="border:none;border-radius:0;margin:0">
-          <div class="code-header"><span>Fork at turn N, replay deterministic, model an intervention on a digital twin</span><button class="code-copy" onclick="copyCode(this, document.getElementById('counterfactuals-code').textContent)">Copy</button></div>
+          <div class="code-header"><span>Fork at turn N, replay deterministic, model an intervention on a digital twin</span><button class="code-copy" onclick="copyCode(this, document.getElementById('counterfactuals-code').textContent)">复制</button></div>
           <div tabindex="0" class="code-body" id="counterfactuals-code"><span class="cm">// One run, three counterfactual surfaces: fork, replay, intervene.</span>
 <span class="cm">// Same scenario, same kernel, same seed — only the actor / decision changes.</span>
 <span class="kw">import</span> { WorldModel } <span class="kw">from</span> <span class="str">'paracosm'</span>;
@@ -488,7 +488,7 @@ console.<span class="fn">log</span>(<span class="str">'twin under disruption:'</
       <!-- TRAIT MODELS -->
       <div class="tab-panel" role="tabpanel" data-panel="traits" style="display:none">
         <div class="code-block" style="border:none;border-radius:0;margin:0;border-bottom:1px solid var(--border)">
-          <div class="code-header"><span>Pluggable trait models: HEXACO for humans, ai-agent for AI systems, custom for anything</span><button class="code-copy" onclick="copyCode(this, document.getElementById('traits-code').textContent)">Copy</button></div>
+          <div class="code-header"><span>Pluggable trait models: HEXACO for humans, ai-agent for AI systems, custom for anything</span><button class="code-copy" onclick="copyCode(this, document.getElementById('traits-code').textContent)">复制</button></div>
           <div tabindex="0" class="code-body" id="traits-code"><span class="cm">// Actors aren't just people. Same engine, different decision-maker shapes.</span>
 <span class="kw">import</span> { WorldModel } <span class="kw">from</span> <span class="str">'paracosm'</span>;
 <span class="kw">const</span> wm = WorldModel.<span class="fn">fromScenario</span>(scenario);
@@ -535,7 +535,7 @@ console.<span class="fn">log</span>(<span class="str">'twin under disruption:'</
 <span class="kw">const</span> aiRun    = <span class="kw">await</span> wm.<span class="fn">simulate</span>({ actor: aiLeader,    maxTurns: <span class="num">6</span>, seed: <span class="num">42</span> });</div>
         </div>
         <div class="code-block" style="border:none;border-radius:0;margin:0">
-          <div class="code-header"><span>Or register your own model. Any axis ids, any drift table.</span><button class="code-copy" onclick="copyCode(this, document.getElementById('traits-custom-code').textContent)">Copy</button></div>
+          <div class="code-header"><span>Or register your own model. Any axis ids, any drift table.</span><button class="code-copy" onclick="copyCode(this, document.getElementById('traits-custom-code').textContent)">复制</button></div>
           <div tabindex="0" class="code-body" id="traits-custom-code"><span class="kw">import</span> { traitModelRegistry } <span class="kw">from</span> <span class="str">'paracosm'</span>;
 
 traitModelRegistry.<span class="fn">register</span>({
@@ -560,7 +560,7 @@ traitModelRegistry.<span class="fn">register</span>({
       <!-- HTTP -->
       <div class="tab-panel" role="tabpanel" data-panel="http" style="display:none">
         <div class="code-block" style="border:none;border-radius:0;margin:0">
-          <div class="code-header"><span>One-shot HTTP endpoint (curl, Python, third-party dashboards)</span><button class="code-copy" onclick="copyCode(this, document.getElementById('http-code').textContent)">Copy</button></div>
+          <div class="code-header"><span>One-shot HTTP endpoint (curl, Python, third-party dashboards)</span><button class="code-copy" onclick="copyCode(this, document.getElementById('http-code').textContent)">复制</button></div>
           <div tabindex="0" class="code-body" id="http-code"><span class="cm"># Boot the server with the endpoint enabled.</span>
 PARACOSM_ENABLE_SIMULATE_ENDPOINT=true paracosm dashboard
 
@@ -584,7 +584,7 @@ curl -X POST http://localhost:3456/simulate \
       <!-- CLI -->
       <div class="tab-panel" role="tabpanel" data-panel="cli" style="display:none">
         <div class="code-block" style="border:none;border-radius:0;margin:0">
-          <div class="code-header"><span>One umbrella binary, four subcommands. `--help` works on every level.</span><button class="code-copy" onclick="copyCode(this, document.getElementById('cli-code').textContent)">Copy</button></div>
+          <div class="code-header"><span>One umbrella binary, four subcommands. `--help` works on every level.</span><button class="code-copy" onclick="copyCode(this, document.getElementById('cli-code').textContent)">复制</button></div>
           <div tabindex="0" class="code-body" id="cli-code"><span class="cm"># Discoverability first.</span>
 paracosm --help                          <span class="cm"># lists every subcommand</span>
 paracosm run --help                      <span class="cm"># per-command help</span>
@@ -616,7 +616,7 @@ paracosm init my-app --domain <span class="str">"AI lab Q4 release pressure"</sp
     </div>
 
     <div class="code-block" style="margin-top:18px">
-      <div class="code-header"><span>End-to-end runner (real input/output captured)</span><button class="code-copy" onclick="copyCode(this, 'npx tsx scripts/cookbook-e2e.ts')">Copy</button></div>
+      <div class="code-header"><span>End-to-end runner (real input/output captured)</span><button class="code-copy" onclick="copyCode(this, 'npx tsx scripts/cookbook-e2e.ts')">复制</button></div>
       <div tabindex="0" class="code-body" id="api-code"><span class="cm">// Save as index.ts next to my-world.json, then:</span>
 <span class="cm">//   npm install paracosm   (or: pnpm add paracosm / bun add paracosm)</span>
 <span class="cm">//   export OPENAI_API_KEY=sk-...          # or ANTHROPIC_API_KEY=sk-ant-...</span>
@@ -683,7 +683,7 @@ paracosm init my-app --domain <span class="str">"AI lab Q4 release pressure"</sp
 }</div>
     </div>
     <div class="code-block">
-      <div class="code-header"><span>Or: quick start with the dashboard</span><button class="code-copy" onclick="copyCode(this, document.getElementById('dash-code').textContent)">Copy</button></div>
+      <div class="code-header"><span>Or: quick start with the dashboard</span><button class="code-copy" onclick="copyCode(this, document.getElementById('dash-code').textContent)">复制</button></div>
       <div tabindex="0" class="code-body" id="dash-code">git clone https://github.com/framerslab/paracosm
 cd paracosm && npm install
 cp .env.example .env  <span class="cm"># add your OpenAI or Anthropic key</span>
@@ -883,7 +883,7 @@ npm run dashboard     <span class="cm"># opens http://localhost:3456</span>
       <div class="feat rv rv-d2">
         <h3>Install the package</h3>
         <div class="code-block" style="margin:12px 0">
-          <div class="code-header"><span>npm</span><button class="code-copy" onclick="copyCode(this,'npm install paracosm')">Copy</button></div>
+          <div class="code-header"><span>npm</span><button class="code-copy" onclick="copyCode(this,'npm install paracosm')">复制</button></div>
           <div tabindex="0" class="code-body">npm install paracosm</div>
         </div>
         <p>ESM for Node 22 or newer, under Apache-2.0. Import <code>run</code>, <code>runMany</code> or <code>WorldModel</code> and call them with your own OpenAI or Anthropic key. Its CLI is included, and <code>npx paracosm dashboard</code> serves this dashboard from your machine at <code>http://localhost:3456</code>.</p>
@@ -1274,13 +1274,71 @@ if (themeBtn) {
   });
 }
 
-// Copy code to clipboard
+// Copy code to clipboard. Where the page has no clipboard (plain http at a
+// network address) or the browser refuses the write, the block says in one
+// line under its header that the code was not copied.
+//
+// Each code block gets an empty status region under its header as the page
+// loads, so a screen reader announces the line when it is put there.
+function copyResultRegion(header) {
+  const next = header.nextElementSibling;
+  if (next && next.getAttribute('role') === 'status') return next;
+  const region = document.createElement('div');
+  region.setAttribute('role', 'status');
+  region.setAttribute('aria-label', '复制结果');
+  header.after(region);
+  return region;
+}
+document.querySelectorAll('.code-header').forEach(copyResultRegion);
+
+// Each press gets its own number and starts from nothing shown, so only the
+// last press's result shows: the key never says Copied beside the line, and
+// an answer to an earlier press changes nothing.
 function copyCode(btn, text) {
-  navigator.clipboard.writeText(text.trim()).then(() => {
-    btn.textContent = 'Copied';
+  const header = btn.closest('.code-header');
+  const region = header ? copyResultRegion(header) : null;
+  const press = (btn.copyPress = (btn.copyPress || 0) + 1);
+  clearTimeout(btn.copyTimer);
+  btn.textContent = '复制';
+  btn.classList.remove('copied');
+  if (region) region.replaceChildren();
+  // The key shows Copied, and the region says it for a screen reader.
+  const copied = () => {
+    if (btn.copyPress !== press) return;
+    btn.textContent = '已复制';
     btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
-  });
+    if (region) {
+      const done = document.createElement('span');
+      done.className = 'code-copy-done';
+      done.textContent = '代码已复制。';
+      region.replaceChildren(done);
+    }
+    btn.copyTimer = setTimeout(() => {
+      btn.textContent = '复制';
+      btn.classList.remove('copied');
+      if (region) region.replaceChildren();
+    }, 2000);
+  };
+  const notCopied = () => {
+    if (btn.copyPress !== press || !region) return;
+    const note = document.createElement('p');
+    note.className = 'code-copy-note';
+    note.textContent = '浏览器未复制代码，请选中代码后手动复制。';
+    region.replaceChildren(note);
+  };
+  const clipboard = navigator.clipboard;
+  if (!clipboard || typeof clipboard.writeText !== 'function') {
+    notCopied();
+    return;
+  }
+  let write;
+  try {
+    write = clipboard.writeText(text.trim());
+  } catch (_) {
+    notCopied();
+    return;
+  }
+  write.then(copied, notCopied);
 }
 
 // Smooth scroll for anchor links
