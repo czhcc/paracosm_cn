@@ -20,6 +20,8 @@ import { useState } from 'react';
 import type { RunArtifact } from '../../../../engine/schema/index.js';
 import styles from './InterventionDemoCard.module.scss';
 import { emitLaunched } from '../../scenario-sync';
+import { readTabKeyOverrides } from '../../hooks/useLastLaunchConfig';
+import { sessionProviderKeys } from '../settings/sessionProviderKeys';
 
 export interface InterventionDemoCardProps {
   /** The run's artifact, with the key the run was started under. */
@@ -274,6 +276,8 @@ export function InterventionDemoCard({ onResult, onError, onRunStart }: Interven
           intervention: interventionPayload,
           runKey,
           options: { maxTurns: 2, seed: 11, costPreset: 'economy' },
+          // The visitor's own provider key from Settings: the run is on it.
+          ...sessionProviderKeys(readTabKeyOverrides()),
         }),
       });
       if (!res.ok) {

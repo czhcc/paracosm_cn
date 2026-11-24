@@ -13,6 +13,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createMarsServer, type CreateMarsServerOptions, type MarsServer } from '../../../src/server/server-app.js';
+import { resolveServerMode } from '../../../src/server/server-mode.js';
 import { createNoopRunHistoryStore } from '../../../src/server/stores/run-history.js';
 import { openSessionStore } from '../../../src/server/stores/session.js';
 import type { NormalizedSimulationConfig } from '../../../src/cli/sim-config.js';
@@ -97,11 +98,14 @@ export async function startServer(options: RunServerOptions = {}): Promise<RunSe
   const appDir = options.appDir ?? mkdtempSync(join(tmpdir(), 'paracosm-run-per-visitor-'));
   const launches: Launch[] = [];
   const forkLaunches: Launch[] = [];
+  const env = { ...process.env, APP_DIR: appDir, PARACOSM_HOSTED_DEMO: '', ...options.env };
+  const ownedSessionStore = options.extra?.sessionStore == null
+    ? openSessionStore(join(env.APP_DIR, 'data', 'sessions.db'), undefined, { ownerRings: resolveServerMode(env) === 'hosted_demo' })
+    : undefined;
   const serverOptions = {
-    env: { ...process.env, APP_DIR: appDir, PARACOSM_HOSTED_DEMO: '', ...options.env },
+    env,
     maxSimsPerDay: options.maxSimsPerDay ?? 0,
     runHistoryStore: createNoopRunHistoryStore(),
-    sessionStore: openSessionStore(join(appDir, 'data', 'sessions.db')),
     runPairSimulations: async (config: NormalizedSimulationConfig, broadcast: BroadcastFn, signal?: AbortSignal, scenario?: ScenarioPackage) => {
       launches.push({ config, scenario, signal });
       await options.runner?.(config, broadcast, scenario, signal);
@@ -118,6 +122,7 @@ export async function startServer(options: RunServerOptions = {}): Promise<RunSe
     ...(options.staleBufferMs !== undefined ? { staleBufferMs: options.staleBufferMs } : {}),
     ...(options.disconnectGraceMs !== undefined ? { disconnectGraceMs: options.disconnectGraceMs } : {}),
     ...options.extra,
+    ...(ownedSessionStore ? { sessionStore: ownedSessionStore } : {}),
   } as CreateMarsServerOptions;
   const server = createMarsServer(serverOptions);
   server.listen(0);
@@ -141,7 +146,7 @@ export async function startServer(options: RunServerOptions = {}): Promise<RunSe
       await once(server, 'close');
       // SQLite holds an open file on Windows; close the fixture's store
       // before withVisitors removes its temporary directory.
-      await serverOptions.sessionStore?.close();
+      await ownedSessionStore?.close();
     },
   };
 }

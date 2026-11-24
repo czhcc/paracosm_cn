@@ -1,20 +1,24 @@
 // Migrated from inline `style={{}}`. Per-pill kind color and side
 // vertical offset flow in via CSS custom properties.
 
+// The strip's ground. Its row (OneRowScroller) holds the heading, the filter
+// keys and the marks on one line; wider than the window, the row scrolls
+// sideways with an edge fade and a Previous and a Next key at its ends.
 .bar {
   padding: 4px 10px;
   background: var(--bg-panel);
   border-bottom: 1px solid var(--border);
-  display: flex;
+}
+
+.barRow {
   align-items: center;
   gap: 8px;
-  overflow-x: auto;
 }
 
 .heading {
-  font-size: var(--font-2xs);
+  font-size: 15px;
   font-family: var(--mono);
-  color: var(--text-3);
+  color: var(--text-2);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -29,7 +33,7 @@
 
 .filterChip {
   padding: 4px 10px;
-  font-size: var(--font-xs);
+  font-size: 15px;
   font-family: var(--mono);
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -40,6 +44,11 @@
   border-radius: 4px;
   cursor: pointer;
   transition: background 120ms, color 120ms, border-color 120ms;
+
+  @media (max-width: 899.98px) {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 
 .filterChip.active {
@@ -49,22 +58,23 @@
   box-shadow: 0 0 0 2px rgba(232, 180, 74, 0.2);
 }
 
+// The marks keep their own width: the row scrolls rather than squeezing them.
 .dotsRow {
   display: flex;
   align-items: center;
   gap: 2px;
-  flex: 1;
-  min-width: 0;
+  flex: 0 0 auto;
 }
 
 .dot {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 16px;
   height: 16px;
   padding: 0;
-  font-size: var(--font-3xs);
+  font-size: 15px;
   font-family: var(--mono);
   font-weight: 800;
   background: transparent;
@@ -77,6 +87,11 @@
   opacity: 0.7;
   text-shadow: none;
   transition: opacity 120ms, text-shadow 120ms, background 120ms;
+
+  @media (max-width: 899.98px) {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 
 .dot.hovered {

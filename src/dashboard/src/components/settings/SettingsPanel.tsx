@@ -22,8 +22,12 @@ import {
   SETTINGS_LABEL_STYLE,
   SETTINGS_SECTION_HEADER_STYLE,
 } from './shared/settingsStyles';
-import { readActiveRunActors, readActiveRunScenarioId, writeActiveRunActors } from '../../hooks/useLastLaunchConfig';
+import {
+  forgetTabKeyOverrides, readActiveRunActors, readActiveRunScenarioId, readTabKeyOverrides,
+  writeActiveRunActors, writeTabKeyOverrides, type KeyOverrides,
+} from '../../hooks/useLastLaunchConfig';
 import type { ScenarioClientPayload } from '../../hooks/useScenario';
+import { hasSessionProviderKey, sessionProviderKeys } from './sessionProviderKeys';
 import styles from './SettingsPanel.module.scss';
 
 type SettingsSubTab = 'config' | 'log';
@@ -319,30 +323,33 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
   const [demoCaps, setDemoCaps] = useState<{ maxTurns: number; maxPopulation: number; maxActiveDepartments: number }>({
     maxTurns: 6, maxPopulation: 30, maxActiveDepartments: 3,
   });
-  // Keys persist in localStorage so users don't have to re-enter them on every
-  // page reload. Written on change, read on mount. The key itself never
-  // leaves the browser except as part of a /setup or /compile request body;
-  // it is never rendered back into the input and is submitted with
-  // autoComplete=off.
-  const [keyOverrides, setKeyOverrides] = useState<Record<string, string>>(() => {
+  const [keyOverrides, setKeyOverrides] = useState(readTabKeyOverrides);
+  const [keyIdleMinutes, setKeyIdleMinutes] = useState<number | null>(null);
+  const [forgettingKeys, setForgettingKeys] = useState(false);
+  const [keyNotice, setKeyNotice] = useState('');
+
+  function updateKey(provider: keyof KeyOverrides, value: string) {
+    const next = { ...keyOverrides, [provider]: value };
+    writeTabKeyOverrides(next);
+    setKeyOverrides(next);
+    setKeyNotice('');
+  }
+
+  async function forgetKeys() {
+    setForgettingKeys(true);
+    forgetTabKeyOverrides();
+    setKeyOverrides({});
+    setKeyNotice('');
     try {
-      const stored = localStorage.getItem('paracosm:keyOverrides');
-      if (stored) {
-        const parsed = JSON.parse(stored) as Record<string, string>;
-        return {
-          openai: parsed.openai || '', anthropic: parsed.anthropic || '',
-          serper: parsed.serper || '', firecrawl: parsed.firecrawl || '',
-          tavily: parsed.tavily || '', cohere: parsed.cohere || '',
-        };
-      }
-    } catch { /* localStorage unavailable or JSON malformed — fall through */ }
-    return { openai: '', anthropic: '', serper: '', firecrawl: '', tavily: '', cohere: '' };
-  });
-  useEffect(() => {
-    try {
-      localStorage.setItem('paracosm:keyOverrides', JSON.stringify(keyOverrides));
-    } catch { /* quota or privacy mode — silent */ }
-  }, [keyOverrides]);
+      const response = await fetch('/forget-keys', { method: 'POST' });
+      if (!response.ok) throw new Error('服务器清理失败');
+      setKeyNotice('密钥已清除，你的当前运行和聊天智能体也已清除。');
+    } catch {
+      setKeyNotice('当前标签页的密钥已清除。再次点击“清除我的密钥”可重试服务器清理。');
+    } finally {
+      setForgettingKeys(false);
+    }
+  }
 
   // Per-tier model choices for BYO-key users. Initialised from defaults for
   // the currently selected provider; reset whenever the provider changes so
@@ -368,7 +375,9 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
   // belong to the user, so env presence is enough. On the hosted Linode
   // the server sets PARACOSM_HOSTED_DEMO=true and env keys belong to the
   // host — picker then requires an explicit session override from the user.
-  const hasSessionLlmKey = !!keyOverrides.openai || !!keyOverrides.anthropic;
+  // A key counts as the server reads it: a blank or masked value (`sk-...`)
+  // is no key, so it neither unlocks the page nor is posted.
+  const hasSessionLlmKey = hasSessionProviderKey(keyOverrides);
   const hasEnvLlmKey = !!envKeys.openai || !!envKeys.anthropic;
   const canPickModels = hasSessionLlmKey || (!hostedDemo && hasEnvLlmKey);
   // `hasUserLlmKey` controls whether launch() attaches `config.models`.
@@ -380,6 +389,10 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
     hostedDemo && !hasSessionLlmKey ? 'economy' : economicsProfile;
   const serverModeInfo = describeServerMode(serverMode);
   const isLocked = hostedDemo && !hasSessionLlmKey;
+  // A host-paid run on the hosted demo runs on OpenAI whatever the page
+  // posts (applyDemoCaps on the server), so the locked page shows and
+  // posts OpenAI.
+  const effectiveProvider = isLocked ? 'openai' : provider;
 
   const refreshScenarioCatalog = useCallback(() => {
     fetch('/scenarios')
@@ -399,6 +412,7 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
       .then(data => {
         if (data.keys) setEnvKeys(data.keys);
         if (data.defaultModels) setDefaultModels(data.defaultModels);
+        if (typeof data.visitorKeyIdleMinutes === 'number') setKeyIdleMinutes(data.visitorKeyIdleMinutes);
         if (typeof data.hostedDemo === 'boolean') setHostedDemo(data.hostedDemo);
         if (typeof data.adminWrite === 'boolean') setAdminWrite(data.adminWrite);
         if (typeof data.serverMode === 'string') setServerMode(data.serverMode as DashboardServerMode);
@@ -437,7 +451,7 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
     try {
       const config: Record<string, unknown> = {
         actors: actors.map(a => ({ ...a, hexaco: a.hexaco })),
-        provider, turns, seed, startTime, timePerTurn: timePerTurn || undefined, population, liveSearch,
+        provider: effectiveProvider, turns, seed, startTime, timePerTurn: timePerTurn || undefined, population, liveSearch,
         activeDepartments: scenario.departments.map(d => d.id),
         economics: { profileId: effectiveEconomicsProfile },
         // Names the scenario this config is for, so the re-run button
@@ -458,8 +472,7 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
       // alphabetic placeholder until status:parallel lands.
       writeActiveRunActors(window.localStorage, actors, scenario.id);
       // Attach any user-provided key overrides (never sends .env values)
-      if (keyOverrides.openai) config.apiKey = keyOverrides.openai;
-      if (keyOverrides.anthropic) config.anthropicKey = keyOverrides.anthropic;
+      Object.assign(config, sessionProviderKeys(keyOverrides));
       if (keyOverrides.serper) config.serperKey = keyOverrides.serper;
       if (keyOverrides.firecrawl) config.firecrawlKey = keyOverrides.firecrawl;
       if (keyOverrides.tavily) config.tavilyKey = keyOverrides.tavily;
@@ -485,8 +498,8 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
       }
       if (data.redirect) {
         // The server took the run: it replaces the Digital Twin views.
-        runStart();
-        setStatus("运行中…");
+        runStart(typeof data.runKey === 'string' ? data.runKey : undefined);
+        setStatus('运行中…');
         emitLaunched(window, data.visitorId);
         const targetHref = resolveSetupRedirectHref(window.location.href, data.redirect);
         const resolvedTab = getDashboardTabFromHref(targetHref);
@@ -499,7 +512,7 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
       setStatus(`Failed: ${err}`);
       setLaunching(false);
     }
-  }, [actors, turns, seed, startTime, timePerTurn, population, provider, liveSearch, navigateTab, runStart, scenario, scenarioReady, keyOverrides, tierModels, hasUserLlmKey, effectiveEconomicsProfile]);
+  }, [actors, turns, seed, startTime, timePerTurn, population, effectiveProvider, liveSearch, navigateTab, runStart, scenario, scenarioReady, keyOverrides, tierModels, hasUserLlmKey, effectiveEconomicsProfile]);
 
   const inputCls = (locked: boolean) =>
     [styles.input, locked ? styles.locked : ''].filter(Boolean).join(' ');
@@ -704,8 +717,18 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
         </div>
         <div className={`responsive-grid-3 ${styles.grid3}`}>
           <div>
-            <label htmlFor="provider-select" style={SETTINGS_LABEL_STYLE}>模型服务商</label>
-            <select id="provider-select" className={`pc-select ${styles.input}`} value={provider} onChange={e => setProvider(e.target.value)}>
+            <label htmlFor="provider-select" style={SETTINGS_LABEL_STYLE}>
+              模型服务商
+              {isLocked && <span className={styles.lockTag}>🔒 演示：OpenAI</span>}
+            </label>
+            <select
+              id="provider-select"
+              className={`pc-select ${inputCls(isLocked)}`}
+              value={effectiveProvider}
+              onChange={e => setProvider(e.target.value)}
+              disabled={isLocked}
+              title={isLocked ? '托管演示默认锁定为 OpenAI。填写自己的 OpenAI 或 Anthropic 密钥后即可选择服务商。' : ''}
+            >
               <option value="openai">OpenAI</option>
               <option value="anthropic">Anthropic</option>
             </select>
@@ -750,7 +773,7 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
         </legend>
         <div className={styles.keysIntro}>
           <p className={styles.keysIntroPara}>
-            <strong className={styles.keysIntroBoldNeutral}>密钥使用顺序：</strong> 服务器优先使用下方填写的会话密钥，其次使用服务器 .env 配置。任一位置存在有效密钥即可使用，已提交的密钥值不会回显。
+            <strong className={styles.keysIntroBoldNeutral}>密钥使用顺序：</strong> 服务器先使用下方填写的当前标签页密钥，再使用服务器的 .env 配置。
           </p>
           <p className={styles.keysIntroPara}>
             <strong className={styles.keysIntroBoldGreen}>调用限额：</strong> 托管演示使用服务器密钥时，按 IP 限制每日运行次数。填写自己的 <strong>OpenAI</strong> 或 <strong>Anthropic</strong> 密钥可解除演示限额。只需配置一个模型服务商的密钥；若同时配置两个，则使用所选服务商。
@@ -780,14 +803,29 @@ export function SettingsPanel({ events = [], initialSubTab = 'config' }: Setting
                 id={`key-${key}`}
                 type="password"
                 autoComplete="off"
-                value={keyOverrides[key]}
-                onChange={e => setKeyOverrides(prev => ({ ...prev, [key]: e.target.value }))}
-                placeholder={envKeys[key] ? '使用 .env 配置' : "未配置"}
-                className={styles.input}
+                data-clarity-mask="True"
+                value={keyOverrides[key] ?? ''}
+                disabled={forgettingKeys}
+                onChange={e => updateKey(key, e.target.value)}
+                placeholder={envKeys[key] ? '使用 .env 配置' : '未配置'}
+                className={`${styles.input} ph-no-capture ph-mask`}
               />
               <div className={styles.fieldHint}>{desc}</div>
             </div>
           ))}
+        </div>
+        <button type="button" className={styles.leaderAddBtn} disabled={forgettingKeys} onClick={forgetKeys}>
+          清除我的密钥
+        </button>
+        {keyNotice && <p className={styles.fieldHint} role="status">{keyNotice}</p>}
+        <div className={styles.keysIntro} data-testid="visitor-key-notes">
+          <p className={styles.keysIntroPara}>使用自己的密钥运行时，费用按你与 OpenAI 或 Anthropic 的协议计入你的账户。</p>
+          {keyIdleMinutes !== null && (
+            <p className={styles.keysIntroPara}>每次启动运行或聊天时，密钥都会发送到服务器。使用期间仅保留在内存中，停止后最多保留 {keyIdleMinutes} 分钟，且始终不会写入磁盘或日志。</p>
+          )}
+          <p className={styles.keysIntroPara}>当前浏览器标签页会保留密钥，直到标签页关闭。点击“清除我的密钥”可立即清除。</p>
+          <p className={styles.keysIntroPara}>请使用单独设置了支出上限的密钥，用完后在服务商处删除。</p>
+          <p className={styles.keysIntroParaLast}>也可以在<a href="/#get-started">自己的电脑上运行 Paracosm</a>，这样密钥只会留在你的电脑上。</p>
         </div>
       </fieldset>
 

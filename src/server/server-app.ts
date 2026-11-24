@@ -1,5 +1,6 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { isIP } from 'node:net';
+import type { TLSSocket } from 'node:tls';
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, unlinkSync, createReadStream, realpathSync, type Stats } from 'node:fs';
 import { resolve, dirname, relative, sep } from 'node:path';
 import { pipeline } from 'node:stream';
@@ -11,8 +12,8 @@ import { runPairSimulations, runForkSimulation, runBatchSimulations, type Broadc
 import {
   handleFetchSeed, handleCompileFromSeed, handleCompileFromSeedStatus,
   handleGenerateActors, handleGroundScenario, handleSimulateIntervention,
-  QUICKSTART_SCENARIO_ID_MAX, endFinishedJobsOf,
-  type QuickstartDeps,
+  QUICKSTART_SCENARIO_ID_MAX, QUICKSTART_MODELS, defaultModelCalls, endFinishedJobsOf,
+  type QuickstartDeps, type QuickstartModelCalls,
 } from './routes/quickstart.js';
 import { WorldModel } from '../runtime/world-model/index.js';
 import { handleSimulate, type SimulateDeps } from './routes/simulate.js';
@@ -21,10 +22,13 @@ import { marsScenario } from '../engine/scenarios/index.js';
 import { lunarScenario } from '../engine/scenarios/index.js';
 import type { ScenarioPackage } from '../engine/types.js';
 import {
+  apiKeyForProvider,
+  credentialFingerprint,
   hasProviderCredentials,
   normalizeCredential,
   resolveProviderFromCredentials,
 } from '../engine/provider/credentials.js';
+import { hostedModelRouting, hostedRunModels } from './hosted-model-policy.js';
 import {
   describeCustomScenarioSource,
   type CustomScenarioEntry,
@@ -53,7 +57,7 @@ import {
   type PerRunProviderErrors,
 } from './retry-stats.js';
 import { createCompilerTelemetry, type CompilerTelemetry } from '../engine/compiler/telemetry.js';
-import { openSessionStore, type SessionStore, type TimestampedEvent } from './stores/session.js';
+import { DEFAULT_MAX_SESSIONS, openSessionStore, type SessionStore, type TimestampedEvent } from './stores/session.js';
 import { generateSessionTitle } from './session-title.js';
 import { resolveServerMode } from './server-mode.js';
 import {
@@ -69,7 +73,7 @@ import {
   withSiteAnalytics,
   type SiteAnalyticsIds,
 } from './site-analytics.js';
-import { createRunRecord, hashActorConfig, publicResultFrame } from './services/run-record.js';
+import { createRunRecord, hashActorConfig, publicResultFrame, withoutBrief } from './services/run-record.js';
 import { enrichRunRecordFromArtifact } from './services/enrich-run-record.js';
 import { isRunOutputFileName, resolveRunsDir } from './services/run-artifact-file.js';
 import { createNoopRunHistoryStore, type RunHistoryStore } from './stores/run-history.js';
@@ -87,6 +91,7 @@ import {
   RUN_CAPACITY_RETRY_AFTER_SECONDS,
   RunCapacityError,
   readVisitorId,
+  runRecording,
   visitorCookie,
   type LiveRun,
 } from './live-runs.js';
@@ -300,6 +305,31 @@ function fromAnotherSite(req: IncomingMessage, allowedOrigins: ReadonlySet<strin
   } catch {
     return true;
   }
+}
+
+const VISITOR_KEY_FIELDS = ['apiKey', 'anthropicKey', 'serperKey', 'firecrawlKey', 'tavilyKey', 'cohereKey'] as const;
+
+/**
+ * Keys travel over TLS or stay on this computer. A request came over HTTPS
+ * when its own connection is TLS, or when `X-Forwarded-Proto: https` comes
+ * from a proxy on this computer or from the proxy the operator named
+ * (`namedProxy`: PARACOSM_CLIENT_IP_HEADER is set). A browser that addressed
+ * this computer by a loopback name, with no proxy between, sends from this
+ * computer, through a container's published port too.
+ */
+function refuseUnencryptedKeys(req: IncomingMessage, res: ServerResponse, namedProxy: boolean, keys: Record<string, unknown>): boolean {
+  if (!VISITOR_KEY_FIELDS.some(field => normalizeCredential(keys[field]) !== undefined)) return false;
+  if ((req.socket as TLSSocket).encrypted) return false;
+
+  const peer = req.socket.remoteAddress?.replace(/^::ffff:/, '') ?? '';
+  const proxyScheme = req.headers['x-forwarded-proto'];
+  const localPeer = LOOPBACK_HOSTNAMES.has(peer) || peer === '::1';
+  if (proxyScheme === 'https' && (localPeer || namedProxy)) return false;
+  if (proxyScheme === undefined && LOOPBACK_HOSTNAMES.has(hostHeaderName(req.headers.host))) return false;
+
+  res.writeHead(403, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+  res.end(JSON.stringify({ error: 'Send API keys over HTTPS, or use a dashboard on this computer.' }));
+  return true;
 }
 
 /** Uses the compiler's seed test, including truthy values that are not strings. */
@@ -535,7 +565,15 @@ export interface CreateMarsServerOptions {
   ) => Promise<void>;
   /** Runs a fork's branch (a `/setup` body with `forkFrom`); defaults to the pair runner's `runForkSimulation`. */
   runForkSimulation?: typeof runForkSimulation;
-  generateText?: (args: { provider: string; model: string; prompt: string }) => Promise<{ text: string }>;
+  /** Runs a run of three or more actors; defaults to the pair runner's `runBatchSimulations`. */
+  runBatchSimulations?: typeof runBatchSimulations;
+  /**
+   * The model call behind a saved run's title; defaults to AgentOS's
+   * `generateText`. `apiKey` is the run's own key for the title's provider,
+   * absent on a host-paid run, which then uses the environment's key. A
+   * call on the run's own key carries `fallbackProviders: []`.
+   */
+  generateText?: (args: { provider: string; model: string; prompt: string; apiKey?: string; fallbackProviders?: [] }) => Promise<{ text: string }>;
   compileScenario?: (scenarioJson: Record<string, unknown>, options: Record<string, unknown>) => Promise<ScenarioPackage>;
   /**
    * The compile behind POST /api/quickstart/compile-from-seed; defaults to
@@ -834,6 +872,15 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
   const sessionOwner = (visitorId: string): string | null => visitorId === ANONYMOUS_VISITOR
     ? null
     : createHash('sha256').update(`paracosm-session-owner:${visitorId}`).digest('hex');
+  /**
+   * Whether a saved session's brief is kept from this request: on the
+   * hosted demo, for a session no admin saved, from every caller but the
+   * visitor whose run it was. A session saved with no visitor shows its
+   * brief to no caller there.
+   */
+  const briefHiddenFrom = (session: { meta: { pinned?: boolean }; owner: string | null }, req: IncomingMessage): boolean =>
+    serverMode === 'hosted_demo' && !session.meta.pinned
+    && (session.owner === null || session.owner !== sessionOwner(readVisitorId(req)));
   /**
    * The visitor a run a request opens belongs to: the request's own
    * visitor, except that on the hosted demo a caller that sent no cookie
@@ -1145,6 +1192,8 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
   // to revisit live in sessions.db through the auto-save path; that store
   // is canonical for replay, the live runs are not.
   const STALE_BUFFER_MS = options.staleBufferMs ?? 30 * 60 * 1000;
+  const visitorKeyIdleMinutes = STALE_BUFFER_MS / 60_000;
+  let chatAgentPool: typeof import('../runtime/agents/chat-agents.js') | undefined;
 
   // Bound each run's event buffer. At 300 actors × 20 turns a buffer
   // approaches 100k events at ~1-3KB per SSE message: 150MB+ resident in
@@ -1235,7 +1284,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     },
     // A dropped run's chat agents (their memories and histories) go with it.
     onDrop: run => {
-      import('../runtime/agents/chat-agents.js').then(m => m.clearPool(run.key)).catch(() => {});
+      chatAgentPool?.clearPool(run.key);
     },
   });
 
@@ -1429,13 +1478,16 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     return false;
   };
 
-  // Boot-time hydration of persisted compile-from-seed scenarios.
-  // Drafts on disk get lazy-compiled in the background — server boot
-  // doesn't await this so a cold cache (50 drafts × 30s LLM each)
-  // never blocks the listen() port. As each compile resolves the
-  // scenario lands in the catalog and shows up in subsequent
-  // /scenarios responses; the picker is eventually-consistent within
-  // a few seconds on warm cache, a few minutes on cold.
+  // Boot-time restore of persisted compile-from-seed scenarios, in the
+  // background: server boot doesn't await it, so the listen() port never
+  // waits on it. Each saved scenario's hooks are rebuilt from the sources
+  // saved with it, or for a file written before files carried them, from
+  // the compiler's disk cache under the model that wrote them, with no
+  // model call and on any host, whatever provider keys it holds
+  // (`restore` in CompileOptions). Only a saved draft whose hooks neither
+  // holds is compiled again, at the going rate (50 drafts x 30s LLM each
+  // when every one is cold). As each one resolves the scenario lands in
+  // the catalog and shows up in subsequent /scenarios responses.
   void (async () => {
     let saved;
     try {
@@ -1457,7 +1509,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       hydratingScenarioIds.add(id);
       compiledEntryInfo.set(id, { enteredAt: Date.parse(meta.compiledAt) || 0, address: null });
     }
-    console.log(`[scenarios] re-compiling ${drafts.length} persisted compiled draft(s) from disk…`);
+    console.log(`[scenarios] restoring ${drafts.length} persisted compiled draft(s) from disk…`);
     // Wrap the dynamic import + per-draft loop in its own try-catch
     // so a module-resolution failure (deploy with broken compiler
     // bundle, fs hiccup) doesn't surface as an unhandled promise
@@ -1469,19 +1521,26 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     // in a stub compiler that returns a fixture without LLM cost).
     // Fallback dynamically-imports the real compileScenario for
     // the production happy path.
+    // On the hosted demo the host's keys pay for a compile here, which runs
+    // only for a draft whose hooks are neither saved nor cached, so it runs
+    // on OpenAI and falls back to no other provider (hosted-model-policy.ts);
+    // a host with no OpenAI key leaves such a draft out. A restore resolves
+    // no provider, so the routing does not touch it.
+    const hostedCompileRouting = serverMode === 'hosted_demo' ? { provider: 'openai' as const, stayOnProvider: true } : {};
     try {
       const compileScenario = options.compileScenario
         ?? (await import('../engine/compiler/index.js')).compileScenario;
-      for (const { id, draft, meta } of drafts) {
+      for (const { id, draft, meta, hookSources } of drafts) {
         try {
           if (!hydratingScenarioIds.has(id)) {
             console.log(`[scenarios] left out the persisted compiled draft ${id}: it left the catalog while boot re-compiled it`);
             continue;
           }
-          // Cache: true means we hit the local hook-source cache. With
-          // a warm cache this is ~10ms per draft; with a cold cache the
-          // hooks regenerate via LLM at the going rate.
-          const compiled = await compileScenario(draft as Record<string, unknown>, { cache: true });
+          const compiled = await compileScenario(draft as Record<string, unknown>, {
+            cache: true,
+            ...hostedCompileRouting,
+            restore: hookSources ? { hookSources } : {},
+          });
           if (!hydratingScenarioIds.has(id)) {
             console.log(`[scenarios] left out the persisted compiled draft ${id}: it left the catalog while boot re-compiled it`);
             continue;
@@ -1615,39 +1674,84 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
   // the result panel reads as a real digital twin rather than a
   // generic org sim with labels stapled on.
   //
-  // The first /api/quickstart/simulate-intervention call compiles and
-  // caches; later calls reuse the same WorldModel so a series of
-  // digital-twin runs costs one compile.
+  // The first request that finds no world compiles one and the server
+  // keeps it; later requests reuse the same WorldModel, so a series of
+  // digital-twin runs costs one compile. A kept world is served to every
+  // request: it holds no key, and serving it calls no model.
+  //
+  // Off the hosted demo the compile runs on the server's keys, on OpenAI
+  // with the compiler's own fallback, and one compile in flight serves
+  // every request that arrives before it ends.
+  //
+  // On the hosted demo the compile is a model call of the request that
+  // finds no world, routed as that request's other calls are
+  // (hosted-model-policy.ts): on the visitor's key and that key's provider
+  // when the request brought one, else on the host's OpenAI key, with the
+  // Quickstart model of its provider and no fallback to another provider.
+  // A compile in flight serves only the requests the same key pays for
+  // (the provider and a fingerprint of its key, `env` for the host's); a
+  // request another key pays for starts a compile of its own. A compile
+  // that fails is not kept, so it fails no later request, and its own
+  // request runs in the world another request's compile has left meanwhile,
+  // when one has. At most MAX_DIGITAL_TWIN_COMPILES compiles run at once,
+  // whoever pays: a request past them starts none, waits for them to end
+  // and runs in the world they leave.
   let digitalTwinWorld: WorldModel | null = null;
-  let digitalTwinCompilePromise: Promise<WorldModel | null> | null = null;
-  const getDigitalTwinWorld = (): Promise<WorldModel | null> => {
+  const digitalTwinCompiles = new Map<string, Promise<WorldModel | null>>();
+  const MAX_DIGITAL_TWIN_COMPILES = 4;
+  const compileDigitalTwinWorld = async (calls: QuickstartModelCalls | undefined): Promise<WorldModel | null> => {
+    const scenarioPath = resolve(scenarioDir, 't2d-glp1-protocol.json');
+    if (!existsSync(scenarioPath)) {
+      console.log(`  [digital-twin] Scenario file missing: ${scenarioPath}`);
+      return null;
+    }
+    try {
+      const raw = JSON.parse(readFileSync(scenarioPath, 'utf-8')) as Record<string, unknown>;
+      const compiled = await compileScenarioReal(raw, calls
+        ? {
+            provider: calls.provider,
+            model: calls.model,
+            cache: true,
+            ...(calls.apiKey ? { apiKey: calls.apiKey } : {}),
+            ...(calls.anthropicKey ? { anthropicKey: calls.anthropicKey } : {}),
+            stayOnProvider: true,
+          }
+        : { provider: 'openai', model: configuredModel('openai', env) ?? 'gpt-5.4-mini', cache: true });
+      // Two compiles on different keys may both end: the first one's world is kept.
+      digitalTwinWorld ??= WorldModel.fromScenario(compiled);
+      console.log(`  [digital-twin] Compiled + cached ${compiled.id} (${compiled.labels?.name ?? 'unnamed'})`);
+      return digitalTwinWorld;
+    } catch (err) {
+      console.error('  [digital-twin] Compile failed:', err);
+      // The world a compile on another key left while this one ran, if any.
+      return digitalTwinWorld;
+    }
+  };
+  const getDigitalTwinWorld = (calls?: QuickstartModelCalls): Promise<WorldModel | null> => {
     if (options.getDigitalTwinWorld) return options.getDigitalTwinWorld();
     if (digitalTwinWorld) return Promise.resolve(digitalTwinWorld);
-    if (digitalTwinCompilePromise) return digitalTwinCompilePromise;
-    digitalTwinCompilePromise = (async () => {
-      const scenarioPath = resolve(scenarioDir, 't2d-glp1-protocol.json');
-      if (!existsSync(scenarioPath)) {
-        console.log(`  [digital-twin] Scenario file missing: ${scenarioPath}`);
-        digitalTwinCompilePromise = null;
-        return null;
-      }
-      try {
-        const raw = JSON.parse(readFileSync(scenarioPath, 'utf-8')) as Record<string, unknown>;
-        const compiled = await compileScenarioReal(raw, {
-          provider: 'openai',
-          model: configuredModel('openai', env) ?? 'gpt-5.4-mini',
-          cache: true,
-        });
-        digitalTwinWorld = WorldModel.fromScenario(compiled);
-        console.log(`  [digital-twin] Compiled + cached ${compiled.id} (${compiled.labels?.name ?? 'unnamed'})`);
-        return digitalTwinWorld;
-      } catch (err) {
-        console.error('  [digital-twin] Compile failed:', err);
-        digitalTwinCompilePromise = null;
-        return null;
-      }
-    })();
-    return digitalTwinCompilePromise;
+    const hostedDemo = serverMode === 'hosted_demo';
+    // On the hosted demo nothing is compiled for a caller with no routing.
+    if (hostedDemo && !calls) return Promise.resolve(null);
+    const routed = hostedDemo ? calls : undefined;
+    const payer = routed
+      ? `${routed.provider}:${credentialFingerprint(apiKeyForProvider(routed.provider, routed))}`
+      : 'server';
+    const inFlight = digitalTwinCompiles.get(payer);
+    if (inFlight) return inFlight;
+    // Each key could otherwise start a compile of its own with no bound.
+    if (digitalTwinCompiles.size >= MAX_DIGITAL_TWIN_COMPILES) {
+      return Promise.all([...digitalTwinCompiles.values()]).then(() => digitalTwinWorld);
+    }
+    const compile = compileDigitalTwinWorld(routed);
+    digitalTwinCompiles.set(payer, compile);
+    // `compile` never rejects. It leaves the map once it has ended, whatever
+    // its result: a world is read from `digitalTwinWorld`, and a failed
+    // compile is tried again by the next request.
+    void compile.finally(() => {
+      if (digitalTwinCompiles.get(payer) === compile) digitalTwinCompiles.delete(payer);
+    });
+    return compile;
   };
   // Pre-warm the digital-twin world on server boot so the first user
   // request does not pay the ~30-60s compile inside its response. Cloudflare
@@ -1655,10 +1759,25 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
   // compile + 2-turn simulation reliably tripped 524 errors. Pre-warming
   // moves the compile off the user's critical path; the cookbook's
   // disk cache means restarts after the first one are nearly free.
-  // Fire-and-forget — failure is logged from inside getDigitalTwinWorld
-  // and the route handler still surfaces a 503 if the user beats the
-  // pre-warm to the request.
-  void getDigitalTwinWorld();
+  // Fire-and-forget: a failure is logged from inside the compile, and the
+  // first request after a failed pre-warm compiles the world again.
+  //
+  // On the hosted demo the host pays for this compile, as it pays for a
+  // request that brings no key: it runs on the host's OpenAI key. A host
+  // with no OpenAI key compiles nothing here and says so once.
+  const bootRouting = hostedModelRouting({ hostedDemo: serverMode === 'hosted_demo', env, credentials: {} });
+  if (!bootRouting || options.getDigitalTwinWorld) {
+    void getDigitalTwinWorld();
+  } else if (bootRouting.payer === 'host') {
+    void getDigitalTwinWorld({
+      provider: bootRouting.provider,
+      model: QUICKSTART_MODELS[bootRouting.provider],
+      stayOnProvider: true,
+      hostPaid: true,
+    });
+  } else {
+    console.log('  [digital-twin] World not compiled at boot: the hosted demo has no host OpenAI key to pay for the compile');
+  }
 
   // Auto-save on clean completion. AUTO_SAVE_MIN_TURNS floors the run
   // length at one completed turn: accidental clicks never get saved (no
@@ -1670,13 +1789,18 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
 
   // Persistent storage for completed sim runs. Lives at
   // `${APP_DIR}/data/sessions.db`; the directory is created on first
-  // open. Cap of 10 saved sessions; oldest evicts when an admin saves
-  // an 11th. The store is opened once at server start so the SQLite
-  // handle and prepared statements stay warm across requests.
+  // open. On the hosted demo each visitor keeps their 10 newest saved runs
+  // and the server keeps at most 50 unpinned runs in all: past that, the
+  // save evicts the oldest run of the visitor holding the most, and when
+  // every visitor holds one, the oldest run in the store, another
+  // visitor's included. Runs an admin saved are never evicted. A local
+  // server keeps one ring of 10, whoever saved them (stores/session.ts).
+  // The store is opened once at server start so the SQLite handle and
+  // prepared statements stay warm across requests.
   let sessionStore: SessionStore | null = options.sessionStore ?? null;
   const sessionsDbPath = resolve(env.APP_DIR || '.', 'data', 'sessions.db');
   if (!sessionStore) try {
-    sessionStore = openSessionStore(sessionsDbPath);
+    sessionStore = openSessionStore(sessionsDbPath, DEFAULT_MAX_SESSIONS, { ownerRings: serverMode === 'hosted_demo' });
     // The store opens its underlying adapter lazily — fire-and-forget
     // an initial count() so we surface the stored-rows hint at boot
     // without forcing createMarsServer itself to be async.
@@ -1690,6 +1814,20 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     console.log(`  [sessions] Failed to open session store: ${err}`);
   }
   const runHistoryStore = options.runHistoryStore ?? resolveRunHistoryStore(env);
+  /**
+   * The session ids the session store holds; with no store, or a store that
+   * cannot be read, none, since no replay link could be checked. Run
+   * records are then listed without their session links, never refused.
+   */
+  const savedSessionIds = async (ids: readonly string[]): Promise<ReadonlySet<string>> => {
+    if (!sessionStore) return new Set<string>();
+    try {
+      return await sessionStore.existingIds(ids);
+    } catch (err) {
+      console.warn('[sessions] could not read which sessions the store holds; run records go out without session links:', err);
+      return new Set<string>();
+    }
+  };
 
   // The landing-page waitlist is closed (routes/waitlist.ts answers
   // 410), so the server leaves the signups it collected in
@@ -1836,6 +1974,49 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
   };
 
   /**
+   * Links a saved run's Library records (the RunRecords onArtifactPersist
+   * inserted for it) to its saved session. A link that fails is written
+   * with the run as still to do and tried again after 1, 5 and 30 seconds,
+   * and at the next start, so the records get their replay link once the
+   * run-history store answers. Never rejects.
+   */
+  const LINK_RETRY_DELAYS_MS = [1_000, 5_000, 30_000];
+  /**
+   * The saves whose session is not committed yet, and the Wipe All in
+   * progress that deletes the saved sessions. Such a wipe waits for each
+   * save in flight to commit before it deletes the sessions; a save whose
+   * recording was still being read when it began is not committed, and a
+   * save that starts during it waits for it to end and is not made for a
+   * run it let go of (`runsWiped`); so no session the wipe deleted comes
+   * back. A wipe that keeps the sessions changes no save, and neither does
+   * a held run's eviction.
+   */
+  const savesCommitting = new Set<Promise<void>>();
+  let wipeGeneration = 0;
+  let wipeInProgress: Promise<void> | null = null;
+  const runsWiped = new WeakSet<LiveRun>();
+  const linkRetryTimers = new Set<ReturnType<typeof setTimeout>>();
+  let linkRetriesStopped = false;
+  const linkLibraryRecords = async (run: LiveRun, sessionId: string, attempt = 0): Promise<void> => {
+    if (run.insertedRunIds.length === 0 || !runHistoryStore.linkSessionId) return;
+    try {
+      await runHistoryStore.linkSessionId([...run.insertedRunIds], sessionId);
+      liveRuns.setPendingLink(run, null);
+    } catch (error) {
+      console.warn(`[run-history] linkSessionId failed for run ${run.key} (try ${attempt + 1}):`, error);
+      liveRuns.setPendingLink(run, sessionId);
+      const delay = LINK_RETRY_DELAYS_MS[attempt];
+      if (delay === undefined || linkRetriesStopped) return;
+      const timer = setTimeout(() => {
+        linkRetryTimers.delete(timer);
+        void linkLibraryRecords(run, sessionId, attempt + 1);
+      }, delay);
+      timer.unref?.();
+      linkRetryTimers.add(timer);
+    }
+  };
+
+  /**
    * Persist a run to the session ring when it completes cleanly. Called
    * from the run's broadcast on an `event: complete` frame. Silent no-op
    * when conditions aren't met. Errors are logged but never propagate: a
@@ -1843,7 +2024,6 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
    */
   const autoSaveOnComplete = async (run: LiveRun) => {
     const broadcast = liveRuns.broadcastFor(run);
-    const eventBuffer = run.buffer;
     // Every branch logs a single [sessions] line so production can see
     // in server stderr/stdout WHY a run did or did not make it into the
     // ring. Without these, a save silently failing on a writable-but-
@@ -1861,132 +2041,183 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       // sees whether the prior run saved.
       try { broadcast('sim_saved', { status, ...detail }); } catch { /* never fail the server on telemetry */ }
     };
+    // A run whose save is decided, or in flight here, is not saved again: a
+    // doubled `complete` returns here.
+    if (run.saved || run.saving) {
+      console.log('[sessions] auto-save skipped: already saved for this run');
+      return;
+    }
+    /** The run will never be saved: says why, and lets go of its recording. */
+    const skipForGood = (reason: string, detail: Record<string, unknown> = {}) => {
+      liveRuns.settleSave(run);
+      emitSaveStatus('skipped', { reason, ...detail });
+    };
     // A digital-twin run's artifact comes back in its answer, and a saved
     // session replays in the two-column layout, which has no place for it.
     if (run.kind === 'intervention') {
       console.log('[sessions] auto-save skipped: digital-twin run');
-      emitSaveStatus('skipped', { reason: 'digital_twin' });
+      skipForGood('digital_twin');
       return;
     }
     if (!sessionStore) {
+      // Not decided: a restart that opens the store saves the run.
       console.log('[sessions] auto-save skipped: session store not initialized');
       emitSaveStatus('skipped', { reason: 'store_not_initialized' });
       return;
     }
     if (run.aborted) {
       console.log('[sessions] auto-save skipped: run was aborted');
-      emitSaveStatus('skipped', { reason: 'run_aborted' });
+      skipForGood('run_aborted');
       return;
     }
     if (run.errored) {
       console.log('[sessions] auto-save skipped: run had sim_error events');
-      emitSaveStatus('skipped', { reason: 'run_errored' });
+      skipForGood('run_errored');
       return;
     }
-    if (run.saved) {
-      console.log('[sessions] auto-save skipped: already saved for this run');
-      return;
-    }
-    if (eventBuffer.length === 0) {
+    if (run.buffer.length === 0 && run.spooled === 0) {
       console.log('[sessions] auto-save skipped: empty event buffer');
-      emitSaveStatus('skipped', { reason: 'empty_buffer' });
+      skipForGood('empty_buffer');
       return;
     }
 
-    // Count completed turns. Two shapes are in play:
-    //   1. Legacy / test shape: `broadcast('turn_done', ...)` → frame
-    //      line `event: turn_done\n...`.
-    //   2. Real production shape: the orchestrator wraps every engine
-    //      event in `broadcast('sim', {type: 'turn_done', ...})` →
-    //      frame line `event: sim\ndata: {"type":"turn_done",...}`.
-    // The prior check only matched shape (1), so every prod run
-    // silently skipped with `below_min_turns`. Match either shape.
-    const turnDoneCount = eventBuffer.reduce((n, msg) => {
-      if (msg.startsWith('event: turn_done\n')) return n + 1;
-      if (msg.startsWith('event: sim\n') && msg.includes('"type":"turn_done"')) return n + 1;
-      return n;
-    }, 0);
+    // Completed actor-turns, each counted once, as the run broadcast them
+    // (the buffer's trim does not lower the count). A frame that names no
+    // actor or turn counts once by itself.
+    const turnDoneCount = run.actorTurnsDone;
     if (turnDoneCount < AUTO_SAVE_MIN_TURNS) {
       console.log(`[sessions] auto-save skipped: turn_done count ${turnDoneCount} below AUTO_SAVE_MIN_TURNS (${AUTO_SAVE_MIN_TURNS})`);
-      emitSaveStatus('skipped', { reason: 'below_min_turns', turnDoneCount, minTurns: AUTO_SAVE_MIN_TURNS });
+      skipForGood('below_min_turns', { turnDoneCount, minTurns: AUTO_SAVE_MIN_TURNS });
       return;
     }
 
     // Full-completion gate: only cache runs that played every actor
-    // through every scheduled turn. A pair run with `turns: 6` and 2
-    // actors should emit 12 turn_done events; if it emits 10 the run
-    // bailed early (orchestrator timeout, watchdog disconnect, mid-run
-    // crash that did not raise sim_error/sim_aborted) and the cached
-    // session would replay a half-finished trajectory. Skip those so
-    // the LoadMenu / Replay-Last-Run only ever surfaces full plays.
-    //
-    // A run's config is null for a run read back after a restart, which
-    // never broadcasts again; guard anyway to keep the type checker honest.
-    const cfg = run.config;
-    if (cfg) {
-      const expectedTurnDone = cfg.actors.length * cfg.turns;
-      if (expectedTurnDone > 0 && turnDoneCount < expectedTurnDone) {
-        console.log(`[sessions] auto-save skipped: turn_done count ${turnDoneCount} below expected ${expectedTurnDone} (${cfg.actors.length} actors × ${cfg.turns} turns) — partial run`);
-        emitSaveStatus('skipped', {
-          reason: 'partial_completion',
-          turnDoneCount,
-          expectedTurnDone,
-          actors: cfg.actors.length,
-          turns: cfg.turns,
-        });
-        return;
-      }
+    // through every turn they ran. A pair run of six turns reports 12
+    // actor-turns, a run of 300 actors 1,800, and a fork from turn 4 of a
+    // six-turn run 2 for its one actor; fewer means the run bailed early
+    // (orchestrator timeout, watchdog disconnect, mid-run crash that did
+    // not raise sim_error/sim_aborted) and the cached session would replay
+    // a half-finished trajectory. The expected count is written with the
+    // run, so the gate holds for a run read back after a restart; it is
+    // null only for a run with no config (a Digital Twin run, or one
+    // written before the count was).
+    const expectedTurnDone = run.expectedActorTurns;
+    if (expectedTurnDone !== null && expectedTurnDone > 0 && turnDoneCount < expectedTurnDone) {
+      console.log(`[sessions] auto-save skipped: ${turnDoneCount} actor-turns completed, below the ${expectedTurnDone} expected — partial run`);
+      skipForGood('partial_completion', {
+        turnDoneCount,
+        expectedTurnDone,
+        ...(run.config ? { actors: run.config.actors.length, turns: run.config.turns } : {}),
+      });
+      return;
     }
 
     // Claim the save BEFORE the first await so a synchronous double
-    // `complete` broadcast doesn't race past the `run.saved`
-    // guard above. The sync better-sqlite3 implementation got this for
-    // free because saveSession returned before the next event landed;
-    // the async sql-storage-adapter version has to flip the flag up
-    // front so re-entrant calls early-return. Stays true on failure
-    // (matches sync behavior — throws bubble out of saveSession either
-    // way and a doubled `complete` shouldn't trigger a retry).
-    run.saved = true;
+    // `complete` broadcast doesn't race past the guard above. The save is
+    // decided only once it commits: a server stopped before then saves the
+    // run after its restart, under the run's key, so it is saved once.
+    run.saving = true;
     try {
-      const now = Date.now();
-      const events: TimestampedEvent[] = eventBuffer.map((sse, i) => ({
-        ts: run.timestamps[i] || now,
-        sse,
-      }));
-      const result = await sessionStore.saveSession(events, undefined, { owner: sessionOwner(run.visitorId) });
-      const storeCount = await sessionStore.count();
-      console.log(`[sessions] auto-saved run ${result.id}: ${events.length} events, ${turnDoneCount} turns (store count: ${storeCount})`);
-      // Backfill session_id onto every RunRecord that onArtifactPersist
-      // inserted for this broadcast. Wrapped in try/catch because a
-      // link failure must not abort the save broadcast — the run is
-      // already in the session store and replayable by sessionId; the
-      // missing column just hides the Library row's Share button until
-      // the next time this same broadcast saves (idempotent UPDATE).
-      if (run.insertedRunIds.length > 0 && runHistoryStore.linkSessionId) {
-        try {
-          await runHistoryStore.linkSessionId([...run.insertedRunIds], result.id);
-        } catch (error) {
-          console.warn('[run-history] linkSessionId failed:', error);
+      if (wipeInProgress) {
+        await wipeInProgress;
+        // The wipe deleted the saved sessions and let go of this run.
+        if (runsWiped.has(run)) {
+          console.log(`[sessions] auto-save skipped: a Wipe All let go of run ${run.key} before its save`);
+          skipForGood('wiped');
+          return;
         }
       }
+      const generation = wipeGeneration;
+      let releaseCommit: () => void = () => {};
+      const commit = new Promise<void>(resolve => { releaseCommit = () => resolve(); });
+      savesCommitting.add(commit);
+      let events!: TimestampedEvent[];
+      let result!: { id: string; evictedId?: string };
+      try {
+        // Every frame the run broadcast: the frames its live buffer trimmed
+        // are read back once, from the run's recording file, so the trim never
+        // shortens the saved session.
+        const recording = await runRecording(run);
+        if (!recording) {
+          console.log(`[sessions] auto-save skipped: the recording of run ${run.key} is not whole`);
+          skipForGood('recording_incomplete');
+          return;
+        }
+        if (generation !== wipeGeneration) {
+          console.log(`[sessions] auto-save skipped: a Wipe All began while run ${run.key} was being saved`);
+          skipForGood('wiped');
+          return;
+        }
+        const now = Date.now();
+        events = recording.frames.map((sse, i) => ({
+          ts: recording.timestamps[i] || now,
+          sse,
+        }));
+        // Each actor's final artifact cost, once each, summed; the verdict
+        // and title calls are not an actor's. A run with no artifact costs
+        // (a runner that hands none back) takes the cost its frames carry.
+        const artifactCosts = [...run.artifactCosts.values()];
+        const override = artifactCosts.length > 0
+          ? { totalCostUSD: artifactCosts.reduce((sum, cost) => sum + cost, 0) }
+          : undefined;
+        result = await sessionStore.saveSession(events, override, { owner: sessionOwner(run.visitorId), runKey: run.key });
+      } finally {
+        savesCommitting.delete(commit);
+        releaseCommit();
+      }
+      // The Library link is written as still to do with the decision, before
+      // any await, so a server stopped during the count or the first link
+      // links the records at its next start; the link clears it once written.
+      liveRuns.settleSave(run, { sessionId: result.id, linkPending: run.insertedRunIds.length > 0 && Boolean(runHistoryStore.linkSessionId) });
+      // The row count is for the log line and the status alone: a store
+      // that cannot count once the save committed still reports the save,
+      // links the run's Library records and titles it.
+      let storeCount: number | null = null;
+      try {
+        storeCount = await sessionStore.count();
+      } catch (err) {
+        console.warn(`[sessions] saved run ${result.id}, but could not count the saved runs:`, err);
+      }
+      console.log(`[sessions] auto-saved run ${result.id}: ${events.length} events, ${turnDoneCount} actor-turns (store count: ${storeCount ?? 'unknown'})`);
+      // The session is committed and listed, so its page is told now, not
+      // once the Library link answers.
       emitSaveStatus('saved', {
         id: result.id,
         evictedId: result.evictedId,
         eventCount: events.length,
         turnCount: turnDoneCount,
-        totalStored: storeCount,
+        ...(storeCount !== null ? { totalStored: storeCount } : {}),
       });
+      // Backfill session_id onto every RunRecord that onArtifactPersist
+      // inserted for this broadcast. A link failure does not abort the save:
+      // the run is already in the session store and replayable by
+      // sessionId, and the link is tried again (linkLibraryRecords).
+      await linkLibraryRecords(run, result.id);
       // Title-generation pipeline: fire-and-forget nano-tier LLM call
       // off the save hot path. A failed / slow title call must not
       // block the broadcast pipeline, so the promise is intentionally
       // unawaited. Emits a second `sim_saved` event when the title
       // lands so the dashboard can patch its in-memory session list
       // without a round-trip to /sessions.
-      const titleProvider = run.config?.provider === 'anthropic' ? 'anthropic' : 'openai';
+      // A run read back after a restart holds no config, so the key that
+      // paid for it is gone: it gets no title from a model, since the call
+      // would bill the host's key or reach a provider the visitor did not
+      // pick.
+      if (run.config === null) {
+        console.log(`[sessions] saved run ${result.id} gets no title: the key that paid for it is gone after a restart`);
+        return;
+      }
+      // The title call bills whoever pays for the run: the run's own key
+      // when the request brought one (the provider that key belongs to, as
+      // each leader's run picks it), the environment's key on a host-paid
+      // run, where no key is passed.
+      const titleCredentials = { apiKey: run.config?.apiKey, anthropicKey: run.config?.anthropicKey };
+      const titleProvider = resolveProviderFromCredentials(run.config?.provider, titleCredentials, 'openai');
+      const titleApiKey = apiKeyForProvider(titleProvider, titleCredentials);
       const store = sessionStore; // non-null inside this closure
       void generateSessionTitle(events, titleProvider, args => runGenerateText({
-        ...args, model: configuredModel(titleProvider, env) ?? args.model,
-      })).then(async (title) => {
+        ...args, model: serverMode === 'hosted_demo' ? args.model : (configuredModel(titleProvider, env) ?? args.model),
+      }), undefined, titleApiKey, run.config?.stayOnProvider === true).then(async (title) => {
         if (!title) return;
         try {
           await store.updateTitle(result.id, title);
@@ -2003,6 +2234,8 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         }
       });
     } catch (err) {
+      // Not decided: the run stays unsaved, so a restart saves it.
+      liveRuns.abandonSave(run);
       const message = err instanceof Error ? err.message : String(err);
       console.warn('[sessions] auto-save failed:', err);
       emitSaveStatus('failed', { error: message });
@@ -2011,6 +2244,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
 
   const startSimulations = options.runPairSimulations ?? runPairSimulations;
   const startFork = options.runForkSimulation ?? runForkSimulation;
+  const startBatch = options.runBatchSimulations ?? runBatchSimulations;
 
   const runGenerateText = options.generateText ?? (async args => {
     const { generateText } = await import('@framers/agentos');
@@ -2023,6 +2257,15 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
 
   const corsHeaders: Record<string, string> = {
     'Access-Control-Allow-Origin': '*',
+  };
+
+  /**
+   * Answers a request the hosted model policy refuses (hosted-model-policy.ts):
+   * a host-paid request on a hosted demo whose host holds no OpenAI key.
+   */
+  const writeHostedRefusal = (res: ServerResponse, refusal: { status: number; error: string }): void => {
+    res.writeHead(refusal.status, { 'Content-Type': 'application/json', ...corsHeaders });
+    res.end(JSON.stringify({ error: refusal.error }));
   };
 
   const writeCrossSiteRefusal = (res: ServerResponse): void => {
@@ -2202,7 +2445,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     }
 
     if (serverMode === 'hosted_demo' && req.method === 'POST' &&
-        (req.url?.startsWith('/api/quickstart/') || req.url === '/scenario/switch') &&
+        (req.url?.startsWith('/api/quickstart/') || req.url === '/scenario/switch' || req.url === '/forget-keys') &&
         fromAnotherSite(req, allowedOrigins)) {
       writeCrossSiteRefusal(res);
       return;
@@ -2296,7 +2539,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       const runScope = runScopeFor(req);
       try {
         if (isAggregate) await handleBundleAggregate(bundleId, res, { runHistoryStore, runScope });
-        else await handleListBundle(bundleId, res, { runHistoryStore, runScope });
+        else await handleListBundle(bundleId, res, { runHistoryStore, runScope, savedSessionIds });
       } catch (err) {
         writeJsonError(res, err);
       }
@@ -2310,6 +2553,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       runsDir,
       scenarioLookup: (id) => lookupScenario(req, id),
       runScope: runScopeFor(req),
+      savedSessionIds,
     })) {
       return;
     }
@@ -2320,7 +2564,9 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       // their own, the anonymous visitor's, so the browser that opened the
       // CLI's dashboard sees the CLI's run). /events?run=<key> follows one
       // run instead; a key reaches the public only through a saved session,
-      // whose replay discloses the run already.
+      // whose replay discloses the run already. On the hosted demo such a
+      // stream of another visitor's run carries none of the brief that
+      // visitor compiled, as the saved replay and GET /sessions/:id do.
       //
       // Per-actor channel: /events?actor=<leaderName> filters the stream to
       // events tagged with that leader plus all global events (status,
@@ -2365,11 +2611,12 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       // The replay and the attach run on one Node turn, with no `await`
       // between them, so no event of the run falls between the replay and
       // the stream's first live frame.
-      if (run) liveRuns.replay(res, run, actorFilter);
+      const hideBrief = serverMode === 'hosted_demo' && runKey !== null && run !== undefined && run.visitorId !== visitorId;
+      if (run) liveRuns.replay(res, run, actorFilter, hideBrief);
       try { res.write('event: replay_done\ndata: {}\n\n'); } catch {}
       // Attaching disarms the watchdog of the run the stream watches, so a
       // returning viewer keeps the run going.
-      liveRuns.attach(res, { visitorId, runKey, actorFilter });
+      liveRuns.attach(res, { visitorId, runKey, actorFilter, hideBrief });
       // A run whose last viewer leaves starts its grace-period countdown; if
       // no viewer comes back before it fires, the watchdog stops that run.
       req.on('close', () => liveRuns.detach(res));
@@ -2668,6 +2915,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         adminWrite,
         hostedDemo,
         serverMode,
+        visitorKeyIdleMinutes,
         demoCaps: {
           maxTurns: DEMO_EXECUTION.maxTurns,
           maxPopulation: DEMO_EXECUTION.maxPopulation,
@@ -2855,6 +3103,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     if (req.url?.startsWith('/api/quickstart/') && req.method === 'POST') {
       try {
         const body = JSON.parse(await readBody(req, maxRequestBodyBytes));
+        if (body && typeof body === 'object' && refuseUnencryptedKeys(req, res, clientIpHeader !== null, body as Record<string, unknown>)) return;
         const quickstartVisitor = readVisitorId(req);
         const quickstartDeps: QuickstartDeps = {
           installCompiledScenario: (compiledFromSeed, seedText) => {
@@ -2894,8 +3143,9 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
             makeRoomAfter(sc.id);
             // Auto-persist to disk so the catalog survives server
             // restarts. The hooks themselves are excluded (functions
-            // don't serialize) but compileScenario regenerates them
-            // from the local hook-source cache for free at boot.
+            // don't serialize); their sources are saved beside the
+            // scenario (`_persistHooks`), and boot rebuilds the hooks
+            // from them with no model call.
             // Persistence metadata (compiledAt, truncated seedText)
             // travels alongside the scenario for catalog rendering.
             // Best-effort: filesystem failures stay silent so a read-
@@ -2917,17 +3167,50 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
             return cookie ? { 'Set-Cookie': cookie } : {};
           },
           fetchSeedFromUrl,
-          // Default to OpenAI to match compileScenario's existing
-          // default (compiler/index.ts:162) and the codebase's
-          // default-to-openai posture. The quickstart SeedInput form
-          // does not yet collect user-supplied keys, so this default
-          // is what hosted prod hits when the user does not override.
-          // Self-hosted deployments can change this at the call site
-          // (or pass `defaultProvider` from a custom server).
-          // `inferProviderFromCredentials` still honors single-key
-          // intent when only one of OPENAI/ANTHROPIC is in env.
+          // The provider and model of a Quickstart request that brings no
+          // provider key off the hosted demo, matching compileScenario's
+          // default. A request with the visitor's key runs on that key's
+          // provider (defaultModelCalls, modelCalls below).
           defaultProvider: 'openai',
           defaultModel: configuredModel('openai', env) ?? 'gpt-5.4-mini',
+          // The hosted demo's model policy (hosted-model-policy.ts) for the
+          // draft, its hook compile, the actors, a Digital Twin run and the
+          // compile of the Digital Twin's world when no request has compiled it: on
+          // the visitor's key and its provider, else on the host's keys on
+          // OpenAI with the demo's models, turn cap and leader cap (whether
+          // or not the limiter is on), never with a fallback to another
+          // provider; a host-paid request on a host with no OpenAI key is
+          // refused.
+          modelCalls: (credentials) => {
+            const routing = hostedModelRouting({ hostedDemo: serverMode === 'hosted_demo', env, credentials });
+            if (!routing) {
+              const calls = defaultModelCalls({ defaultProvider: 'openai', defaultModel: 'gpt-5.4-mini' }, credentials);
+              return { ...calls, model: configuredModel(calls.provider, env) ?? calls.model };
+            }
+            if (routing.payer === 'refused') {
+              console.log('  [demo-mode] Quickstart request refused: a host-paid request needs the host OpenAI key');
+              return { status: routing.status, headers: {}, body: { error: routing.error } };
+            }
+            if (routing.payer === 'host') {
+              return {
+                provider: routing.provider,
+                model: QUICKSTART_MODELS[routing.provider],
+                stayOnProvider: true,
+                hostPaid: true,
+                runModels: hostedRunModels(),
+                maxTurns: DEMO_EXECUTION.maxTurns,
+                maxActors: DEMO_EXECUTION.maxActors,
+              };
+            }
+            return {
+              provider: routing.provider,
+              model: QUICKSTART_MODELS[routing.provider],
+              ...(routing.apiKey ? { apiKey: routing.apiKey } : {}),
+              ...(routing.anthropicKey ? { anthropicKey: routing.anthropicKey } : {}),
+              stayOnProvider: true,
+              hostPaid: false,
+            };
+          },
           recordGroundingCitations: (scenarioId, citations) => {
             groundingCitationsByScenarioId.set(scenarioId, citations);
           },
@@ -2939,7 +3222,18 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
           // alone, and it holds a capacity slot until `finish`. Its events go
           // through the broadcast bound to it, so a late event of a twin its
           // visitor has since replaced is discarded.
-          openRun: (scenario, runKey) => {
+          openRun: (scenario, runKey, calls) => {
+            // A twin on the caller's own key skips the day limit, as a /setup
+            // run on one does, so its address holds all but one of the run
+            // slots; and it has no config to hold its keys, so the run keeps
+            // them, in memory alone, for a chat that brings none.
+            const ownKeys = calls && !calls.hostPaid
+              ? {
+                  provider: calls.provider,
+                  ...(calls.apiKey ? { apiKey: calls.apiKey } : {}),
+                  ...(calls.anthropicKey ? { anthropicKey: calls.anthropicKey } : {}),
+                }
+              : null;
             const run = liveRuns.open({
               visitorId: runVisitorFor(req).visitorId,
               kind: 'intervention',
@@ -2947,6 +3241,8 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
               seedText: briefFor(scenario.id, req, compiledScenarioMeta.get(scenario.id)?.seedText) ?? null,
               config: null,
               runKey,
+              ownKeyAddress: ownKeys ? IpRateLimiter.getIp(req, clientIpHeader) : null,
+              ownKeys,
             });
             return {
               runKey: run.key,
@@ -3030,9 +3326,29 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
           apiKey: normalizeCredential(userApiKey),
           anthropicKey: normalizeCredential(userAnthropicKey),
         };
+        if (refuseUnencryptedKeys(req, res, clientIpHeader !== null, simulateCredentials)) return;
         const hasUserKeys = hasProviderCredentials(simulateCredentials);
         if (serverMode === 'hosted_demo' && !hasUserKeys && fromAnotherSite(req, allowedOrigins)) {
           writeCrossSiteRefusal(res);
+          return;
+        }
+        // The hosted demo's model policy (hosted-model-policy.ts), checked
+        // before the day's limit counts the request: a host-paid run on
+        // OpenAI with the hosted models, a run on the caller's key on that
+        // key's provider, and no fallback to another provider.
+        const simulateRouting = hostedModelRouting({ hostedDemo: serverMode === 'hosted_demo', env, credentials: simulateCredentials });
+        if (simulateRouting?.payer === 'refused') {
+          console.log('  [demo-mode] /simulate refused: a host-paid run needs the host OpenAI key');
+          writeHostedRefusal(res, simulateRouting);
+          return;
+        }
+        // On the hosted demo the compile behind /simulate reads no seed URL
+        // and runs no web search: both would run on the host's scraping and
+        // search keys, which the caller's model keys do not pay for.
+        const simulateSeedUrl = (body as { options?: { seedUrl?: unknown } } | null)?.options?.seedUrl;
+        if (simulateRouting && typeof simulateSeedUrl === 'string' && simulateSeedUrl.trim() !== '') {
+          res.writeHead(400, { ...corsHeaders, 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'This server reads no seed URL for /simulate. Send the seed as options.seedText.' }));
           return;
         }
         // Rate limit with BYO-key bypass, matching the /setup pattern.
@@ -3071,7 +3387,13 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
             return runSimulation(leader, keyPersonnel, { ...runOpts, outputDir: runsDir });
           },
         };
-        await handleSimulate(req, res, body, deps, simulateCredentials);
+        await handleSimulate(req, res, body, deps, simulateCredentials, simulateRouting
+          ? {
+              ...(simulateRouting.payer === 'host' ? { provider: simulateRouting.provider, models: hostedRunModels() } : {}),
+              stayOnProvider: true,
+              serverSearch: false,
+            }
+          : {});
       } catch (err) {
         writeJsonError(res, err);
       }
@@ -3083,6 +3405,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       try {
         const body = JSON.parse(await readBody(req, maxRequestBodyBytes));
         const { scenario: scenarioJson, provider: requestedProvider, model: requestedModel, seedText, seedUrl, webSearch, maxSearches, apiKey, anthropicKey } = body;
+        if (refuseUnencryptedKeys(req, res, clientIpHeader !== null, { apiKey, anthropicKey })) return;
         if (!scenarioJson || typeof scenarioJson !== 'object') {
           res.writeHead(400, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ error: 'scenario JSON object required' }));
@@ -3102,6 +3425,21 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
             (!hasProviderCredentials(compileCredentials) || compileUsesHostSearch(body, env)) &&
             fromAnotherSite(req, allowedOrigins)) {
           writeCrossSiteRefusal(res);
+          return;
+        }
+        // The hosted demo's model policy (hosted-model-policy.ts), checked
+        // before the compile limit counts the request: a host-paid compile
+        // on OpenAI, a compile on the caller's key on that key's provider,
+        // and no fallback to another provider.
+        const compileRouting = hostedModelRouting({
+          hostedDemo: serverMode === 'hosted_demo',
+          env,
+          credentials: compileCredentials,
+          requestedProvider: typeof requestedProvider === 'string' ? requestedProvider as 'openai' | 'anthropic' : undefined,
+        });
+        if (compileRouting?.payer === 'refused') {
+          console.log('  [demo-mode] /compile refused: a host-paid compile needs the host OpenAI key');
+          writeHostedRefusal(res, compileRouting);
           return;
         }
 
@@ -3194,7 +3532,9 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         }
 
         const envDefaultProvider = env.ANTHROPIC_API_KEY && !env.OPENAI_API_KEY ? 'anthropic' : 'openai';
-        const provider = resolveProviderFromCredentials(requestedProvider, compileCredentials, envDefaultProvider);
+        const provider = compileRouting
+          ? compileRouting.provider
+          : resolveProviderFromCredentials(requestedProvider, compileCredentials, envDefaultProvider);
         // Force the cheapest class only when the host is billing
         // (hosted-demo mode + no session key). Local dev and BYO-key
         // paths honor the requested model.
@@ -3237,6 +3577,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
           maxSearches: compileMaxSearches,
           apiKey: compileCredentials.apiKey,
           anthropicKey: compileCredentials.anthropicKey,
+          ...(compileRouting ? { stayOnProvider: true } : {}),
           telemetry: compileTelemetry,
           onProgress(hookName: string, status: string) {
             res.write(`event: progress\ndata: ${JSON.stringify({ hook: hookName, status })}\n\n`);
@@ -3349,6 +3690,20 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       return;
     }
 
+    if (req.url === '/forget-keys' && req.method === 'POST') {
+      const visitorId = readVisitorId(req);
+      const run = visitorId === ANONYMOUS_VISITOR ? undefined : liveRuns.current(visitorId);
+      // The run their chats went to: their own, else on a local server the
+      // shared run they watch, whose agents go and which stays.
+      const chatRun = visitorId === ANONYMOUS_VISITOR ? undefined : liveRuns.watched(visitorId);
+      const runConfigsDropped = run && (run.config || run.ownKeys) ? 1 : 0;
+      const chatAgentsDropped = chatRun ? chatAgentPool?.clearPool(chatRun.key) ?? 0 : 0;
+      if (run) liveRuns.clear(run, 'keys_forgotten');
+      res.writeHead(200, { 'Content-Type': 'application/json', ...PER_VISITOR_HEADERS });
+      res.end(JSON.stringify({ runConfigsDropped, chatAgentsDropped }));
+      return;
+    }
+
     if (req.url === '/setup' && req.method === 'GET') {
       res.writeHead(302, { Location: '/sim?tab=settings' });
       res.end();
@@ -3362,6 +3717,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       try {
         const parsed = JSON.parse(await readBody(req, maxRequestBodyBytes));
         const { agentId, message, history, apiKey, anthropicKey, runKey: chatRunKey, leader: chatLeader } = parsed;
+        if (refuseUnencryptedKeys(req, res, clientIpHeader !== null, { apiKey, anthropicKey })) return;
         if (!agentId || !message) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ error: 'agentId and message required' }));
@@ -3413,13 +3769,43 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         }
         const chatRun = liveRuns.watched(chatVisitor);
 
-        const chatCredentials = {
+        const ownChatCredentials = {
           apiKey: normalizeCredential(apiKey),
           anthropicKey: normalizeCredential(anthropicKey),
         };
-        const chatUserKey = hasProviderCredentials(chatCredentials);
-        if (serverMode === 'hosted_demo' && !chatUserKey && fromAnotherSite(req, allowedOrigins)) {
+        if (serverMode === 'hosted_demo' && !hasProviderCredentials(ownChatCredentials) && fromAnotherSite(req, allowedOrigins)) {
           writeCrossSiteRefusal(res);
+          return;
+        }
+        // On the hosted demo a chat that brings no key of its own, on a run
+        // the visitor's own key paid for, runs on that run's key and
+        // provider: the run is the visitor's (their cookie names it) and its
+        // people are the run's, so the chat is billed as the run was. A chat
+        // on a host-paid run is host-paid. Elsewhere a chat runs on the keys
+        // it brings, else the environment's. A /setup run's keys are in its
+        // config; a Digital Twin run, which has none, keeps its own.
+        const runOwnKeys = chatRun?.config ?? chatRun?.ownKeys;
+        const runChatCredentials = {
+          apiKey: normalizeCredential(runOwnKeys?.apiKey),
+          anthropicKey: normalizeCredential(runOwnKeys?.anthropicKey),
+        };
+        const chatCredentials = serverMode === 'hosted_demo'
+          && !hasProviderCredentials(ownChatCredentials)
+          && hasProviderCredentials(runChatCredentials)
+          ? runChatCredentials
+          : ownChatCredentials;
+        const chatUserKey = hasProviderCredentials(chatCredentials);
+        // The hosted demo's model policy (hosted-model-policy.ts), checked
+        // before the chat limit counts the request.
+        const chatRouting = hostedModelRouting({
+          hostedDemo: serverMode === 'hosted_demo',
+          env,
+          credentials: chatCredentials,
+          requestedProvider: runOwnKeys?.provider,
+        });
+        if (chatRouting?.payer === 'refused') {
+          console.log('  [demo-mode] /chat refused: a host-paid chat needs the host OpenAI key');
+          writeHostedRefusal(res, chatRouting);
           return;
         }
 
@@ -3480,7 +3866,12 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         liveRuns.touch(chatRun);
 
         // Import chat agent system (lazy to avoid startup cost)
-        const chatAgents = await import('../runtime/agents/chat-agents.js');
+        const chatAgents = chatAgentPool ??= await import('../runtime/agents/chat-agents.js');
+        if (chatRun.dropped) {
+          res.writeHead(409, { 'Content-Type': 'application/json', ...corsHeaders });
+          res.end(JSON.stringify({ error: 'This run has been cleared.' }));
+          return;
+        }
         const { extractColonistMemories, extractColonistRoster, extractRunTurns } = chatAgents;
         const getOrCreateChatAgent = options.chatAgent ?? chatAgents.getOrCreateChatAgent;
 
@@ -3561,12 +3952,17 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         // and by whether the run had ended, so the first chat after the
         // end gets an agent made from the whole run.
         const envDefaultProvider = env.ANTHROPIC_API_KEY && !env.OPENAI_API_KEY ? 'anthropic' : 'openai';
-        const provider = resolveProviderFromCredentials(chatRun.config?.provider, chatCredentials, envDefaultProvider);
-        const { session, isNew } = await getOrCreateChatAgent(profile, memories, {
+        const provider = chatRouting
+          ? chatRouting.provider
+          : resolveProviderFromCredentials(chatRun.config?.provider, chatCredentials, envDefaultProvider);
+        const { session, isNew, release } = await getOrCreateChatAgent(profile, memories, {
           provider,
           model: configuredModel(provider, env),
           apiKey: chatCredentials.apiKey,
           anthropicKey: chatCredentials.anthropicKey,
+          visitorKeyIdleMs: STALE_BUFFER_MS,
+          isRunDropped: () => chatRun.dropped,
+          ...(chatRouting ? { stayOnProvider: true } : {}),
           settlementNoun: runLabels?.settlementNoun,
           populationNoun: runLabels?.populationNoun,
           labels: runLabels,
@@ -3579,7 +3975,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         });
 
         // Send message through the agent session (full history + memory + RAG automatic)
-        const result = await session.send(message);
+        const result = await session.send(message).finally(() => release?.());
 
         // Surface per-turn token usage + cost so the dashboard footer
         // can fold chat spend into the run-total display. Without this,
@@ -3712,15 +4108,36 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         return;
       }
       try {
-        // Build the timestamped event array from the parallel buffers.
-        // For events whose timestamp is 0 (rehydrated from disk pre-
-        // timestamp-tracking), use the next known timestamp so replay
-        // pacing stays monotonic instead of bunching at the start.
+        // Build the timestamped event array from the run's recording (the
+        // buffer, with any frames its trim took before the run's save was
+        // decided, read back from its recording file). For events whose
+        // timestamp is 0 (rehydrated from disk pre-timestamp-tracking), use
+        // the next known timestamp so replay pacing stays monotonic instead
+        // of bunching at the start.
         const now = Date.now();
-        const events: TimestampedEvent[] = run.buffer.map((sse, i) => ({
-          ts: run.timestamps[i] || now,
-          sse,
-        }));
+        let events: TimestampedEvent[];
+        if (run.framesLost) {
+          // The buffer no longer holds every frame and no recording file
+          // holds the rest: the whole run is its committed session.
+          const stored = run.savedSessionId !== null ? await sessionStore.getSession(run.savedSessionId) : null;
+          if (!stored) {
+            res.writeHead(409, { 'Content-Type': 'application/json', ...corsHeaders });
+            res.end(JSON.stringify({ error: "the run's buffer no longer holds every frame, and no saved session holds the run" }));
+            return;
+          }
+          events = stored.events;
+        } else {
+          const recording = await runRecording(run);
+          if (!recording) {
+            res.writeHead(500, { 'Content-Type': 'application/json', ...corsHeaders });
+            res.end(JSON.stringify({ error: "the run's recording is not whole: a frame its buffer trimmed could not be read back" }));
+            return;
+          }
+          events = recording.frames.map((sse, i) => ({
+            ts: recording.timestamps[i] || now,
+            sse,
+          }));
+        }
         // An admin save is pinned: listed to every visitor, never evicted.
         const result = await sessionStore.saveSession(events, undefined, { pinned: true });
         const totalStored = await sessionStore.count();
@@ -3833,7 +4250,19 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       const wipeEventBuffer = body.wipeEventBuffer !== false;
 
       const result: { runs: number; sessions: number; outputFiles: number; eventBuffer: boolean; runsKept?: number } = { runs: 0, sessions: 0, outputFiles: 0, eventBuffer: false };
+      // A wipe that deletes the saved sessions: a save whose recording is
+      // still being read is not committed; one already committing is waited
+      // for, so the wipe deletes it; a save that starts now waits for the
+      // wipe.
+      const wipesSessions = Boolean(wipeSessions && sessionStore);
+      let finishWipe: () => void = () => {};
+      const wipe = new Promise<void>(resolve => { finishWipe = () => resolve(); });
+      if (wipesSessions) {
+        wipeGeneration += 1;
+        wipeInProgress = wipe;
+      }
       try {
+        if (wipesSessions) await Promise.all([...savesCommitting]);
         if (wipeRuns && runHistoryStore?.wipeAll) {
           result.runs = await runHistoryStore.wipeAll();
         }
@@ -3843,7 +4272,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         if (wipeEventBuffer) {
           // Every visitor's finished runs go, with their files under
           // .live-runs/; their pages are told with run_cleared.
-          result.runsKept = liveRuns.dropFinished();
+          result.runsKept = liveRuns.dropFinished(wipesSessions ? run => runsWiped.add(run) : undefined);
           result.eventBuffer = true;
         }
         if (wipeOutput) {
@@ -3866,11 +4295,20 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       } catch (err) {
         res.writeHead(500, { 'Content-Type': 'application/json', ...corsHeaders });
         res.end(JSON.stringify({ error: String(err) }));
+      } finally {
+        if (wipeInProgress === wipe) wipeInProgress = null;
+        finishWipe();
       }
       return;
     }
 
-    if (req.url === '/sessions' && req.method === 'GET') {
+    // The session routes match on the parsed path, so a query (`?speed=`)
+    // never sends a replay request to the metadata route.
+    const sessionsPath = req.url?.startsWith('/sessions') ? new URL(req.url, 'http://localhost').pathname : null;
+    const sessionMetaId = sessionsPath !== null ? /^\/sessions\/([^/]+)$/.exec(sessionsPath)?.[1] ?? null : null;
+    const sessionReplayId = sessionsPath !== null ? /^\/sessions\/([^/]+)\/replay$/.exec(sessionsPath)?.[1] ?? null : null;
+
+    if (sessionsPath === '/sessions' && req.method === 'GET') {
       if (!sessionStore) {
         res.writeHead(503, { 'Content-Type': 'application/json', ...corsHeaders });
         res.end(JSON.stringify({ error: 'session store unavailable' }));
@@ -3896,14 +4334,14 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
     // so the client can validate a replay id before opening an
     // EventSource. Without this, a bogus ?replay=X URL produced an
     // invisible 404-retry loop on the SSE layer with no user signal.
-    if (req.url?.startsWith('/sessions/') && !req.url.endsWith('/replay') && req.method === 'GET') {
+    if (sessionsPath?.startsWith('/sessions/') && sessionReplayId === null && req.method === 'GET') {
       if (!sessionStore) {
         res.writeHead(503, { 'Content-Type': 'application/json', ...corsHeaders });
         res.end(JSON.stringify({ error: 'session store unavailable' }));
         return;
       }
-      const id = req.url.replace(/^\/sessions\//, '').split('?')[0];
-      if (!id || id.includes('/')) {
+      const id = sessionMetaId;
+      if (!id) {
         res.writeHead(400, { 'Content-Type': 'application/json', ...corsHeaders });
         res.end(JSON.stringify({ error: 'invalid session id' }));
         return;
@@ -3916,8 +4354,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       }
       // The brief a run started from goes only to the visitor whose run it
       // was, or with an admin-saved session, on the hosted demo.
-      const meta = serverMode === 'hosted_demo' && !session.meta.pinned
-        && (session.owner === null || session.owner !== sessionOwner(readVisitorId(req)))
+      const meta = briefHiddenFrom(session, req)
         ? { ...session.meta, seedText: undefined }
         : session.meta;
       res.writeHead(200, { 'Content-Type': 'application/json', ...corsHeaders, ...PER_VISITOR_HEADERS });
@@ -3925,14 +4362,14 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       return;
     }
 
-    if (req.url?.startsWith('/sessions/') && req.url.endsWith('/replay') && req.method === 'GET') {
+    if (sessionReplayId !== null && req.method === 'GET') {
       if (!sessionStore) {
         res.writeHead(503, { 'Content-Type': 'application/json', ...corsHeaders });
         res.end(JSON.stringify({ error: 'session store unavailable' }));
         return;
       }
-      const url = new URL(req.url, 'http://localhost');
-      const id = url.pathname.replace(/^\/sessions\//, '').replace(/\/replay$/, '');
+      const url = new URL(req.url ?? '/', 'http://localhost');
+      const id = sessionReplayId;
       const speedRaw = url.searchParams.get('speed');
       // Default replay mode is INSTANT (no pacing) — when the user clicks
       // a cached run from the Library / Load menu, they want to scrub
@@ -3965,6 +4402,10 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
       let cancelled = false;
       req.on('close', () => { cancelled = true; });
       res.on('close', () => { cancelled = true; });
+      // A replay is shared by its link, but the brief the run started from
+      // follows the metadata route's rule: only the visitor whose run it
+      // was reads it, on the hosted demo.
+      const hideBrief = briefHiddenFrom(session, req);
       void (async () => {
         let prevTs = session.events[0]?.ts ?? 0;
         for (const ev of session.events) {
@@ -3978,7 +4419,8 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
             // A frame the reader has not taken yet waits for 'drain', so
             // a reader that does not read holds a buffer's worth of the
             // session, never the whole of it.
-            if (!res.write(publicResultFrame(ev.sse))) await waitForDrain(res);
+            const frame = publicResultFrame(ev.sse);
+            if (!res.write(hideBrief ? withoutBrief(frame) : frame)) await waitForDrain(res);
           } catch {
             return;
           }
@@ -4030,6 +4472,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
           actors?: unknown;
           forkFrom?: unknown;
         };
+        if (refuseUnencryptedKeys(req, res, clientIpHeader !== null, config)) return;
 
         // The run's scenario: the one the body names (Settings and the
         // re-run button at the top level, the Quickstart tab under
@@ -4072,7 +4515,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         /** Answers 429 and returns true when the caller's IP has used its runs of the day. */
         const overTheDay = (): boolean => {
           if (!rateLimiter || rateIp === null) return false;
-          const { allowed, limit } = rateLimiter.check(rateIp);
+          const { allowed, limit, resetAt } = rateLimiter.check(rateIp);
           if (allowed) return false;
           console.log(`  [rate-limit] /setup blocked (${limit}/${limit} used)`);
           res.writeHead(429, {
@@ -4085,6 +4528,9 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
             error: `Rate limit exceeded. Maximum ${limit} simulations per day. Add your own API keys in Settings to remove this limit.`,
             limit,
             remaining: 0,
+            // When the day's count resets, as GET /rate-limit says it: the
+            // page keeps the refusal until a count for a later day has a run.
+            resetAt,
           }));
           return true;
         };
@@ -4146,7 +4592,25 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         // any model overrides the client sent. On the hosted Linode
         // this variable is set, so env-only requests get clamped.
         const isHostedDemo = serverMode === 'hosted_demo';
-        if (!hasUserKeys && isHostedDemo) {
+        // The hosted demo's model policy (hosted-model-policy.ts): a run on
+        // the host's keys runs on OpenAI with the demo's models and caps, a
+        // run on the visitor's key on that key's provider, and no call of
+        // either falls back to another provider. A host with no OpenAI key
+        // refuses a host-paid run, whatever other key it holds, before the
+        // run counts toward the day.
+        const setupRouting = hostedModelRouting({
+          hostedDemo: isHostedDemo,
+          env,
+          credentials: requestCredentials,
+          requestedProvider: simConfig.provider,
+        });
+        if (setupRouting?.payer === 'refused') {
+          console.log('  [demo-mode] /setup refused: a host-paid run needs the host OpenAI key');
+          writeHostedRefusal(res, setupRouting);
+          return;
+        }
+        if (setupRouting) simConfig = { ...simConfig, stayOnProvider: true };
+        if (setupRouting?.payer === 'host') {
           simConfig = applyDemoCaps(simConfig);
           console.log(
             `  [demo-mode] Capped run: turns=${simConfig.turns} pop=${simConfig.initialPopulation} ` +
@@ -4221,6 +4685,20 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
           artifact: import('../engine/schema/index.js').RunArtifact,
           leader: import('../runtime/orchestrator/index.js').ActorConfig,
         ) => {
+          // The actor's final cost, kept with the run for its saved
+          // session whatever happens to the run-history insert below. It is
+          // kept under the actor's place in the launch: an artifact's run id
+          // is `<scenario>-<archetype>-<ms>`, which two actors of one
+          // archetype that finish in one millisecond share.
+          const actorCost = (artifact as { cost?: { totalUSD?: unknown } }).cost?.totalUSD;
+          const run = liveRuns.get(launchRunKey);
+          const actorIndex = (launchConfig.actors as readonly unknown[]).indexOf(leader);
+          const costKey = actorIndex >= 0
+            ? `actor:${actorIndex}`
+            : typeof artifact.metadata?.runId === 'string' ? artifact.metadata.runId : null;
+          if (run && costKey !== null && typeof actorCost === 'number' && Number.isFinite(actorCost)) {
+            run.artifactCosts.set(costKey, actorCost);
+          }
           try {
             const perArtifactBase = {
               ...runRecord,
@@ -4561,7 +5039,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
         const page = readFileSync(landingPath, 'utf-8').replace(
           /__PARACOSM_VERSION__/g,
           PARACOSM_VERSION,
-        );
+        ).replaceAll('__VISITOR_KEY_IDLE_MINUTES__', String(visitorKeyIdleMinutes));
         res.writeHead(200, { 'Content-Type': 'text/html', 'Cache-Control': 'no-cache' });
         res.end(siteAnalytics ? withSiteAnalytics(page, analyticsPage(req)) : page);
         return;
@@ -4901,8 +5379,23 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
   (server as Server).on('close', () => {
     clearInterval(importCleanupTimer);
     if (rateLimiter) rateLimiter.destroy();
+    linkRetriesStopped = true;
+    for (const timer of linkRetryTimers) clearTimeout(timer);
+    linkRetryTimers.clear();
     liveRuns.close();
   });
+
+  // A run that finished before the server last stopped, with its save not
+  // yet committed, is saved now, under its run key, so it is saved once.
+  for (const run of liveRuns.finishedUnsaved()) {
+    console.log(`[sessions] saving run ${run.key}, which finished before the restart`);
+    autoSaveOnComplete(run).catch((err) => console.warn('[sessions] save after restart failed:', err));
+  }
+  // A run saved before the restart whose Library link had failed is linked now.
+  for (const run of liveRuns.pendingLinks()) {
+    console.log(`[run-history] linking the Library records of run ${run.key}, saved before the restart`);
+    void linkLibraryRecords(run, run.pendingLink!);
+  }
 
   const marsServer = Object.assign(server, {
     startWithConfig(config: NormalizedSimulationConfig, hooks?: StartConfigHooks): Promise<void> {
@@ -4956,7 +5449,7 @@ export function createMarsServer(options: CreateMarsServerOptions = {}): MarsSer
           } else if (config.actors.length >= 3) {
             // Tier 5 Quickstart dispatches N >= 3 leaders to the batch
             // runner (same SSE contract per leader, no verdict).
-            await runBatchSimulations(config, runBroadcast, signal, runScenario, hooks?.onArtifact, undefined, { outputDir: runsDir, searchEnv: hooks?.searchEnv });
+            await startBatch(config, runBroadcast, signal, runScenario, hooks?.onArtifact, undefined, { outputDir: runsDir, searchEnv: hooks?.searchEnv });
           } else {
             await startSimulations(config, runBroadcast, signal, runScenario, hooks?.onArtifact, { outputDir: runsDir, searchEnv: hooks?.searchEnv });
           }

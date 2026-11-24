@@ -1,24 +1,21 @@
 /**
- * Unified RUN dropdown: new-sim launcher + saved-run picker + file
- * loader in a single popover. Replaces the three separate TopBar
- * buttons (REPLAY / RUN / LOAD) that previously competed for
- * horizontal space.
+ * The RUN dropdown: the saved-run picker, this browser's run history and
+ * the file loader in a single popover. It opens runs that already exist
+ * and starts none: a new run starts from the Run tab's Start.
  *
  * Menu items, in order:
- *   1. ▶ Run New Simulation — fires onRun (spends credits). Disabled
- *      until GET /scenario has answered.
- *   2. ↻ Run Saved Simulation — expands into a scrollable grid of
+ *   1. ↻ Run Saved Simulation: expands into a scrollable grid of
  *      server-cached runs (same card layout the old LoadMenu used).
  *      Disabled when the /sessions catalog is empty.
- *   3. 📁 Load from file — delegates to onLoadFromFile (pulls a
+ *   2. 🕘 Local history: the runs cached in this browser, when it holds
+ *      any.
+ *   3. 📁 Load from file: delegates to onLoadFromFile (pulls a
  *      previously-Saved JSON off the user's disk).
  *
  * @module paracosm/cli/dashboard/components/layout/RunMenu
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useScenarioReady } from '../../App';
 import { useSessions, type StoredSessionMeta } from '../../hooks/useSessions';
-import { resolveSetupRedirectHref } from '../../tab-routing';
 import { buildReplayHref, cacheExpandedBody } from './LoadMenu.helpers';
 import type { LocalHistoryEntry } from '../../hooks/useLocalHistory.helpers';
 import { Tooltip } from '../shared/Tooltip';
@@ -30,8 +27,6 @@ import styles from './RunMenu.module.scss';
 const historyStyles = styles;
 
 export interface RunMenuProps {
-  /** Fires when the user picks "Run New Simulation". */
-  onRun?: () => void;
   /** Fires when the user picks "Load from file". */
   onLoadFromFile?: () => void;
   /**
@@ -94,7 +89,6 @@ function SessionCard({ s, onPick }: { s: StoredSessionMeta; onPick: () => void }
 }
 
 export function RunMenu({
-  onRun,
   onLoadFromFile,
   history = [],
   onRestoreHistory,
@@ -107,7 +101,6 @@ export function RunMenu({
   const rootRef = useRef<HTMLDivElement>(null);
   const { sessions, status, refresh } = useSessions();
   const cacheAvailable = sessions.length > 0;
-  const scenarioReady = useScenarioReady();
 
   // Refresh the catalog each time the dropdown opens so a run that
   // finished since last open shows up without a full reload.
@@ -136,15 +129,10 @@ export function RunMenu({
     };
   }, [open, close]);
 
-  const handleRunNew = () => {
-    if (!scenarioReady) return;
-    close();
-    onRun?.();
-  };
-
   const handlePickSession = (id: string) => {
-    const href = buildReplayHref(window.location.href, id);
-    window.location.assign(resolveSetupRedirectHref(href, 'sim'));
+    // The replay link keeps the current path and sets ?replay=<id>&tab=sim,
+    // as the Load menu and Quickstart's replay link do.
+    window.location.assign(buildReplayHref(window.location.href, id));
   };
 
   const handleFile = () => {
@@ -162,8 +150,7 @@ export function RunMenu({
           <div>
             <div className={styles.tooltipHeading}>运行</div>
             <div>
-
-              启动新仿真、回放缓存运行，或从磁盘加载已保存的 JSON。点击打开菜单。
+              回放已保存的运行，或从磁盘加载 JSON。点击打开菜单。
             </div>
           </div>
         }
@@ -182,27 +169,8 @@ export function RunMenu({
       </Tooltip>
       {open && (
         <div role="menu" aria-label="运行操作" className={styles.menuPopover}>
-          {/* Run New Simulation — primary action, loudest styling.
-              Hardcoded near-black text on the rust gradient so the
-              label stays high-contrast in both dark and light
-              themes regardless of which --text-* token we pick. */}
-          <button
-            type="button"
-            role="menuitem"
-            onClick={handleRunNew}
-            disabled={!scenarioReady}
-            className={styles.runNewButton}
-          >
-            <span className={styles.menuButtonInnerLeft}>
-              <span aria-hidden="true" className={styles.menuButtonIcon}>▶</span>
-              <span>{scenarioReady ? "启动新仿真" : "正在加载场景…"}</span>
-            </span>
-            <span className={styles.runNewBadge}>产生调用费用</span>
-          </button>
-
           {/* Run Saved Simulation — expandable row, disabled when empty.
-              Same near-black-on-amber treatment so contrast holds in
-              both themes. */}
+              Near-black on amber so contrast holds in both themes. */}
           <button
             type="button"
             role="menuitem"
@@ -216,7 +184,7 @@ export function RunMenu({
             </span>
             <span className={[styles.runSavedBadge, cacheAvailable ? '' : styles.disabled].filter(Boolean).join(' ')}>
               {cacheAvailable
-                ? `${sessions.length} cached · ${savedExpanded ? 'hide' : 'pick'}`
+                ? `已缓存 ${sessions.length} 次 · ${savedExpanded ? '收起' : '选择'}`
                 : "暂无缓存"}
             </span>
           </button>

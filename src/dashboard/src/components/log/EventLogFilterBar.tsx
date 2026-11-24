@@ -73,7 +73,7 @@ export function EventLogFilterBar({
               type="button"
               aria-label="清除工具筛选"
               className={styles.chipClear}
-              onClick={() => setFilters({ toolHash: '' })}
+              onClick={() => setFilters({ toolHash: '', toolExact: false })}
             >
               ×
             </button>

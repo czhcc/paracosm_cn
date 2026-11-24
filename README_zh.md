@@ -152,7 +152,7 @@ const { actors, artifacts } = await wm.quickstart({ actorCount: 3 });
 artifacts.forEach((artifact, i) => console.log(actors[i].name, artifact.fingerprint));
 ```
 
-控制台默认进入“快速开始”，支持粘贴描述、上传 PDF 或输入 URL。生成速度取决于模型和网络。程序化批量实验可使用 `ACTOR_PRESETS` 中的人格预设。
+控制台默认打开“运行”页，展示当前场景的两位决策者、HEXACO 评分、决策指令和第 0 回合的群体网格。点击“开始”可运行当前场景。在“其他场景”中可切换场景，也可以在“编写自己的场景”中粘贴描述、上传 PDF 或输入 URL。生成速度取决于模型和网络。程序化批量实验可使用 `ACTOR_PRESETS` 中的人格预设。
 
 ## 安装与本地启动
 

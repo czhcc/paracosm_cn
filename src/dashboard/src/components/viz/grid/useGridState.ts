@@ -36,6 +36,13 @@ interface UseGridStateInputs {
   reuseCalls?: ReuseCall[];
   /** Event categories fired this turn (used for crisis flares). */
   eventCategories?: string[];
+  /**
+   * True for a panel at rest: no frame loop runs, and the canvas paints once
+   * for each change of what it draws.
+   */
+  still?: boolean;
+  /** Paint deadlines that can settle a reveal while continuous drawing is paused. */
+  paintTimes?: React.RefObject<number[]>;
 }
 
 interface GridStateHandle {
@@ -203,11 +210,13 @@ export function useGridState(
     };
   }, [containerRef]);
 
-  // rAF tick — bumps tickClock, advances flares. Under reduced motion
-  // the animation loop is suppressed; render still happens on snapshot
-  // change via a single bump below.
+  // rAF tick — bumps tickClock, advances flares. Under reduced motion,
+  // and for a panel at rest, the animation loop is suppressed; render
+  // still happens on snapshot change via a single bump below.
+  const still = inputs.still === true;
+  const paintTimes = inputs.paintTimes;
   useEffect(() => {
-    if (reducedMotion) {
+    if (reducedMotion || still) {
       // One render per snapshot change is enough under reduced motion;
       // bump tickClock so the canvas paints the current state.
       setTickClock(prev => prev + 1);
@@ -217,7 +226,9 @@ export function useGridState(
     let lastMs = performance.now();
     const minFrame = 1000 / 30;
     const loop = (nowMs: number) => {
-      if (!onScreenRef.current || !tabVisibleRef.current) {
+      const nextPaint = paintTimes?.current[0] ?? Infinity;
+      const paintDue = nowMs >= nextPaint;
+      if ((!onScreenRef.current && !paintDue) || !tabVisibleRef.current) {
         raf = requestAnimationFrame(loop);
         return;
       }
@@ -227,13 +238,14 @@ export function useGridState(
         return;
       }
       lastMs = nowMs;
-      tickFlares(flareQueueRef.current);
+      if (onScreenRef.current) tickFlares(flareQueueRef.current);
+      if (paintDue) paintTimes?.current.shift();
       setTickClock(prev => prev + 1);
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [reducedMotion]);
+  }, [paintTimes, reducedMotion, still]);
 
   return { flares: activeFlares(flareQueueRef.current), tickClock };
 }

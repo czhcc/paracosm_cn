@@ -8,6 +8,7 @@ import { buildResultsPayloadFromEventBuffer, createMarsServer } from '../../src/
 import type { NormalizedSimulationConfig } from '../../src/cli/sim-config.js';
 import type { RunRecord } from '../../src/server/services/run-record.js';
 import type { RunHistoryStore } from '../../src/server/stores/run-history.js';
+import { withVisitors } from './helpers/run-server.js';
 import { visitor } from './helpers/visitor.js';
 
 // A server that names no APP_DIR keeps its state under it: the runs it holds
@@ -129,22 +130,7 @@ test('custom environment model is advertised and reaches simulation and compilat
   const model = 'qwen3.8-flash-next';
   const runs: NormalizedSimulationConfig[] = [];
   const compiles: Record<string, unknown>[] = [];
-  const server = createMarsServer({
-    env: { APP_DIR: SUITE_APP_DIR, OPENAI_API_KEY: 'test-local-key', OPENAI_MODEL: model, RATE_LIMIT: '0' },
-    getDigitalTwinWorld: async () => null,
-    maxSimsPerDay: 0,
-    runPairSimulations: async config => { runs.push(config); },
-    compileScenario: async (_scenario, options) => {
-      compiles.push(options);
-      return customScenario as any;
-    },
-  });
-  server.listen(0);
-  await once(server, 'listening');
-  const address = server.address();
-  assert.ok(address && typeof address === 'object');
-  const base = `http://127.0.0.1:${address.port}`;
-  try {
+  await withVisitors(async ({ base }) => {
     const settings = await (await fetch(`${base}/admin-config`)).json();
     assert.equal(settings.defaultModels.openai, model);
     assert.equal(JSON.stringify(settings).includes('test-local-key'), false);
@@ -158,18 +144,24 @@ test('custom environment model is advertised and reaches simulation and compilat
     assert.deepEqual(Object.values(runs[0].models), Array(5).fill(model));
     assert.equal(runs[0].economics.verdict.model, model);
     for (const requestedModel of [undefined, 'another-local-model']) {
+      const scenario = { ...draftScenario, id: requestedModel ? `${draftScenario.id}-explicit` : draftScenario.id };
       const compiled = await fetch(`${base}/compile`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scenario: draftScenario, model: requestedModel }),
+        body: JSON.stringify({ scenario, model: requestedModel }),
       });
       assert.equal(compiled.status, 200);
       assert.match(await compiled.text(), /event: complete/);
       assert.equal(compiles.at(-1)?.model, requestedModel ?? model);
     }
-  } finally {
-    server.close();
-    await once(server, 'close');
-  }
+  }, {
+    env: { OPENAI_API_KEY: 'test-local-key', OPENAI_MODEL: model, RATE_LIMIT: '0' },
+    runner: async config => { runs.push(config); },
+    compileScenario: async (scenario, options) => {
+      compiles.push(options);
+      return { ...customScenario, id: scenario.id } as any;
+    },
+    extra: { getDigitalTwinWorld: async () => null },
+  });
 });
 
 test('GET /setup redirects to the live dashboard settings surface', async () => {

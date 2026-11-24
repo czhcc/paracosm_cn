@@ -1,6 +1,7 @@
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { type CSSProperties } from 'react';
 import { useMediaQuery, PHONE_QUERY } from '../viz/grid/useMediaQuery';
 import styles from './Footer.module.scss';
+import { hasConsentBar, useConsentControl } from './consentControl';
 
 interface FooterAbortReason {
   reason: string;
@@ -88,7 +89,7 @@ function StatusChip({ s }: { s: NonNullable<FooterProps['simStatus']> }) {
     : s.isRunning
     ? "仿真正在运行。"
     : s.connectionStatus === 'connected'
-    ? "已连接仿真服务器，点击“运行”开始。"
+    ? '已连接仿真服务器，当前没有运行中的仿真。'
     : s.connectionStatus === 'error'
     ? "正在重新连接仿真服务器。"
     : "正在连接仿真服务器。";
@@ -125,36 +126,6 @@ function buildCostTooltip(
     if (chat > 0) lines.push(`• 聊天： ${formatUsdShort(chat)}${breakdown.chatCalls != null ? ` (${breakdown.chatCalls} 次调用)` : ''}`);
   }
   return lines.join('\n');
-}
-
-/**
- * Whether the server gave this page the consent bar (the hosted demo, in
- * src/server/site-analytics.ts). Its script opens the choices from any
- * element marked data-consent-open, so the footer offers the control only
- * where the bar exists.
- */
-function hasConsentBar(): boolean {
-  return typeof document !== 'undefined' && document.getElementById('paracosm-consent-config') !== null;
-}
-
-/**
- * The page's 分析统计偏好 control (#pcc-reopen in index.html, outside
- * #root, so it is there when this script does not load), moved into the
- * footer while the footer is mounted and back to its place after.
- */
-function useConsentControl() {
-  const slot = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    const control = document.getElementById('pcc-reopen');
-    const home = document.getElementById('pcc-shell');
-    const target = slot.current;
-    if (!control || !home || !target) return undefined;
-    target.appendChild(control);
-    return () => {
-      home.appendChild(control);
-    };
-  }, []);
-  return slot;
 }
 
 export function Footer({ cost, costBreakdown, simStatus }: FooterProps) {

@@ -58,8 +58,8 @@ export const TOUR_STEPS: TourStep[] = [
   {
     target: '.sim-columns',
     tab: 'sim',
-    title: "事件流",
-    description: "每回合，事件导演根据累计状态生成事件。各部门并行分析，必要时创建工具，随后由决策者作出决定。工具卡上的日志入口可打开已按该工具筛选的事件日志。",
+    title: '事件流',
+    description: '每回合，两位决策者面对事件导演根据累计状态生成的事件。各部门并行分析并可创建工具，随后由决策者作出决定。工具按所属方着色。点击查看工具可打开五个阶段，记录中可跳转到事件日志。',
   },
   {
     target: '[aria-label="逐回合分歧图"]',
@@ -82,8 +82,8 @@ export const TOUR_STEPS: TourStep[] = [
   {
     target: '.reports-content',
     tab: 'reports',
-    title: "报告",
-    description: "逐回合汇总决策、部门分析、动态工具、成员反应和最终结论。工具上的日志入口会跳转到该工具的创建与使用历史。",
+    title: '报告',
+    description: '逐回合汇总决策、部门分析、两方的动态工具、成员反应和最终结论。点击工具所在行查看详情，并可从记录跳转到该工具的事件日志。',
   },
   {
     target: '[role="group"][aria-label="显示方式"]',
@@ -94,8 +94,8 @@ export const TOUR_STEPS: TourStep[] = [
   {
     target: '[role="tablist"][aria-label="设置子导航"]',
     tab: 'settings',
-    title: "设置与事件日志",
-    description: "使用 HEXACO 滑块配置决策者，选择场景、回合与人口，并填写模型服务密钥。事件日志展示状态、回合、部门分析、决策、结果、反应和工具创建等原始事件，是各处日志入口的目标。",
+    title: '设置与事件日志',
+    description: '使用 HEXACO 滑块配置决策者，选择场景、回合与人口。填写自己的 OpenAI 或 Anthropic 密钥可解除托管演示限额。事件日志展示状态、回合、部门分析、决策、结果、反应和工具生成等原始事件。',
   },
   {
     target: '.topbar',

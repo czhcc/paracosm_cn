@@ -31,7 +31,7 @@ jobs:
   build:
     name: Build and test
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -99,7 +99,12 @@ jobs:
             node /scripts/smoke-packed-package.mjs --tarball "/package/$tarball" --reinstall-from-lockfile
 
       - name: Install Playwright Chromium
+        id: install-playwright
         run: npx playwright install --with-deps chromium
+
+      - name: Visitor keys and age notices end-to-end test
+        if: ${{ !cancelled() && steps.install-playwright.outcome == 'success' }}
+        run: npx playwright test tests-e2e/specs/visitor-keys-and-age.spec.ts --project=chromium-desktop
 
       - name: PDF upload end-to-end test
         run: npx playwright test tests-e2e/specs/pdf-upload.spec.ts --project=chromium-desktop
@@ -131,6 +136,9 @@ jobs:
       - name: Load link end-to-end test
         run: npx playwright test tests-e2e/specs/load-link.spec.ts --project=chromium-desktop
 
+      - name: Saved run replay end-to-end test
+        run: npx playwright test tests-e2e/specs/saved-run-replay.spec.ts --project=chromium-desktop
+
       - name: Toolbox log key and share link end-to-end test
         run: npx playwright test tests-e2e/specs/toolbox-log-and-share-link.spec.ts --project=chromium-desktop
 
@@ -144,13 +152,140 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      - name: Forged tool view end-to-end test
+        run: npx playwright test tests-e2e/specs/forged-tool-view.spec.ts --project=chromium-desktop
+
+      # The pictures that spec takes at 390 and 1440 in both looks, at 2, 24 and 300 actors.
+      - name: Upload the forged tool view pictures
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: forged-tool-view-pictures
+          path: test-pictures/forged-tool-view/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # The checks below run when an earlier step has failed too, so a failing
+      # browser spec does not hide what they would report. The job still fails
+      # on that step.
+      - name: Viz living grid end-to-end test
+        if: ${{ !cancelled() }}
+        run: npx playwright test tests-e2e/specs/viz-living-grid.spec.ts --project=chromium-desktop
+
+      # The pictures that spec takes of a replay at 390 and 1440 in both looks:
+      # two frames two seconds apart, the turn banner, the highlight strip,
+      # ECOLOGY and the grid settings.
+      - name: Upload the Viz living grid pictures
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: viz-living-grid-pictures
+          path: test-pictures/viz-living-grid/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: First screen end-to-end test
+        if: ${{ !cancelled() }}
+        run: npx playwright test tests-e2e/specs/sim-first-screen.spec.ts --project=chromium-desktop
+
+      # The pictures that spec takes of the Run tab's first screen at each
+      # width it checks, in both looks: ready, loading, did not load, offline.
+      - name: Upload the first screen pictures
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sim-first-screen-pictures
+          path: test-pictures/sim-first-screen/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # Every row of keys is one row from 320 px (the Viz toolbar in each mode,
+      # its More panel and the Sim tab's evidence row), with keys 44 px wide and
+      # tall below 900 px; on a phone the turn's words never shrink the living
+      # grid's window and stand below the whole grid.
+      - name: Phone rows and grid window end-to-end test
+        if: ${{ !cancelled() }}
+        run: npx playwright test tests-e2e/specs/phone-rows-and-grid-window.spec.ts --project=chromium-desktop
+
+      # The pictures that spec takes at 320, 390 and 1440 in both looks: the
+      # Viz toolbar in FORGE mode, the evidence row and the grid's window.
+      - name: Upload the phone rows and grid window pictures
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: phone-rows-and-grid-pictures
+          path: test-pictures/phone-rows-and-grid/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # The Viz tab's play controls and its event row are one row from 320 px,
+      # the event row scrolling with its Previous and Next keys, and in the
+      # cohort view on a phone the turn's words open below the living grid.
+      - name: Viz play row, event row and cohort words end-to-end test
+        if: ${{ !cancelled() }}
+        run: npx playwright test tests-e2e/specs/phone-rows-more.spec.ts --project=chromium-desktop
+
+      # The pictures that spec takes at 320, 390 and 1440 in both looks.
+      - name: Upload the Viz play row, event row and cohort words pictures
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: phone-rows-more-pictures
+          path: test-pictures/phone-rows-more/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # The run view's toasts told to a screen reader, and the Event Log opening
+      # with its heading, search field and tool chip in view after a forged
+      # tool's Show in Event Log and after a reload, at 390 and 1440 in both looks.
+      - name: Run view toast and Event Log chip end-to-end test
+        if: ${{ !cancelled() }}
+        run: npx playwright test tests-e2e/specs/run-view-toast-and-log-chip.spec.ts --project=chromium-desktop
+
+      # The pictures that spec takes of each press and reload.
+      - name: Upload the run view toast and Event Log chip pictures
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: run-view-toast-and-log-chip-pictures
+          path: test-pictures/run-view-toast-and-log-chip/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # On a phone the whole living grid is in view before any scroll; on a
+      # short screen and on a phone on its side it keeps a usable window and
+      # the Viz panel scrolls as one to the turn's outcomes and its controls;
+      # the keyboard legend is one row; and the words of the Viz toolbar, the
+      # play controls and the legend are 15 px.
+      - name: Viz grid at first sight, legend and row type end-to-end test
+        if: ${{ !cancelled() }}
+        run: npx playwright test tests-e2e/specs/viz-rows-type.spec.ts --project=chromium-desktop
+
+      # The pictures that spec takes at 390 x 844, 390 x 339, 844 x 339, 320,
+      # 600 and 1440 in both looks.
+      - name: Upload the Viz grid at first sight, legend and row type pictures
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: viz-rows-type-pictures
+          path: test-pictures/viz-rows-type/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Dashboard downloads end-to-end test
+        if: ${{ !cancelled() && steps.install-playwright.outcome == 'success' }}
+        run: npx playwright test tests-e2e/specs/dashboard-downloads.spec.ts --project=chromium-desktop
+
       - name: Check doc examples compile against package
+        if: ${{ !cancelled() }}
         run: npm run check:doc-examples
 
       - name: Build API docs (TypeDoc)
+        if: ${{ !cancelled() }}
         run: npm run docs
 
       - name: Check the sitemap against the API docs
+        if: ${{ !cancelled() }}
         run: npm run check:sitemap
 
       # The hosted demo's consent bar on the landing page, the dashboard and
@@ -158,6 +293,7 @@ jobs:
       # hosted_demo mode with made-up analytics ids. It writes pictures of the
       # bar into test-results/consent-bar-captures.
       - name: Consent bar end-to-end test
+        if: ${{ !cancelled() }}
         run: npx playwright test tests-e2e/specs/consent-bar.spec.ts --project=chromium-desktop
 
       - name: Upload the consent bar pictures

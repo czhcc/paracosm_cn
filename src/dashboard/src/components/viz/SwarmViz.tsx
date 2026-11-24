@@ -1,5 +1,6 @@
 import { departmentLabel, displayLabel, roleLabel } from '../../template-localization';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { downloadBlob, downloadJson } from '../../download';
 import type { GameState, LeaderInfo } from '../../hooks/useGameState.js';
 import styles from './SwarmViz.module.scss';
 import { useScenarioContext, useDashboardNavigation } from '../../App';
@@ -7,12 +8,13 @@ import { leaderUnit } from '../../hooks/useScenarioLabels.helpers';
 import { useToast } from '../shared/Toast';
 import { useVizSnapshots } from './useVizSnapshots.js';
 import { CohortSwarmGrid } from './CohortSwarmGrid.js';
-import { TurnBanner } from './TurnBanner.js';
+import { TurnBanner, turnHeadline } from './TurnBanner.js';
 import { VizControls } from './VizControls.js';
+import { KeyLegend, type KeyHint } from './KeyLegend.js';
 import { LivingSwarmGrid } from './grid/LivingSwarmGrid.js';
 import { GridModePills, gridModeHint, type GridMode } from './grid/GridModePills.js';
 import { GridHelpOverlay } from './grid/GridHelpOverlay.js';
-import { useMediaQuery, NARROW_QUERY, PHONE_QUERY } from './grid/useMediaQuery.js';
+import { useMediaQuery, NARROW_QUERY, PHONE_QUERY, TOUCH_KEYS_QUERY } from './grid/useMediaQuery.js';
 import { TimelineSparkline } from './grid/TimelineSparkline.js';
 import { EventChronicle, type ChronicleFilter, type ChronicleEvent } from './grid/EventChronicle.js';
 import { TurnProgress } from './grid/TurnProgress.js';
@@ -20,12 +22,16 @@ import { ColonistSearch, type SearchMatch } from './grid/ColonistSearch.js';
 import {
   GridSettingsDrawer,
   DEFAULT_GRID_SETTINGS,
+  storedGridSettings,
   type GridSettings,
 } from './grid/GridSettingsDrawer.js';
 import { useSoundCues } from './grid/useSoundCues.js';
 import { RunSummaryDrawer } from './grid/RunSummaryDrawer.js';
-import { ForgeLineageModal, type ForgeLineagePayload } from './grid/ForgeLineageModal.js';
+import { useForgeView } from '../forge/ForgeViewProvider';
+import { vizToolboxKey } from '../forge/forgeWords';
+import { useToolContext } from '../../hooks/useToolRegistry';
 import { ExportMenu } from './grid/ExportMenu.js';
+import { OneRowScroller } from '../shared/OneRowScroller';
 import { useScenarioLabels } from '../../hooks/useScenarioLabels.js';
 import { HighlightStrip } from './HighlightStrip';
 import { VizLegendBar } from './VizLegendBar';
@@ -66,14 +72,6 @@ function aggregateByDept(snap: TurnSnapshot | undefined): DiffCell[] {
   return out;
 }
 
-function Kbd({ k, v }: { k: string; v: string }) {
-  return (
-    <span className={styles.kbd}>
-      <kbd className={styles.kbdKey}>{k}</kbd>
-      <span className={styles.kbdLabel}>{v}</span>
-    </span>
-  );
-}
 import {
   computeDivergence,
   type CellSnapshot,
@@ -83,8 +81,43 @@ import {
 interface HexacoShape { O: number; C: number; E: number; A: number; Em: number; HH: number }
 
 interface SwarmVizProps {
+  isReplay: boolean;
   state: GameState;
   onNavigateToChat?: (colonistName: string) => void;
+}
+
+/** True when a snapshot carries any of the four readings ECOLOGY draws. */
+function hasEcologyReadings(snap: TurnSnapshot | undefined): boolean {
+  if (!snap) return false;
+  return [snap.foodReserve, snap.waterLitersPerDay, snap.powerKw, snap.pressurizedVolumeM3].some(v => typeof v === 'number');
+}
+
+/** A control Space presses: the tab's playback shortcut leaves Space to it. */
+const PRESSABLE = 'button, a[href], summary, [role="button"], [role="link"], [role="menuitem"], [role="option"], [role="checkbox"], [role="radio"], [role="switch"], [role="tab"]';
+
+/**
+ * The Viz panel as a picture holds it, for the PNG export and the timelapse.
+ *
+ * Include the body's full height and undo its scroll offset when placing
+ * its canvases. The short
+ * layout moves the whole panel with the dashboard scroll. Canvas positions
+ * relative to the panel stay the same as the dashboard scrolls.
+ */
+function panelLaidOut(root: HTMLElement, body: HTMLElement | null) {
+  const view = root.getBoundingClientRect();
+  const beyondView = body ? Math.max(0, body.scrollHeight - body.clientHeight) : 0;
+  const scrolled = body ? body.scrollTop : 0;
+  return {
+    width: view.width,
+    height: view.height + beyondView,
+    /** Where a canvas stands in the picture, in CSS px; null for one that is not shown. */
+    place(canvas: HTMLCanvasElement): { x: number; y: number; width: number; height: number } | null {
+      const r = canvas.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) return null;
+      const inScroll = !!body && body.contains(canvas);
+      return { x: r.left - view.left, y: r.top - view.top + (inScroll ? scrolled : 0), width: r.width, height: r.height };
+    },
+  };
 }
 
 /**
@@ -93,7 +126,7 @@ interface SwarmVizProps {
  * everything visual to LivingSwarmGrid (canvas + HUD + popovers) and
  * the strip widgets (TurnBanner, TimelineSparkline, EventChronicle).
  */
-export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
+export function SwarmViz({ state, isReplay, onNavigateToChat }: SwarmVizProps) {
   const snapshotMap = useVizSnapshots(state);
   // Cohort-aware focus-pair: SwarmViz's living-swarm grid is built for
   // exactly two side-by-side panels (side='a' + side='b' on each
@@ -131,13 +164,6 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
   const [currentTurn, setCurrentTurn] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
-  // Replay (`?replay=<id>`) is cached playback (no new LLM cost). The run
-  // reducer still flips `isRunning` true while replayed status events
-  // stream, so gate on replay too: treat cached playback as non-live so
-  // the VIZ suppresses the ambient wash just like completed/loaded runs.
-  const isReplaying = typeof window !== 'undefined'
-    && new URLSearchParams(window.location.search).has('replay');
-  const isLiveRun = state.isRunning && !isReplaying;
 
   // Grid mode (new living-colony grid). Shared across both leaders so
   // tabs toggle in lockstep. Persisted to localStorage so the user's
@@ -260,20 +286,17 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
   const [gridSettings, setGridSettingsState] = useState<GridSettings>(() => {
     // Schema version tagged into localStorage so default-changes
     // propagate to users with older stored settings. Bumping when a
-    // default flips (v2: `lines` true → false, `deptLabels` off; v3:
-    // `deptRings` true → false) forces a clean reset for existing
-    // localStorage entries instead of letting the stored `true`
-    // override the new `false`. Users who customized get reset once;
-    // they can re-toggle from the drawer after.
+    // default flips (v2 turned `deptLabels` off, v3 a switch since removed) forces a
+    // clean reset for existing localStorage entries instead of letting
+    // the stored value override the new default. Keys of switches since
+    // removed are dropped on read (storedGridSettings), with no reset.
     const SETTINGS_VERSION = 3;
     try {
       const raw = localStorage.getItem('paracosm:gridSettings');
       if (raw) {
-        const parsed = JSON.parse(raw) as Partial<GridSettings> & { __v?: number };
+        const parsed = JSON.parse(raw) as Record<string, unknown> & { __v?: number };
         if (parsed.__v === SETTINGS_VERSION) {
-          const { __v, ...rest } = parsed;
-          void __v;
-          return { ...DEFAULT_GRID_SETTINGS, ...rest };
+          return storedGridSettings(parsed);
         }
         // Stale schema — drop the stored blob and use defaults.
         localStorage.removeItem('paracosm:gridSettings');
@@ -305,7 +328,7 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
   // not monitoring a live run.
   useEffect(() => {
     if (!gridSettings.alerts) return;
-    if (!state.isRunning) return;
+    if (isReplay || !state.isRunning) return;
     const crisisKinds = new Set(['event_start', 'director_crisis']);
     const storageKey = 'paracosm:seenCrisisToasts';
     const readSeen = (): Set<string> => {
@@ -362,7 +385,7 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
       if (prev && prev.key === latest.key) return prev;
       return { ...latest, expiresAt: performance.now() + 5500 };
     });
-  }, [state.actorIds, state.actors, gridSettings.alerts, state.isRunning]);
+  }, [state.actorIds, state.actors, gridSettings.alerts, isReplay, state.isRunning]);
 
   // Dismiss crisis toast after timeout.
   useEffect(() => {
@@ -415,7 +438,7 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
     // crossings from a completed sim aren't fresh news. Only surface
     // alerts while the sim is actively running so the user isn't
     // spammed on tab open with past morale crashes and food drops.
-    if (!state.isRunning) return;
+    if (isReplay || !state.isRunning) return;
     const seen = readSeenAlerts();
     const fire = (key: string, toast: Omit<
       NonNullable<typeof alertToast>,
@@ -451,7 +474,7 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
     check('a', snapsA);
     check('b', snapsB);
     writeSeenAlerts(seen);
-  }, [snapsA, snapsB, gridSettings.alerts, readSeenAlerts, writeSeenAlerts, state.isRunning]);
+  }, [snapsA, snapsB, gridSettings.alerts, readSeenAlerts, writeSeenAlerts, isReplay, state.isRunning]);
   useEffect(() => {
     if (!alertToast) return;
     const remaining = alertToast.expiresAt - performance.now();
@@ -495,7 +518,21 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
   // the default collapsed state is the intended look; opening it
   // is a short-lived "I need a tool" gesture.
   const [overflowOpen, setOverflowOpen] = useState(false);
-  const [forgeLineage, setForgeLineage] = useState<ForgeLineagePayload | null>(null);
+  // A forge mark of the event strip opens its tool's trace, and FORGE mode's
+  // key the forged toolbox, each over this tab's living grid.
+  const forgeView = useForgeView();
+  const toolRegistry = useToolContext();
+  const openForgeMark = useCallback((toolName: string, side: 'a' | 'b', eventId?: string, opener?: HTMLElement): boolean => {
+    const actorName = side === 'a' ? firstLeaderId : secondLeaderId;
+    const actorIndex = actorName ? state.actorIds.indexOf(actorName) : -1;
+    const entry = actorIndex >= 0 ? toolRegistry.getEntryFor(actorIndex, toolName) : undefined;
+    if (!entry) return false;
+    // A turn alone cannot tell two attempts of one turn apart: the mark's own
+    // frame names its attempt, and the trace opens at the latest when none matches.
+    const attempt = entry.attempts.find(a => a.eventId === eventId)?.attempt;
+    forgeView.openTrace({ actorIndex, toolName, attempt }, opener, 'viz');
+    return true;
+  }, [firstLeaderId, secondLeaderId, state.actorIds, toolRegistry, forgeView]);
   const [focusedSide, setFocusedSide] = useState<'a' | 'b' | null>(null);
   const toggleFocus = useCallback((side: 'a' | 'b') => {
     setFocusedSide(prev => (prev === side ? null : side));
@@ -538,6 +575,8 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
   // Timelapse recording state. Uses MediaRecorder on a composite
   // canvas stream so the user can capture a short webm of the viz.
   const vizRootRef = useRef<HTMLDivElement | null>(null);
+  // The panel's one scroll on a phone and on a short screen (styles.body).
+  const vizBodyRef = useRef<HTMLDivElement | null>(null);
   const [recording, setRecording] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const recChunksRef = useRef<Blob[]>([]);
@@ -547,9 +586,9 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
   const startTimelapse = useCallback(() => {
     const root = vizRootRef.current;
     if (!root) return;
-    const rect = root.getBoundingClientRect();
-    const width = Math.max(640, Math.round(rect.width));
-    const height = Math.max(360, Math.round(rect.height));
+    const whole = panelLaidOut(root, vizBodyRef.current);
+    const width = Math.max(640, Math.round(whole.width));
+    const height = Math.max(360, Math.round(whole.height));
     const composite = document.createElement('canvas');
     composite.width = width;
     composite.height = height;
@@ -577,14 +616,10 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
       if (recRafRef.current) cancelAnimationFrame(recRafRef.current);
       recRafRef.current = 0;
       const blob = new Blob(recChunksRef.current, { type: mimeType });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `paracosm-timelapse-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.webm`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      downloadBlob(
+        blob,
+        `paracosm-timelapse-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.webm`,
+      );
     };
     recorderRef.current = rec;
     setRecording(true);
@@ -598,20 +633,20 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
       if (!cctx) return;
       cctx.fillStyle = getComputedStyle(r).getPropertyValue('--bg-deep').trim() || '#0a0806';
       cctx.fillRect(0, 0, c.width, c.height);
-      const rootRect = r.getBoundingClientRect();
-      const sx = c.width / Math.max(1, rootRect.width);
-      const sy = c.height / Math.max(1, rootRect.height);
+      const whole = panelLaidOut(r, vizBodyRef.current);
+      // One scale for both axes, the panel centred in the frame. The frame's
+      // size is set as the recording starts (640 x 360 at least); the panel
+      // can be narrower than it, and its size can change under the recording
+      // (a turn's words, the More panel), so the grids keep their proportions
+      // and the frame's spare room stays the background's.
+      const scale = Math.min(c.width / Math.max(1, whole.width), c.height / Math.max(1, whole.height));
+      const left = (c.width - whole.width * scale) / 2;
+      const top = (c.height - whole.height * scale) / 2;
       const allCanvases = Array.from(r.querySelectorAll('canvas')) as HTMLCanvasElement[];
       for (const cv of allCanvases) {
-        const cr = cv.getBoundingClientRect();
-        if (cr.width === 0 || cr.height === 0) continue;
-        cctx.drawImage(
-          cv,
-          (cr.left - rootRect.left) * sx,
-          (cr.top - rootRect.top) * sy,
-          cr.width * sx,
-          cr.height * sy,
-        );
+        const at = whole.place(cv);
+        if (!at) continue;
+        cctx.drawImage(cv, left + at.x * scale, top + at.y * scale, at.width * scale, at.height * scale);
       }
       recRafRef.current = requestAnimationFrame(loop);
     };
@@ -653,17 +688,10 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
       snapshots: { a: snapsA, b: snapsB },
       events: { a: sideStateA?.events ?? [], b: sideStateB?.events ?? [] },
     };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {
-      type: 'application/json',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `paracosm-replay-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    downloadJson(
+      JSON.stringify(payload, null, 2),
+      `paracosm-replay-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.json`,
+    );
   }, [currentTurn, leaderA, leaderB, snapsA, snapsB, sideStateA, sideStateB]);
 
 
@@ -672,55 +700,49 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
     if (!root) return;
     const allCanvases = Array.from(root.querySelectorAll('canvas')) as HTMLCanvasElement[];
     if (allCanvases.length === 0) return;
-    const rootRect = root.getBoundingClientRect();
+    const whole = panelLaidOut(root, vizBodyRef.current);
     const scale = 2;
     const out = document.createElement('canvas');
-    out.width = Math.round(rootRect.width * scale);
-    out.height = Math.round(rootRect.height * scale);
+    out.width = Math.round(whole.width * scale);
+    out.height = Math.round(whole.height * scale);
     const ctx = out.getContext('2d');
     if (!ctx) return;
     ctx.fillStyle = getComputedStyle(root).getPropertyValue('--bg-deep').trim() || '#0a0806';
     ctx.fillRect(0, 0, out.width, out.height);
     ctx.scale(scale, scale);
     for (const c of allCanvases) {
-      const r = c.getBoundingClientRect();
-      if (r.width === 0 || r.height === 0) continue;
-      ctx.drawImage(c, r.left - rootRect.left, r.top - rootRect.top, r.width, r.height);
+      const at = whole.place(c);
+      if (!at) continue;
+      ctx.drawImage(c, at.x, at.y, at.width, at.height);
     }
     out.toBlob(
       blob => {
         if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `paracosm-viz-t${currentTurn + 1}-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        downloadBlob(
+          blob,
+          `paracosm-viz-t${currentTurn + 1}-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.png`,
+        );
       },
       'image/png',
     );
   }, [currentTurn]);
-  // Scene-transition vignette — briefly dims the whole viz when the
-  // user jumps the playhead more than 1 turn in either direction.
-  const [vignetteKey, setVignetteKey] = useState(0);
-  const lastTurnRef = useRef<number>(-1);
-  useEffect(() => {
-    if (lastTurnRef.current === -1) {
-      lastTurnRef.current = currentTurn;
-      return;
-    }
-    if (Math.abs(currentTurn - lastTurnRef.current) >= 2) {
-      setVignetteKey(k => k + 1);
-    }
-    lastTurnRef.current = currentTurn;
-  }, [currentTurn]);
   useEffect(() => {
     const useNewGridFlag = import.meta.env.VITE_NEW_GRID !== '0';
     const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
+      const target = e.target instanceof Element ? e.target : null;
+      const tag = target?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      // A dialog over the tab keeps its own keys, the forge view's trace and
+      // toolbox among them; Escape still closes the help, and from inside the
+      // help, which holds focus while open, ? closes it as it says.
+      const dialog = target?.closest('[role="dialog"]');
+      const helpKey = e.key === '?' || (e.shiftKey && e.key === '/');
+      if (e.key !== 'Escape' && dialog && !(helpKey && dialog.hasAttribute('data-viz-help'))) return;
+      // While the help is open the panel behind it keeps still, wherever
+      // focus has gone: only Escape and ? reach the tab, to close it.
+      if (helpOpen && e.key !== 'Escape' && !helpKey) return;
+      // Space presses the control that holds focus, as it does on any page.
+      if ((e.key === ' ' || e.key === 'Spacebar') && target?.closest(PRESSABLE)) return;
       if (e.key === 'ArrowLeft') { e.preventDefault(); handleStepBack(); }
       else if (e.key === 'ArrowRight') { e.preventDefault(); handleStepForward(); }
       else if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); handlePlayPause(); }
@@ -903,16 +925,24 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
   // state (hooks don't fire), producing React error #310.
   const narrow = useMediaQuery(NARROW_QUERY);
   const phone = useMediaQuery(PHONE_QUERY);
+  // Below 900 px the toolbar's diff and help keys stand in its More panel.
+  const touchKeys = useMediaQuery(TOUCH_KEYS_QUERY);
+  // On a phone the turn lines stand below the living grid, inside the grid's
+  // own scroll window, in the pair view and the cohort view alike: this is
+  // where TurnBanner draws them.
+  const [turnLinesSlot, setTurnLinesSlot] = useState<HTMLElement | null>(null);
 
   // Highlight + legend + diff-overlay hooks. Same Rules-of-Hooks
   // constraint as the media-query hooks above: must run on every render
   // including the maxTurn === 0 empty-state branch, otherwise React
   // throws #310 on the transition between empty-state and populated.
-  // Highlight strip: pure derivation from the current and previous
-  // snapshot pair. snapToHighlight converts cumulative deaths/births
-  // into per-turn deltas; computeTurnHighlight picks the largest
-  // divergence and returns one templated sentence. Recomputes on turn
-  // change. Nothing async, no LLM.
+  // Highlight strip: pure derivation from the current snapshot pair.
+  // Each snapshot counts its own turn's births and deaths;
+  // computeTurnHighlight picks the largest divergence and returns one
+  // templated sentence in the actors' names and the scenario's nouns.
+  // Recomputes on turn change. Nothing async, no LLM.
+  const highlightNameA = leaderA?.name ?? 'Leader A';
+  const highlightNameB = leaderB?.name ?? 'Leader B';
   const highlightText = useMemo(() => {
     const a = snapsA[currentTurn]
       ? snapToHighlight(snapsA[currentTurn], snapsA[currentTurn - 1])
@@ -920,8 +950,14 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
     const b = snapsB[currentTurn]
       ? snapToHighlight(snapsB[currentTurn], snapsB[currentTurn - 1])
       : null;
-    return computeTurnHighlight(a, b, currentTurn + 1);
-  }, [snapsA, snapsB, currentTurn]);
+    return computeTurnHighlight(a, b, currentTurn + 1, {
+      nameA: highlightNameA,
+      nameB: highlightNameB,
+      person: scenarioLabels.person,
+      people: scenarioLabels.people,
+      places: scenarioLabels.places,
+    });
+  }, [snapsA, snapsB, currentTurn, highlightNameA, highlightNameB, scenarioLabels.person, scenarioLabels.people, scenarioLabels.places]);
 
   // Department list for the legend popover. Colors come from the shared
   // DEPARTMENT_COLORS table so the swatch in the legend matches the
@@ -964,11 +1000,13 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
   }, []);
 
   // D hotkey toggle. Skipped while typing in inputs / textareas / contenteditable
-  // so the user's search query doesn't get interrupted.
+  // so the user's search query doesn't get interrupted, and, like the tab's
+  // other keys, while the help or another dialog is over the tab.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
+      const target = e.target instanceof Element ? e.target : null;
       if (target && target.matches('input, textarea, [contenteditable=true]')) return;
+      if (helpOpen || target?.closest('[role="dialog"]')) return;
       if (e.key === 'd' || e.key === 'D') {
         e.preventDefault();
         setDiffOverlay(!diffOverlayOn);
@@ -976,7 +1014,7 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [diffOverlayOn, setDiffOverlay]);
+  }, [diffOverlayOn, helpOpen, setDiffOverlay]);
 
   // Per-department diff at the current turn. Computed only when the
   // overlay is on — useMemo dependency on diffOverlayOn means the heavy
@@ -987,6 +1025,17 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
     const bCells = aggregateByDept(snapsB[currentTurn]);
     return computeCellDiff(aCells, bCells);
   }, [diffOverlayOn, snapsA, snapsB, currentTurn]);
+
+  // The keyboard legend's hints, most useful first: a narrow row keeps the
+  // first ones and a key to the help overlay's full list.
+  const legendHints = useMemo<KeyHint[]>(() => [
+    { k: '?', v: 'help' },
+    { k: '1-5', v: 'mode' },
+    { k: '\u2190 \u2192', v: '拖动时间线' },
+    { k: 'space', v: '播放／暂停' },
+    { k: 'click', v: `${scenarioLabels.person} drilldown` },
+    { k: 'esc', v: '关闭弹窗' },
+  ], [scenarioLabels.person]);
 
   if (maxTurn === 0) {
     // Running but no first-turn snapshot yet: the run starts with
@@ -1047,11 +1096,76 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
   // tickClock bump ~30x/sec before this memo).
   const searchMatches: SearchMatch[] = searchMatchesMemo;
 
+  // The diff and help keys: in the toolbar's row from 900 px, in its More
+  // panel below 900 px, where the row's keys are 44 px wide and tall.
+  const diffKey = (
+    <button
+      type="button"
+      onClick={() => setDiffOverlay(!diffOverlayOn)}
+      aria-label={diffOverlayOn ? '隐藏双人差异叠层（D）' : '显示双人差异叠层（D）'}
+      aria-pressed={diffOverlayOn}
+      title="突出两位决策者此回合的分歧（按 D）"
+      className={styles.helpBtn}
+    >
+      差异 {diffOverlayOn ? '开' : '关'}
+    </button>
+  );
+  const helpKey = (
+    <button
+      type="button"
+      onClick={() => setHelpOpen(true)}
+      aria-label="打开帮助（快捷键：?）"
+      title="查看颜色、符号和模式的含义（按 ?）"
+      className={styles.helpBtn}
+    >
+      ? 帮助
+    </button>
+  );
+  const eventRow = (
+    <EventChronicle
+      eventsA={sideStateA?.events ?? []}
+      eventsB={sideStateB?.events ?? []}
+      currentTurn={currentTurn}
+      onJumpToTurn={handleTurnChange}
+      hoveredTurn={hoveredTurn}
+      onHoverTurnChange={setHoveredTurn}
+      filter={chronicleFilter}
+      onFilterChange={setChronicleFilter}
+      onHoverEventChange={setHoveredChronicleEvent}
+      onJumpToReports={handleJumpToReports}
+      onForgeSelect={openForgeMark}
+    />
+  );
+  // On the stacked layout the grid precedes the outcomes and comparisons.
+  const linesBelowGrid = narrow;
+  const comparison = (
+    <>
+      <TimelineSparkline
+        snapsA={snapsA}
+        snapsB={snapsB}
+        currentTurn={currentTurn}
+        onJumpToTurn={handleTurnChange}
+        hoveredTurn={hoveredTurn}
+        onHoverTurnChange={setHoveredTurn}
+      />
+      {vizMode === 'pair' && diffLine && <div className={styles.diffLine}>{diffLine}</div>}
+    </>
+  );
+  // The banner names the turn and its time only on a turn with a title; on a
+  // phone the play controls leave the time to it only then.
+  const timeInBanner = turnHeadline(state, currentTurn) !== '';
+
   return (
       <div
         ref={vizRootRef}
         className={`viz-content ${styles.root}`}
+        // ? opens this tab's own help (the key listener above), so the
+        // page's shortcuts overlay leaves the key to it: ShortcutsOverlay.tsx.
+        data-own-help-key="?"
       >
+        {/* The panel scrolls here when its content needs room. On short
+            screens the dashboard shell scrolls with the panel. */}
+        <div ref={vizBodyRef} className={styles.body} data-viz-layout="">
         {isCohort && (
           <div className={styles.cohortViewBar} role="region" aria-label="对比组视图控制">
             <div className={styles.cohortViewModeToggle} role="tablist" aria-label="群体网格视图模式">
@@ -1115,14 +1229,24 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
             )}
           </div>
         )}
-        <TurnBanner state={state} currentTurn={currentTurn} />
+        <TurnBanner
+          state={state}
+          currentTurn={currentTurn}
+          linesTarget={linesBelowGrid ? turnLinesSlot : null}
+          cohortGridShown={vizMode === 'cohort'}
+        />
         <HighlightStrip text={highlightText} turn={currentTurn + 1} />
         <VizLegendBar departments={legendDepartments} />
         {diffOverlayOn && cellDiff && (
           <DivergenceDetail diff={cellDiff} departmentLabels={departmentLabels} />
         )}
         <div className={styles.toolbarStrip}>
-          <div className={styles.toolbarTopRow}>
+          {/* One row at every width (OneRowScroller). Below 900 px the diff
+              and help keys stand in the More panel, so the mode menu or the
+              mode tabs keep their whole words beside FORGE mode's toolbox key;
+              a row still wider than the window scrolls sideways with its
+              Previous and Next keys. */}
+          <OneRowScroller label="工具栏操作" rowClassName={styles.toolbarTopRow}>
             <div className={styles.modePillsWrap}>
               <GridModePills
                 mode={gridMode}
@@ -1138,92 +1262,95 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
                 labels={scenarioLabels}
               />
             </div>
+            {gridMode === 'forge' && (
+              <button
+                type="button"
+                aria-haspopup="dialog"
+                onClick={(e) => forgeView.openToolbox(e.currentTarget, 'viz')}
+                className={styles.forgeToolboxKey}
+              >
+                {vizToolboxKey(toolRegistry.list.length)}
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setOverflowOpen(o => !o)}
-              aria-label={overflowOpen ? "隐藏高级工具" : "显示高级工具（配色、指标、导出、设置）"}
+              aria-label={overflowOpen
+                ? (touchKeys ? '隐藏更多工具' : '隐藏高级工具')
+                : (touchKeys ? '显示更多工具（差异、帮助、配色、指标、导出、设置）' : '显示高级工具（配色、指标、导出、设置）')}
               aria-expanded={overflowOpen}
-              title={overflowOpen ? "隐藏工具" : "配色 · 指标 · 导出 · 设置"}
+              title={overflowOpen ? '隐藏工具' : touchKeys ? '差异 · 帮助 · 配色 · 指标 · 导出 · 设置' : '配色 · 指标 · 导出 · 设置'}
               className={[styles.overflowToggle, overflowOpen ? styles.overflowToggleOpen : ''].filter(Boolean).join(' ')}
             >
               {'\u22ef'}
             </button>
-            <button
-              type="button"
-              onClick={() => setDiffOverlay(!diffOverlayOn)}
-              aria-label={diffOverlayOn ? "隐藏双人差异叠层（D）" : "显示双人差异叠层（D）"}
-              aria-pressed={diffOverlayOn}
-              title="突出两位决策者此回合的分歧（按 D）"
-              className={styles.helpBtn}
-            >
-
-              差异 {diffOverlayOn ? '开启' : '关闭'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setHelpOpen(true)}
-              aria-label="打开帮助（快捷键：?）"
-              title="颜色、符号与模式的含义（按 ?）"
-              className={styles.helpBtn}
-            >
-
-              ? 帮助
-            </button>
-            {overflowOpen && (
-              <div
-                role="toolbar"
-                aria-label="可视化工具"
-                className={styles.toolsRow}
+            {!touchKeys && diffKey}
+            {!touchKeys && helpKey}
+          </OneRowScroller>
+          {overflowOpen && (
+            <OneRowScroller label="可视化工具" role="toolbar" ariaLabel="可视化工具" rowClassName={styles.toolsRow}>
+              {touchKeys && diffKey}
+              {touchKeys && helpKey}
+              <button
+                type="button"
+                onClick={cyclePalette}
+                aria-label={`Palette: ${palette}. Click to cycle.`}
+                title={`Palette: ${palette.toUpperCase()} （点击切换）`}
+                className={styles.paletteBtn}
+                style={{
+                  '--palette-bg':
+                    palette === 'amber'
+                      ? 'linear-gradient(135deg, #e8b44a 0 40%, #c44a1e 100%)'
+                      : palette === 'cool'
+                      ? 'linear-gradient(135deg, #4ecdc4 0 40%, #9b6bd8 100%)'
+                      : 'linear-gradient(135deg, #f5f0e4 0 40%, #6b5f50 100%)',
+                } as CSSProperties}
               >
-                <button
-                  type="button"
-                  onClick={cyclePalette}
-                  aria-label={`Palette: ${palette}. Click to cycle.`}
-                  title={`配色：${palette.toUpperCase()}（点击切换）`}
-                  className={styles.paletteBtn}
-                  style={{
-                    '--palette-bg':
-                      palette === 'amber'
-                        ? 'linear-gradient(135deg, #e8b44a 0 40%, #c44a1e 100%)'
-                        : palette === 'cool'
-                        ? 'linear-gradient(135deg, #4ecdc4 0 40%, #9b6bd8 100%)'
-                        : 'linear-gradient(135deg, #f5f0e4 0 40%, #6b5f50 100%)',
-                  } as CSSProperties}
-                >
-                  {palette}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSummaryOpen(true)}
-                  aria-label="打开运行总结"
-                  title="运行总结（累计值）"
-                  className={styles.toolBtn}
-                >
-
-                  指标
-                </button>
-                <ExportMenu
-                  recording={recording}
-                  onExportPng={handleExportPng}
-                  onExportJson={handleExportJson}
-                  onToggleRecording={recording ? stopTimelapse : startTimelapse}
-                />
-                <button
-                  type="button"
-                  onClick={() => setSettingsOpen(o => !o)}
-                  aria-label="打开网格设置"
-                  aria-expanded={settingsOpen}
-                  title="可视化设置"
-                  className={[styles.settingsBtn, settingsOpen ? styles.settingsBtnOpen : ''].filter(Boolean).join(' ')}
-                >
-                  {'\u2699'}
-                </button>
-              </div>
-            )}
-          </div>
+                {palette}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSummaryOpen(true)}
+                aria-label="打开运行摘要"
+                title="运行摘要（累计数值）"
+                className={styles.toolBtn}
+              >
+                指标
+              </button>
+              <ExportMenu
+                recording={recording}
+                onExportPng={handleExportPng}
+                onExportJson={handleExportJson}
+                onToggleRecording={recording ? stopTimelapse : startTimelapse}
+              />
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(o => !o)}
+                aria-label="打开网格设置"
+                aria-expanded={settingsOpen}
+                title="可视化设置"
+                className={[styles.settingsBtn, settingsOpen ? styles.settingsBtnOpen : ''].filter(Boolean).join(' ')}
+              >
+                {'\u2699'}
+              </button>
+            </OneRowScroller>
+          )}
           <div className={styles.modeHint}>
             {gridModeHint(gridMode, scenarioLabels)}
           </div>
+          {gridMode === 'ecology' && !state.actorIds.some(id => {
+            // Every actor of the run, the pair view's two and the all-actor
+            // view's rest, at the turn on screen.
+            const snaps = snapshotMap[id] ?? [];
+            return hasEcologyReadings(snaps[currentTurn] ?? snaps[snaps.length - 1]);
+          }) && (
+            <div role="status" className={styles.ecologyNone}>
+              <span>生态模式显示食物、水、电力和加压容积。本次运行没有这些指标。</span>
+              <button type="button" onClick={() => setGridMode('living')} className={styles.ecologyBack}>
+                返回存活模式
+              </button>
+            </div>
+          )}
         </div>
         <ColonistSearch
           value={searchQuery}
@@ -1241,36 +1368,8 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
           eventsB={(sideStateB?.events ?? []) as Array<{ type: string; turn?: number; data?: Record<string, unknown> }>}
           totalDepartments={scenario.departments.length}
         />
-        <EventChronicle
-          eventsA={(sideStateA?.events ?? []) as Array<{ type: string; turn?: number; data?: Record<string, unknown> }>}
-          eventsB={(sideStateB?.events ?? []) as Array<{ type: string; turn?: number; data?: Record<string, unknown> }>}
-          currentTurn={currentTurn}
-          onJumpToTurn={handleTurnChange}
-          hoveredTurn={hoveredTurn}
-          onHoverTurnChange={setHoveredTurn}
-          filter={chronicleFilter}
-          onFilterChange={setChronicleFilter}
-          onHoverEventChange={setHoveredChronicleEvent}
-          onJumpToReports={handleJumpToReports}
-          onForgeSelect={(toolName, side) =>
-            setForgeLineage({
-              toolName,
-              side,
-              sideColor: side === 'a' ? 'var(--vis)' : 'var(--eng)',
-            })
-          }
-        />
-        <TimelineSparkline
-          snapsA={snapsA}
-          snapsB={snapsB}
-          currentTurn={currentTurn}
-          onJumpToTurn={handleTurnChange}
-          hoveredTurn={hoveredTurn}
-          onHoverTurnChange={setHoveredTurn}
-        />
-        {vizMode === 'pair' && diffLine && (
-          <div className={styles.diffLine}>{diffLine}</div>
-        )}
+        {!narrow && eventRow}
+        {!narrow && comparison}
         {vizMode === 'pair' && phone && (
           <div
             role="tablist"
@@ -1298,7 +1397,18 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
           </div>
         )}
         {vizMode === 'cohort' && (
+          // Wider than a phone this box lays out as if absent. On a phone it
+          // is the cohort grid's scroll window: the grid keeps the window's
+          // height and the turn's lines stand below it, a scroll away.
+          <div
+            className={[
+              styles.cohortWindow,
+              linesBelowGrid ? styles.cohortWindowLinesBelow : '',
+            ].filter(Boolean).join(' ')}
+          >
           <CohortSwarmGrid
+            vizPanel
+            className={linesBelowGrid ? styles.cohortTrackLinesBelow : undefined}
             state={state}
             snapshotMap={snapshotMap}
             currentTurn={currentTurn}
@@ -1312,6 +1422,10 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
             startTime={scenario.setup?.defaultStartTime}
             onOpenChat={handleOpenChat}
           />
+          {linesBelowGrid && (
+            <section ref={setTurnLinesSlot} role="status" aria-label="回合结果" className={styles.turnLinesSlot} />
+          )}
+          </div>
         )}
         {vizMode === 'pair' && (
         <div
@@ -1319,6 +1433,7 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
             'leaders-row',
             styles.leadersRow,
             narrow ? styles.leadersRowNarrow : '',
+            linesBelowGrid ? styles.leadersRowLinesBelow : '',
           ].filter(Boolean).join(' ')}
         >
           <div
@@ -1328,8 +1443,8 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
             ].filter(Boolean).join(' ')}
           >
           <LivingSwarmGrid
+            vizPanel
             snapshot={snapA}
-            isLiveRun={isLiveRun}
             previousSnapshot={prevSnapA}
             snapshotHistory={snapsA}
             actorName={leaderA?.name ?? 'Leader A'}
@@ -1371,8 +1486,8 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
             ].filter(Boolean).join(' ')}
           >
           <LivingSwarmGrid
+            vizPanel
             snapshot={snapB}
-            isLiveRun={isLiveRun}
             previousSnapshot={prevSnapB}
             snapshotHistory={snapsB}
             actorName={leaderB?.name ?? 'Leader B'}
@@ -1407,88 +1522,16 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
             chronicleHover={hoveredChronicleEvent}
           />
           </div>
+          {/* A status region of its own: the outcomes stand outside the
+              banner's, and a screen reader reads them as the turn changes. */}
+          {linesBelowGrid && (
+            <section ref={setTurnLinesSlot} role="status" aria-label="回合结果" className={styles.turnLinesSlot} />
+          )}
         </div>
         )}
-        <VizControls
-          currentTurn={currentTurn}
-          maxTurn={maxTurn}
-          time={snapA?.time ?? snapB?.time ?? 0}
-          playing={playing}
-          speed={speed}
-          onTurnChange={handleTurnChange}
-          onPlayPause={handlePlayPause}
-          onStepBack={handleStepBack}
-          onStepForward={handleStepForward}
-          onSpeedChange={setSpeed}
-        />
-        <div className={styles.footerKeys}>
-          <Kbd k="?" v="帮助" />
-          <Kbd k="1-5" v="模式" />
-          <Kbd k="← →" v="拖动选择回合" />
-          <Kbd k="空格" v="播放 / 暂停" />
-          <Kbd k="点击" v={`${scenarioLabels.person}详情`} />
-          <Kbd k="esc" v="关闭浮层" />
-        </div>
-        {/* Off-screen aria-live region announces turn deltas to
-            screen readers without visual change. Only updates when
-            the turn index changes. */}
-        <div
-          aria-live="polite"
-          aria-atomic="true"
-          className={styles.srOnly}
-        >
-          {snapA && snapB
-            ? `第 ${Math.max(snapA.turn, snapB.turn)} 回合。 ${leaderA?.name ?? 'A'} ${scenarioLabels.place}: ${snapA.cells.filter(c => c.alive).length} 人存活，${snapA.births} 人出生，${snapA.deaths} 人死亡，士气 ${Math.round(snapA.morale * 100)}%. ${leaderB?.name ?? 'B'} ${scenarioLabels.place}: ${snapB.cells.filter(c => c.alive).length} 人存活，${snapB.births} 人出生，${snapB.deaths} 人死亡，士气 ${Math.round(snapB.morale * 100)}%.`
-            : ''}
-        </div>
-        {maxTurn > 1 && currentTurn < maxTurn - 1 && (
-          <button
-            type="button"
-            onClick={() => handleTurnChange(maxTurn - 1)}
-            aria-label={`Jump to latest turn (T${maxTurn})`}
-            className={styles.jumpLatest}
-          >
-            {'\u2193'}  最新 · 回合{maxTurn}
-            <span className={styles.jumpLatestBehind}>
-              ({maxTurn - 1 - currentTurn}  回合{maxTurn - 1 - currentTurn === 1 ? '' : 's'}  回合之前）
-            </span>
-          </button>
-        )}
-        <GridHelpOverlay open={helpOpen} onClose={() => setHelpOpen(false)} />
-        <GridSettingsDrawer
-          open={settingsOpen}
-          settings={gridSettings}
-          onChange={setGridSettings}
-          onClose={() => setSettingsOpen(false)}
-        />
-        <ForgeLineageModal
-          payload={forgeLineage}
-          forgeAttemptsA={forgeFeeds.a.attempts}
-          forgeAttemptsB={forgeFeeds.b.attempts}
-          reuseCallsA={forgeFeeds.a.reuses}
-          reuseCallsB={forgeFeeds.b.reuses}
-          onClose={() => setForgeLineage(null)}
-          onJumpToTurn={t => {
-            handleTurnChange(t);
-            setForgeLineage(null);
-          }}
-        />
-        <RunSummaryDrawer
-          open={summaryOpen}
-          onClose={() => setSummaryOpen(false)}
-          snapsA={snapsA}
-          snapsB={snapsB}
-          actorNameA={leaderA?.name ?? 'Leader A'}
-          actorNameB={leaderB?.name ?? 'Leader B'}
-          forgeApprovedA={forgeFeeds.a.attempts.filter(x => x.approved).length}
-          forgeApprovedB={forgeFeeds.b.attempts.filter(x => x.approved).length}
-          reuseCountA={forgeFeeds.a.reuses.length}
-          reuseCountB={forgeFeeds.b.reuses.length}
-          divergedCount={
-            (divergenceData.aliveOnlyA?.size ?? 0) + (divergenceData.aliveOnlyB?.size ?? 0)
-          }
-        />
-        {alertToast && (
+        {narrow && eventRow}
+        {narrow && comparison}
+        {!isReplay && alertToast && (
           <div
             key={alertToast.key}
             role="status"
@@ -1496,7 +1539,6 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
             onClick={() => setAlertToast(null)}
             className={styles.toast}
             style={{
-              '--toast-top': crisisToast ? '68px' : '8px',
               '--side-color': alertToast.side === 'a' ? 'var(--vis)' : 'var(--eng)',
               '--left-accent': alertToast.kind === 'morale-crash' ? 'var(--rust)' : 'var(--amber)',
             } as CSSProperties}
@@ -1516,7 +1558,7 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
             <div className={styles.toastBody}>{alertToast.message}</div>
           </div>
         )}
-        {crisisToast && (
+        {!isReplay && crisisToast && (
           <div
             key={crisisToast.key}
             role="status"
@@ -1540,22 +1582,75 @@ export function SwarmViz({ state, onNavigateToChat }: SwarmVizProps) {
             </div>
           </div>
         )}
-        {vignetteKey > 0 && (
-          <div
-            key={vignetteKey}
-            aria-hidden="true"
-            className={styles.vignette}
-          />
+        {/* The Latest key stays in the flow above the play controls. */}
+        {maxTurn > 1 && currentTurn < maxTurn - 1 && (
+          <div className={styles.jumpLatestAnchor}>
+            <button
+              type="button"
+              onClick={() => handleTurnChange(maxTurn - 1)}
+              aria-label={`Jump to latest turn (T${maxTurn})`}
+              className={styles.jumpLatest}
+            >
+              {'\u2193'} 最新 · 第 {maxTurn}
+              <span className={styles.jumpLatestBehind}>
+                ({maxTurn - 1 - currentTurn} 回合{maxTurn - 1 - currentTurn === 1 ? '' : 's'}）
+              </span>
+            </button>
+          </div>
         )}
-        <style>{`
-          @keyframes paracosm-vignette {
-            0% { opacity: 0; }
-            25% { opacity: 1; }
-            100% { opacity: 0; }
+        <VizControls
+          currentTurn={currentTurn}
+          maxTurn={maxTurn}
+          time={snapA?.time ?? snapB?.time ?? 0}
+          timeInBanner={timeInBanner}
+          playing={playing}
+          speed={speed}
+          onTurnChange={handleTurnChange}
+          onPlayPause={handlePlayPause}
+          onStepBack={handleStepBack}
+          onStepForward={handleStepForward}
+          onSpeedChange={setSpeed}
+        />
+        <KeyLegend hints={legendHints} onShowAll={() => setHelpOpen(true)} />
+        {/* Off-screen aria-live region announces turn deltas to
+            screen readers without visual change. Only updates when
+            the turn index changes. */}
+        <div
+          aria-live="polite"
+          aria-atomic="true"
+          className={styles.srOnly}
+        >
+          {snapA && snapB
+            ? `Turn ${Math.max(snapA.turn, snapB.turn)}. ${leaderA?.name ?? 'A'} ${scenarioLabels.place}: ${snapA.cells.filter(c => c.alive).length} alive, ${snapA.births} born, ${snapA.deaths} died, morale ${Math.round(snapA.morale * 100)}%. ${leaderB?.name ?? 'B'} ${scenarioLabels.place}: ${snapB.cells.filter(c => c.alive).length} alive, ${snapB.births} born, ${snapB.deaths} died, morale ${Math.round(snapB.morale * 100)}%.`
+            : ''}
+        </div>
+        </div>
+        <GridHelpOverlay open={helpOpen} onClose={() => setHelpOpen(false)} />
+        <GridSettingsDrawer
+          open={settingsOpen}
+          settings={gridSettings}
+          onChange={setGridSettings}
+          onClose={() => setSettingsOpen(false)}
+        />
+        <RunSummaryDrawer
+          open={summaryOpen}
+          onClose={() => setSummaryOpen(false)}
+          snapsA={snapsA}
+          snapsB={snapsB}
+          actorNameA={leaderA?.name ?? 'Leader A'}
+          actorNameB={leaderB?.name ?? 'Leader B'}
+          forgeApprovedA={forgeFeeds.a.attempts.filter(x => x.approved).length}
+          forgeApprovedB={forgeFeeds.b.attempts.filter(x => x.approved).length}
+          reuseCountA={forgeFeeds.a.reuses.length}
+          reuseCountB={forgeFeeds.b.reuses.length}
+          divergedCount={
+            (divergenceData.aliveOnlyA?.size ?? 0) + (divergenceData.aliveOnlyB?.size ?? 0)
           }
+        />
+        <style>{`
           @keyframes paracosm-toast-in {
-            0% { opacity: 0; transform: translate(-50%, -8px); }
-            100% { opacity: 1; transform: translate(-50%, 0); }
+            0% { opacity: 0; transform: translateY(-8px); }
+            100% { opacity: 1; transform: translateY(0); }
           }
           @keyframes paracosm-jump-pulse {
             0%, 100% { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 0 0 rgba(232, 180, 74, 0.4); }

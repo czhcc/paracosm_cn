@@ -15,6 +15,7 @@ import {
   ObjectGenerationError,
 } from '@framers/agentos';
 import type { ZodType, z } from 'zod';
+import { fallbackProvidersFor } from '../engine/provider/credentials.js';
 
 export interface ValidatedObjectOptions<T extends ZodType> {
   provider: string;
@@ -32,8 +33,10 @@ export interface ValidatedObjectOptions<T extends ZodType> {
   maxTokens?: number;
   /** Explicit provider API key. When omitted, AgentOS uses env fallback. */
   apiKey?: string;
-  /** Ordered provider fallback chain. Defaults to disabled for explicit-key calls. */
+  /** Ordered provider fallback chain. Defaults to disabled for explicit-key calls and under `stayOnProvider`. */
   fallbackProviders?: Array<{ provider: string; model?: string }>;
+  /** Keep the call on `provider`: no fallback chain, also without an explicit key (the hosted demo's own calls). */
+  stayOnProvider?: boolean;
   onUsage?: (r: { usage?: { totalTokens?: number; promptTokens?: number; completionTokens?: number; costUSD?: number } }) => void;
   onProviderError?: (err: unknown) => void;
   /**
@@ -99,7 +102,7 @@ export async function generateValidatedObject<T extends ZodType>(
       maxRetries: opts.maxRetries,
       maxTokens: opts.maxTokens,
       apiKey: opts.apiKey,
-      fallbackProviders: opts.fallbackProviders ?? (opts.apiKey ? [] : undefined),
+      fallbackProviders: opts.fallbackProviders ?? fallbackProvidersFor(opts.apiKey, opts.stayOnProvider),
     });
     opts.onUsage?.({ usage: result.usage });
     return {

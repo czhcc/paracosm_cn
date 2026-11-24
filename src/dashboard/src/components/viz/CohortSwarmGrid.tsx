@@ -52,6 +52,13 @@ interface CohortSwarmGridProps {
   chronicleHover: { kind: 'birth' | 'death' | 'forge' | 'crisis'; side: 'a' | 'b'; turn: number } | null;
   startTime?: number;
   onOpenChat?: (colonistName: string) => void;
+  /** A class for the track, the grid's scroll window, beside its own. */
+  className?: string;
+  /**
+   * True in the Viz panel: each column's grid takes the panel's layout and
+   * its 15 px words. The Run tab's track leaves it off and keeps its own.
+   */
+  vizPanel?: boolean;
 }
 
 interface ForgeAttempt {
@@ -138,6 +145,7 @@ function buildForgeFeedFor(events: ProcessedEvent[]): { attempts: ForgeAttempt[]
  * blow away the canvas animation state.
  */
 interface CohortColumnProps {
+  vizPanel: boolean;
   actorIndex: number;
   actorId: string;
   state: GameState;
@@ -156,6 +164,7 @@ interface CohortColumnProps {
 
 function CohortColumn(props: CohortColumnProps) {
   const {
+    vizPanel,
     actorIndex,
     actorId,
     state,
@@ -172,11 +181,6 @@ function CohortColumn(props: CohortColumnProps) {
     onOpenChat,
   } = props;
 
-  // Replay (`?replay=<id>`) is cached playback; the reducer keeps
-  // `isRunning` true while replayed events stream, so treat replay as
-  // non-live and suppress the ambient wash on cached cohort playback.
-  const isReplaying = typeof window !== 'undefined'
-    && new URLSearchParams(window.location.search).has('replay');
   const ref = useRef<HTMLDivElement | null>(null);
   // Track whether the column has been visible at least once. Once true
   // we keep the LivingSwarmGrid mounted forever (canvas animation
@@ -257,8 +261,8 @@ function CohortColumn(props: CohortColumnProps) {
       <div className={styles.columnBody}>
         {hasBeenVisible ? (
           <LivingSwarmGrid
+            vizPanel={vizPanel}
             snapshot={snap}
-            isLiveRun={state.isRunning && !isReplaying}
             previousSnapshot={prevSnap}
             snapshotHistory={snaps}
             actorName={fallbackName}
@@ -308,11 +312,13 @@ export function CohortSwarmGrid({
   chronicleHover,
   startTime,
   onOpenChat,
+  className,
+  vizPanel = false,
 }: CohortSwarmGridProps) {
   const actorIds = state.actorIds;
   return (
     <div
-      className={styles.track}
+      className={[styles.track, className].filter(Boolean).join(' ')}
       role="region"
       aria-label={`Cohort swarm grid: ${actorIds.length} actors`}
     >
@@ -320,6 +326,7 @@ export function CohortSwarmGrid({
         {actorIds.map((actorId, idx) => (
           <CohortColumn
             key={actorId}
+            vizPanel={vizPanel}
             actorId={actorId}
             actorIndex={idx}
             state={state}

@@ -2,14 +2,17 @@ import { useMediaQuery, PHONE_QUERY } from './useMediaQuery.js';
 
 export type GridMode = 'living' | 'mood' | 'forge' | 'ecology' | 'divergence';
 
+/** The size of the words on the mode tabs and their counts: 15 px, the size nothing in the Viz rows goes under. */
+const READ_SIZE = 15;
+
 /** Hints are scenario-templated. `{people}` = plural population noun,
  *  `{person}` = singular, both lower-case. Resolved at render time. */
 const MODES: { key: GridMode; label: string; hint: string }[] = [
-  { key: 'living', label: "存活", hint: "完整场景、{person}标记、亲属连线及全部事件" },
-  { key: 'mood', label: "情绪", hint: "突出{Person}情绪云，显示出生、死亡与伴侣连线" },
-  { key: 'forge', label: "工具创建", hint: "弱化背景，突出工具创建尝试及跨部门复用弧线" },
-  { key: 'ecology', label: "生态", hint: "隐藏人员符号，突出指标及危机冲击波" },
-  { key: 'divergence', label: "分歧", hint: "仅显示此侧存活、另一侧已故的{people}" },
+  { key: 'living', label: '存活', hint: '显示全景、{person}标记及所有事件' },
+  { key: 'mood', label: '情绪', hint: '突出{Person}情绪云及出生和死亡' },
+  { key: 'forge', label: '工具创建', hint: '弱化背景，突出工具创建尝试及跨部门复用弧线' },
+  { key: 'ecology', label: '生态', hint: '隐藏人员符号，分别用四个象限显示食物、水、电力和容量' },
+  { key: 'divergence', label: '分歧', hint: '仅显示此侧存活、另一侧已故的{people}' },
 ];
 
 function interpolate(
@@ -58,6 +61,15 @@ export function GridModePills({
   // current mode + a tap target that opens the system picker — cleaner
   // and reclaims the row for actual viz content.
   if (isPhone) {
+    // The menu is never narrower than its chosen word: in the monospaced
+    // face each character takes 1ch and the 0.08em letter spacing. The
+    // padding, the edges and the arrow take 32 to 35 px more (measured in
+    // Chromium: "LIVING" needs 98 px, "DIVERGENCE · 60" 200 px), so 44 px
+    // leaves room to spare. It grows into the row's free space.
+    const chosen = MODES.find(m => m.key === mode);
+    const chosenCount = counts?.[mode];
+    const chosenWord = `${chosen?.label ?? ''}${typeof chosenCount === 'number' && chosenCount > 0 ? ` · ${chosenCount}` : ''}`;
+    const wordWidth = `calc(${chosenWord.length} * (1ch + 0.08em) + 44px)`;
     return (
       <select
         aria-label="网格可视化模式"
@@ -65,7 +77,9 @@ export function GridModePills({
         onChange={(e) => onChange(e.target.value as GridMode)}
         title={interpolate(MODES.find(m => m.key === mode)?.hint ?? '', labels)}
         style={{
-          width: '100%',
+          flex: '1 1 auto',
+          width: wordWidth,
+          minWidth: wordWidth,
           padding: '8px 10px',
           fontSize: 16,  // iOS Safari zoom-on-focus threshold
           fontFamily: 'var(--mono)',
@@ -136,7 +150,8 @@ export function GridModePills({
               // viewports rather than squishing pills into letter-stacks.
               flex: '1 0 auto',
               padding: '5px 8px',
-              fontSize: 'var(--font-3xs)',
+              // 15 px, the size nothing in the Viz rows goes under.
+              fontSize: READ_SIZE,
               fontFamily: 'var(--mono)',
               fontWeight: 800,
               letterSpacing: '0.1em',
@@ -168,7 +183,7 @@ export function GridModePills({
                   borderRadius: 2,
                   background: active ? 'rgba(10, 8, 6, 0.25)' : 'var(--bg-deep)',
                   color: active ? 'var(--bg-deep)' : 'var(--amber)',
-                  fontSize: 'var(--font-3xs)',
+                  fontSize: READ_SIZE,
                   fontWeight: 700,
                   letterSpacing: '0.05em',
                   minWidth: 14,

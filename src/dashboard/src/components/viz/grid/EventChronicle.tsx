@@ -1,5 +1,6 @@
 import { displayLabel } from '../../../template-localization';
 import { useMemo, useState, type CSSProperties } from 'react';
+import { OneRowScroller } from '../../shared/OneRowScroller';
 import styles from './EventChronicle.module.scss';
 
 interface ChronicleEvent {
@@ -8,6 +9,8 @@ interface ChronicleEvent {
   side: 'a' | 'b';
   label: string;
   toolName?: string;
+  /** The id of a forge mark's own forge_attempt frame, which names its attempt of the tool. */
+  eventId?: string;
 }
 
 type ChronicleFilter = 'all' | 'birth' | 'death' | 'forge' | 'crisis';
@@ -21,16 +24,21 @@ const FILTER_CHIPS: { key: ChronicleFilter; label: string }[] = [
 ];
 
 interface EventChronicleProps {
-  eventsA: Array<{ type: string; turn?: number; data?: Record<string, unknown> }>;
-  eventsB: Array<{ type: string; turn?: number; data?: Record<string, unknown> }>;
+  eventsA: Array<{ id?: string; type: string; turn?: number; data?: Record<string, unknown> }>;
+  eventsB: Array<{ id?: string; type: string; turn?: number; data?: Record<string, unknown> }>;
   currentTurn: number;
   onJumpToTurn: (turn: number) => void;
   /** Lifted hover turn so sister widgets (sparkline) can render a
    *  matching ghost cursor. 0-indexed to match currentTurn. */
   onHoverTurnChange?: (turn: number | null) => void;
   hoveredTurn?: number | null;
-  /** Fires when a forge dot is clicked. Parent opens the lineage modal. */
-  onForgeSelect?: (toolName: string, side: 'a' | 'b') => void;
+  /**
+   * Fires when a forge mark is pressed, with the id of its forge_attempt frame
+   * and the mark itself, to which focus returns. The parent opens that
+   * attempt's trace; when it answers false, having no trace to open, the mark
+   * moves the playhead to its turn as any other mark does.
+   */
+  onForgeSelect?: (toolName: string, side: 'a' | 'b', eventId?: string, opener?: HTMLElement) => boolean | void;
   /**
    * Optional controlled filter. When `filter` + `onFilterChange` are
    * provided, the parent owns the filter state and can propagate it to
@@ -116,8 +124,9 @@ export function EventChronicle({
             turn,
             kind: 'forge',
             side,
-            label: `T${turn}: ${approved ? '已生成' : '已拒绝'} ${name} (${side.toUpperCase()}) — 点击查看工具谱系`,
+            label: `T${turn}: ${approved ? '已生成' : '已拒绝'} ${name} (${side.toUpperCase()})`,
             toolName: name,
+            eventId: e.id,
           });
         } else if (e.type === 'event_start' || e.type === 'director_crisis') {
           const cat = typeof e.data?.category === 'string' ? e.data.category : '';
@@ -154,8 +163,10 @@ export function EventChronicle({
   );
   if (chronicle.length === 0) return null;
 
+  // One row at every width (OneRowScroller): wider than the window, it
+  // scrolls sideways with an edge fade and its Previous and Next keys.
   return (
-    <div aria-label="事件筛选" className={styles.bar}>
+    <OneRowScroller label="事件" className={styles.bar} rowClassName={styles.barRow} role="group" ariaLabel="事件筛选">
       <span className={styles.heading}>
 
         事件（{filtered.length}
@@ -201,11 +212,13 @@ export function EventChronicle({
                   onJumpToReports(ev.turn);
                   return;
                 }
-                if (ev.kind === 'forge' && ev.toolName && onForgeSelect) {
-                  onForgeSelect(ev.toolName, ev.side);
-                } else {
-                  onJumpToTurn(evTurn0);
+                if (
+                  ev.kind === 'forge' && ev.toolName && onForgeSelect
+                  && onForgeSelect(ev.toolName, ev.side, ev.eventId, e.currentTarget) !== false
+                ) {
+                  return;
                 }
+                onJumpToTurn(evTurn0);
               }}
               onMouseEnter={() => {
                 onHoverTurnChange?.(evTurn0);
@@ -233,6 +246,6 @@ export function EventChronicle({
           );
         })}
       </div>
-    </div>
+    </OneRowScroller>
   );
 }

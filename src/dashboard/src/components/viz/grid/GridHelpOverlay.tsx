@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { useLayoutEffect, useRef, type CSSProperties } from 'react';
 import { useMediaQuery, PHONE_QUERY } from './useMediaQuery.js';
 import { useScenarioLabels } from '../../../hooks/useScenarioLabels.js';
 import styles from './GridHelpOverlay.module.scss';
@@ -12,30 +12,61 @@ interface GridHelpOverlayProps {
  * Legend + keyboard shortcuts modal. Opens via `?`. Explains what the
  * colors/flares/rings mean so a first-time viewer isn't staring at
  * unlabeled blobs. Dismisses via Esc or backdrop click.
+ *
+ * As it opens, focus moves to its Close key and stays inside it, a click on
+ * its words included, so the Viz tab's own keys (the arrows scrub the turn)
+ * leave the panel behind it alone; as it closes, focus goes back to the key
+ * that opened it.
  */
 export function GridHelpOverlay({ open, onClose }: GridHelpOverlayProps) {
   const phone = useMediaQuery(PHONE_QUERY);
   const labels = useScenarioLabels();
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    closeRef.current?.focus({ preventScroll: true });
+    return () => {
+      if (opener && opener.isConnected) opener.focus({ preventScroll: true });
+    };
+  }, [open]);
+
   if (!open) return null;
 
   const dialogCls = [styles.dialog, phone ? styles.phone : ''].filter(Boolean).join(' ');
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="网格可视化帮助" onClick={onClose} className={styles.backdrop}>
-      <div onClick={e => e.stopPropagation()} className={dialogCls}>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="网格可视化帮助"
+      data-viz-help=""
+      onClick={onClose}
+      // The Close key is the overlay's one key, so Tab keeps focus on it.
+      onKeyDown={e => {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          closeRef.current?.focus({ preventScroll: true });
+        }
+      }}
+      className={styles.backdrop}
+    >
+      {/* Focusable, so a click on its words keeps focus inside the overlay. */}
+      <div tabIndex={-1} onClick={e => e.stopPropagation()} className={dialogCls}>
         <div className={styles.header}>
-          <h2 className={styles.title}>存活 {labels.Place}  网格 — 图例</h2>
-          <button type="button" onClick={onClose} aria-label="关闭帮助" className={styles.closeBtn}>
+          <h2 className={styles.title}>存活 {labels.Place} 网格 — 图例</h2>
+          <button ref={closeRef} type="button" onClick={onClose} aria-label="关闭帮助" className={styles.closeBtn}>
             ×
           </button>
         </div>
 
         <Section title="模式">
-          <Row k="存活" v={`Full chemistry + ${labels.person} 人员符号、亲属连线与事件光效`} />
-          <Row k="情绪" v={`Emphasizes ${labels.person} 标记与按情绪着色的云图`} />
-          <Row k="工具创建" v="弱化背景，突出工具创建尝试与复用弧线" />
-          <Row k="生态" v="隐藏人员符号，突出指标与危机光效" />
-          <Row k="分歧" v={`Only shows ${labels.people} 此侧存活、另一侧已故`} />
+          <Row k="存活" v={`显示完整场景、${labels.person}标记和事件光效`} />
+          <Row k="情绪" v={`突出${labels.person}标记和按情绪着色的云图`} />
+          <Row k="工具创建" v="弱化背景，突出工具生成及复用弧线" />
+          <Row k="生态" v="隐藏人员标记，以四个象限分别显示食物、水、电力和容量" />
+          <Row k="分歧" v={`仅显示此侧存活、另一侧已故的${labels.people}`} />
         </Section>
 
         <Section title="网格元素">
@@ -56,18 +87,13 @@ export function GridHelpOverlay({ open, onClose }: GridHelpOverlayProps) {
           <Row k={<Swatch color="rgba(196, 74, 30, 0.8)" />} v="红色圆环 — 危机冲击波（按类别）" />
         </Section>
 
-        <Section title="亲属连线">
-          <Row k="— 对应侧颜色的弧线" v="伴侣连线" />
-          <Row k="– 青色虚线" v="父母 → 子女连线" />
-        </Section>
-
         <Section title="键盘操作">
           <Row k="1 / 2 / 3 / 4 / 5" v="切换模式（存活／情绪／工具创建／生态／分歧）" />
-          <Row k="← / →" v="前一回合／后一回合" />
-          <Row k="空格" v="播放／暂停时间线" />
-          <Row k="?" v="打开／关闭此帮助" />
-          <Row k="Esc" v="关闭浮层／此帮助" />
-          <Row k="点击人员符号" v={`Open ${labels.person} 详情（HEXACO 雷达图、记忆与聊天）`} />
+          <Row k="← / →" v="返回上一回合／前往下一回合" />
+          <Row k="Space" v="播放／暂停时间线" />
+          <Row k="?" v="打开或关闭帮助" />
+          <Row k="Esc" v="关闭弹窗或帮助" />
+          <Row k="点击标记" v={`打开${labels.person}详情（HEXACO 雷达图、记忆、聊天）`} />
         </Section>
 
         <div className={styles.footer}>

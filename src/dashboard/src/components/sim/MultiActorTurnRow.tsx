@@ -85,7 +85,8 @@ export function MultiActorTurnRow({ turn, actorIds, eventsByActor, runTerminal, 
       className={styles.row}
       aria-labelledby={`turn-row-${turn}-h`}
     >
-      <h3 id={`turn-row-${turn}-h`} className={styles.header}>
+      {/* A forged tool's trace links to its event and moves focus here. */}
+      <h3 id={`turn-row-${turn}-h`} className={styles.header} tabIndex={-1}>
         <span className={styles.headerTurn}>T{turn}</span>
         {sharedTitle ? (
           <span className={styles.headerTitle}>{sharedTitle}</span>
@@ -171,6 +172,7 @@ export function MultiActorTurnRow({ turn, actorIds, eventsByActor, runTerminal, 
                     key={e.id}
                     event={e}
                     actorIndex={(idx % 2) as 0 | 1}
+                    actorSlot={idx}
                   />
                 ))
               )}
